@@ -468,7 +468,7 @@ func (a *Attribute) IsJSON() bool {
 }
 
 func (a *Attribute) IsMap() bool {
-	return a.GoType == model.TypeMapInterface || a.DBType == model.TypeMapString
+	return a.GoType == model.TypeMapInterface || a.GoType == model.TypeMapString
 }
 
 func (a *Attribute) Nullable() bool {

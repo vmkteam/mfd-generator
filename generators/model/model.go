@@ -171,9 +171,8 @@ func NewTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Optio
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
 
-	if !attribute.PrimaryKey && !attribute.IsArray && attribute.Nullable() && attribute.GoType[0] != '*' {
-		attribute.GoType = "*" + attribute.GoType
-	}
+	// fix pointer in case of inconsistency
+	attribute.GoType = fixPointer(attribute)
 
 	return TemplateColumn{
 		Attribute: attribute,
@@ -236,4 +235,22 @@ func tagName(options Options) string {
 		return "pg"
 	}
 	return "sql"
+}
+
+func fixPointer(attribute mfd.Attribute) string {
+	// basic
+	if !attribute.Nullable() || attribute.PrimaryKey {
+		return attribute.GoType
+	}
+
+	// type opts
+	if attribute.IsMap() || attribute.IsArray {
+		return attribute.GoType
+	}
+
+	if attribute.GoType[0] != '*' {
+		return "*" + attribute.GoType
+	}
+
+	return attribute.GoType
 }
