@@ -90,7 +90,8 @@ func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
 		{{range .ModelRelations}}
 		{{.Name}}:   New{{.Type}}(in.{{.Name}}{{if eq .Name "Status"}}ID{{end}}),{{end}}{{end}}
 	}
-	{{range .ModelColumns}}{{if .IsParams}}{{if not .NilCheck}}if {{$model.VarName}}{{.Name}} := New{{.ParamsName}}(&in.{{.Name}}); {{$model.VarName}}{{.Name}} != nil {
+	{{range .ModelColumns}}{{if .IsParams}}{{if not .NilCheck}}
+	if {{$model.VarName}}{{.Name}} := New{{.ParamsName}}(&in.{{.Name}}); {{$model.VarName}}{{.Name}} != nil {
 		{{$model.VarName}}.{{.Name}} = *{{$model.VarName}}{{.Name}}
 	}{{end}}{{end}}{{end}}
 
