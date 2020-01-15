@@ -131,6 +131,10 @@ func NewVTTemplateInput(tmpl mfd.TmplAttribute, entity mfd.Entity, isSearch bool
 		Params:    []template.HTML{},
 	}
 
+	if !isSearch {
+		inp.Component = filterComponent(tmpl.Form)
+	}
+
 	if mfd.IsStatus(tmpl.Name) {
 		inp.Component = "vt-status-select"
 
