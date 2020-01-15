@@ -20,7 +20,7 @@ var presetsTranslations = map[string]map[string]string{
 
 		"title":       "Название",
 		"description": "Описание",
-		"foreword":    "Краткое сожержание",
+		"foreword":    "Краткое содержание",
 		"content":     "Содержание",
 		"email":       "Email",
 		"login":       "Логин",
