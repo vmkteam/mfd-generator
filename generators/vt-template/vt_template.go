@@ -61,10 +61,6 @@ func NewVTTemplateEntity(entity mfd.Entity) VTTemplateEntity {
 		if i < MaxShortFilters {
 			tmpl.FilterColumns[i].IsShortFilter = true
 		}
-		// last short liter wil hold show all label
-		if i == MaxShortFilters-1 {
-			tmpl.FilterColumns[i].ShowShortFilterLabel = true
-		}
 
 		// status will override last short filter
 		if i >= MaxShortFilters && mfd.IsStatus(filter.JSName) {
