@@ -112,8 +112,14 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
+	if len(g.options.Namespaces) != 0 {
+		var filteredNameSpaces mfd.Namespaces
+		for _, ns := range g.options.Namespaces {
+			if p := project.Namespace(ns); p != nil {
+				filteredNameSpaces = append(filteredNameSpaces, p)
+			}
+		}
+		project.Namespaces = filteredNameSpaces
 	}
 
 	// generating model & converters for all namespaces
@@ -128,14 +134,12 @@ func (g *Generator) Generate() error {
 		return xerrors.Errorf("generate vt converter error: %w", err)
 	}
 
-	for _, ns := range g.options.Namespaces {
+	for _, ns := range project.Namespaces {
 		// generating each namespace in separate file
-		if p := project.Namespace(ns); p != nil {
-			// getting file name without dots
-			output := path.Join(g.options.Output, mfd.GoFileName(ns)+".go")
-			if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns), true); err != nil {
-				return xerrors.Errorf("generate service %s error: %w", ns, err)
-			}
+		// getting file name without dots
+		output := path.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
+		if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns.Name), true); err != nil {
+			return xerrors.Errorf("generate service %s error: %w", ns, err)
 		}
 	}
 

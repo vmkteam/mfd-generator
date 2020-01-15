@@ -105,18 +105,18 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
-	}
-
-	// generating factory for all namespaces
-	output := path.Join(g.options.Output, "src/services/api/factory.ts")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, factoryTemplate, g.FactoryPacker(), false); err != nil {
-		return xerrors.Errorf("generate vt model error: %w", err)
+	if len(g.options.Namespaces) != 0 {
+		var filteredNameSpaces mfd.Namespaces
+		for _, ns := range g.options.Namespaces {
+			if p := project.Namespace(ns); p != nil {
+				filteredNameSpaces = append(filteredNameSpaces, p)
+			}
+		}
+		project.Namespaces = filteredNameSpaces
 	}
 
 	// generating routes for all namespaces
-	output = path.Join(g.options.Output, "src/pages/Entity/routes.ts")
+	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
 	if _, err := mfd.PackAndSave(project.Namespaces, output, routesTemplate, g.FactoryPacker(), false); err != nil {
 		return xerrors.Errorf("generate vt model error: %w", err)
 	}

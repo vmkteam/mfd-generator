@@ -1,192 +1,5 @@
 package vttmpl
 
-const factoryTemplate = `/* eslint-disable */
-export interface IStatus {
-  alias: string | null,
-  id: number | null,
-  title: string | null
-}
-
-export class Status implements IStatus {
-  static entityName = "status";
-
-  alias = null;
-  id = null;
-  title = null;
-}
-
-export interface IViewOps {
-  page: number,
-  pageSize: number,
-  sortColumn: string,
-  sortDesc: boolean
-}
-
-export class ViewOps implements IViewOps {
-  static entityName = "viewOps";
-
-  page = 1;
-  pageSize = 25;
-  sortColumn = "";
-  sortDesc = false;
-}
-
-export interface IFieldError {
-  error: string | null,
-  field: string | null
-}
-
-export class FieldError implements IFieldError {
-  static entityName = "fieldError";
-
-  error = null;
-  field = null;
-}
-
-{{range $model := .Entities}}
-export interface I{{.Name}} { {{range .ModelColumns}}
-  {{.JSName}}: {{.JSType}} | null,{{end}}{{if .HasModelRelations}}
-  {{range .ModelRelations}}
-  {{.JSName}}: I{{.Type}} | null,{{end}}{{end}}	
-}
-
-export class {{.Name}} implements I{{.Name}} {
-  static entityName = "{{.JSName}}";
-  {{range .ModelColumns}}	
-  {{.JSName}} = null;{{end}}{{if .HasModelRelations}}
-  {{range .ModelRelations}}
-  {{.JSName}} = null;{{end}}{{end}}
-}
-
-export interface I{{.Name}}Search { {{range .SearchColumns}}
-  {{.JSName}}: {{.JSType}},{{end}}
-}
-
-export class {{.Name}}Search implements I{{.Name}}Search {
-  static entityName = "{{.JSName}}Search";
-  {{range .SearchColumns}}	
-  {{.JSName}} = {{.JSZero}};{{end}}
-}
-
-export interface I{{.Name}}Summary { {{range .SummaryColumns}}
-  {{.JSName}}: {{.JSType}} | null,{{end}}{{if .HasSummaryRelations}}
-  {{range .SummaryRelations}}
-  {{.JSName}}: I{{.Type}} | null,{{end}}{{end}}
-}
-
-export class {{.Name}}Summary implements I{{.Name}}Summary {
-  static entityName = "{{.JSName}}";
-  {{range .SummaryColumns}}
-  {{.JSName}} = null;{{end}}{{if .HasSummaryRelations}}
-  {{range .SummaryRelations}}
-  {{.JSName}} = null;{{end}}{{end}}
-}{{if .HasParams}}
-{{range .Params}}export interface I{{.Name}} {
-}
-
-export class {{.Name}} implements I{{.Name}} {
-  static entityName = "{{.JSName}}";
-}
-{{end}}{{end}}
-
-export interface I{{.Name}}AddParams {
-  {{.JSName}}?: I{{.Name}}
-}
-
-export interface I{{.Name}}CountParams {
-  search?: I{{.Name}}Search
-}
-
-export interface I{{.Name}}DeleteParams { {{range .PKs}} 
-  {{.JSName}}: {{.JSType}} | null {{end}}
-}
-
-export interface I{{.Name}}GetParams {
-  search?: I{{.Name}}Search,
-  viewOps?: IViewOps
-}
-
-export interface I{{.Name}}GetByIDParams { {{range .PKs}} 
-  {{.JSName}}: {{.JSType}} | null {{end}}
-}
-
-export interface I{{.Name}}UpdateParams {
-  {{.JSName}}?: I{{.Name}}
-}
-
-export interface I{{.Name}}ValidateParams {
-  {{.JSName}}?: I{{.Name}}
-}
-{{end}}
-
-export interface IAuthChangePasswordParams {
-  password: string | null
-}
-
-export interface IAuthLoginParams {
-  login: string | null,
-  password: string | null,
-  remember: boolean
-}
-
-export interface IAuthRpcErrorParams {
-  code: number | null
-}
-
-export const factory = (send: any) => ({
-  auth: {
-    changePassword(params: IAuthChangePasswordParams): Promise<string> {
-      return send('auth.ChangePassword', params)
-    },
-
-    login(params: IAuthLoginParams): Promise<string> {
-      return send('auth.Login', params)
-    },
-
-    logout(): Promise<boolean> {
-      return send('auth.Logout')
-    },
-
-    profile(): Promise{{raw "<IUser>"}} {
-      return send('auth.Profile')
-    },
-
-    rpcError(params: IAuthRpcErrorParams): Promise<void> {
-      return send('auth.RpcError', params)
-    }
-  },
-  {{range $model := .Entities}}	
-  {{.JSName}}: {
-    add(params: I{{.Name}}AddParams): Promise{{raw "<"}}I{{.Name}}> {
-      return send('{{.JSName}}.Add', params)
-    },
-
-    count(params: I{{.Name}}CountParams): Promise<number> {
-      return send('{{.JSName}}.Count', params)
-    },
-
-    delete(params: I{{.Name}}DeleteParams): Promise<boolean> {
-      return send('{{.JSName}}.Delete', params)
-    },
-
-    get(params: I{{.Name}}GetParams): Promise{{raw "<"}}Array{{raw "<"}}I{{.Name}}Summary>> {
-      return send('{{.JSName}}.Get', params)
-    },
-
-    getByID(params: I{{.Name}}GetByIDParams): Promise{{raw "<"}}I{{.Name}}> {
-      return send('{{.JSName}}.GetByID', params)
-    },
-
-    update(params: I{{.Name}}UpdateParams): Promise<boolean> {
-      return send('{{.JSName}}.Update', params)
-    },
-
-    validate(params: I{{.Name}}ValidateParams): Promise{{raw "<"}}Array{{raw "<"}}IFieldError>> {
-      return send('{{.JSName}}.Validate', params)
-    }
-  },{{end}}	
-});`
-
 const routesTemplate = `/* eslint-disable */
 export default [{{range $model := .Entities}}
   /* {{.Name}} */
@@ -231,7 +44,7 @@ const listTemplate = `<template>
               <v-flex>
                 <v-layout align-center>
                   <h2 class="ellipsed mr-1">
-                    {{ $t("[[.JSName]].list.[[.TitleField]]") }}
+                    {{ $t("[[.JSName]].list.title") }}
                   </h2>
                   <span
                     class="text--secondary subtitle-2"
@@ -269,7 +82,7 @@ const listTemplate = `<template>
               v-if="filtersIsOpen"
               :filters="store.filters"
               :active-filters="store.activeFilters"
-              @submit="submitFilters"
+              @submitFilters="submitFilters"
             />
           </v-flex>
         </v-layout>
@@ -305,9 +118,7 @@ const listTemplate = `<template>
                   <v-flex
                     xs12
                     mt-sm-4
-                    :class="
-` + "                      ` ${store.activeFilters.[[.TitleField]] ? 'sm12' : 'sm9'}`" + `
-                    "
+                    :class="` + "` ${store.activeFilters.[[.TitleField]] ? 'sm12' : 'sm9'}`" + `"
                   >
                     <vt-filters-chips
                       :entity="store.modelEntityName"
@@ -326,7 +137,7 @@ const listTemplate = `<template>
                 </v-layout>
               </v-card-title>
 
-              <!-- Table -->
+              [[raw "<!-- Table -->"]]
               <v-data-table
                 :headers="headers"
                 :items="store.list"
@@ -420,7 +231,7 @@ export default class List extends EntityList {
         text: this.$t("[[$.JSName]].list.headers.status"),
         value: "status"
       },
-	  {[[else]]
+      {[[else]]
         text: this.$t("[[$.JSName]].list.headers.[[.JSName]]"),
         value: "[[.JSName]]"[[if eq $i 0]],
         align: "left"[[end]]
@@ -442,7 +253,7 @@ const filterTemplate = `<template>
   <v-layout mb-2>
     <v-flex>
       <v-card>
-        <v-form @submit.prevent="$emit('submit')">
+        <v-form @submit.prevent="$emit('submitFilters')">
           <v-card-text class="pb-0">
             [[raw "<!-- generated part -->"]]
             [[range $i, $e := .FilterColumns]]<vt-form-field[[if not .IsShortFilter]]
@@ -519,7 +330,7 @@ const formTemplate = `<template>
             </v-btn>
             <v-hover v-if="$route.params.id" #default="{ hover }">
               <v-btn
-                :color="` + "`${hover ? 'error' : ''}`" + `"
+                :color="hover ? 'error' : ''"
                 @click.stop="onDelete"
                 icon
               >
