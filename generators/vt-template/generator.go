@@ -155,6 +155,11 @@ func (g *Generator) Generate() error {
 		}
 	}
 
+	translations, err := mfd.LoadTranslations(g.options.MFDPath, []string{mfd.RuLang, mfd.EnLang})
+	if err != nil {
+		return xerrors.Errorf("read translation error: %w", err)
+	}
+
 	for _, namespace := range project.Namespaces {
 		for _, entity := range namespace.Entities {
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
@@ -171,19 +176,14 @@ func (g *Generator) Generate() error {
 			if err := SaveEntity(*entity, output, formTmpl); err != nil {
 				return xerrors.Errorf("generate entity %s form  error: %w", entity.Name, err)
 			}
-		}
-	}
 
-	// saving translation
-	for _, lang := range []string{mfd.RuLang, mfd.EnLang} {
-		translation, err := mfd.LoadTranslation(g.options.MFDPath, lang)
-		if err != nil {
-			return xerrors.Errorf("read translation lang %s error: %w", lang, err)
-		}
-
-		output := path.Join(g.options.Output, "src/locales", lang+".json")
-		if err := mfd.MarshalJSONToFile(output, translation.JSON()); err != nil {
-			return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+			// saving translations
+			for lang, translation := range translations {
+				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
+				if err := mfd.MarshalJSONToFile(output, translation.Entity(namespace.Name, entity.Name)); err != nil {
+					return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+				}
+			}
 		}
 	}
 

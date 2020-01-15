@@ -194,8 +194,8 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	// saving translation
-	for _, lang := range []string{mfd.RuLang, mfd.EnLang} {
-		translation, err := mfd.LoadTranslation(g.options.Output, lang)
+	translations, err := mfd.LoadTranslations(g.options.Output, []string{mfd.RuLang, mfd.EnLang})
+	for lang, translation := range translations {
 		if err != nil {
 			return xerrors.Errorf("read translation lang %s error: %w", lang, err)
 		}
