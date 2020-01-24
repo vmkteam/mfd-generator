@@ -25,7 +25,7 @@ var presetsTranslations = map[string]map[string]string{
 		"email":       "Email",
 		"login":       "Логин",
 		"password":    "Пароль",
-		"alias":       "Алиас",
+		"alias":       "Системное имя",
 		"status":      "Статус",
 		"statusId":    "Статус",
 
