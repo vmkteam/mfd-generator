@@ -20,7 +20,8 @@ func raw(str string) template.HTML {
 }
 
 var TemplateFunctions = template.FuncMap{
-	"raw": raw,
+	"raw":     raw,
+	"ToLower": strings.ToLower,
 }
 
 type Packer func(Namespaces) (interface{}, error)
@@ -215,7 +216,7 @@ func SaveTranslation(translation Translation, project, language string) error {
 	return MarshalToFile(filename, translation)
 }
 
-func MarshalJSONToFile(filename string, v interface{}) error {
+func MarshalJSONToFile(filename string, v TranslationEntity) error {
 	bytes, err := json.MarshalIndent(v, "", "    ")
 	if err != nil {
 		return xerrors.Errorf("marshal data error: %w", err)

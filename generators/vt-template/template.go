@@ -121,7 +121,7 @@ const listTemplate = `<template>
                     :class="` + "` ${store.activeFilters.[[.TitleField]] ? 'sm12' : 'sm9'}`" + `"
                   >
                     <vt-filters-chips
-                      :entity="store.modelEntityName"
+                      entity="[[.JSName]]"
                       :filters="store.activeFilters"
                       @reset:filters="resetFiltersKey"
                     />
@@ -157,7 +157,7 @@ const listTemplate = `<template>
                     smAndDown: $vuetify.breakpoint.smAndDown
                   }
                 ]"
-                :show-select="store.list.length > 0"
+                :show-select="false"
                 :loading="store.isLoading"
                 fixed-header
               >[[range .ListColumns]][[if eq .JSName "statusId"]]
@@ -166,12 +166,13 @@ const listTemplate = `<template>
                     <vt-status-badge v-model="item.status" small />
                   </span>
                 </template>[[else]]
-                [[raw "<"]]template #item.[[.JSName]]="{ item }">[[if .EditLink]]
+                [[raw "<"]]template #item.[[.JSName]]="{ item }">[[if .IsBool]]
+				  <vt-boolean-badge :value="item.[[.JSName]]" small />[[else]][[if .EditLink]]
                   <router-link
                     :to="{ name: '[[$.JSName]]Edit', params: { [[range $.PKs]]id: item.[[.JSName]][[end]] } }"
                     class="font-weight-medium"
                   >[[end]]
-                  {{ item.[[.JSName]][[if .HasPipe]] | [[.Pipe]][[end]] }}[[if .EditLink]]
+                  {{ item.[[.JSName]][[if .HasPipe]] | [[.Pipe]][[end]] }}[[end]][[if .EditLink]]
                   </router-link>[[end]]
                 </template>[[end]][[end]]
                 <template #item.[[range $.PKs]][[.JSName]]="{ item }"[[end]]>
@@ -191,7 +192,7 @@ const listTemplate = `<template>
                         dark
                         icon
                         :color="hover ? 'red' : 'grey'"
-                        @click="deleteItem(item)"
+                        @click="deleteItem(item, '[[.TitleField]]')"
                       >
                         <v-icon small>delete</v-icon>
                       </v-btn>
@@ -260,7 +261,7 @@ const filterTemplate = `<template>
               v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
               component="[[.Component]]" 
               :label="$t('[[$.JSName]].list.filter.[[.JSName]]')"[[if .IsFK]]
-              entity="[[.FKJSName]]"
+              entity="[[ .FKJSName | ToLower ]]"
               searchBy="[[.FKJSSearch]]"
 			  async[[end]]
               placeholder=""
@@ -331,21 +332,12 @@ const formTemplate = `<template>
             <v-hover v-if="$route.params.id" #default="{ hover }">
               <v-btn
                 :color="hover ? 'error' : ''"
-                @click.stop="onDelete"
+                @click.stop="onDelete('[[.TitleField]]')"
                 icon
               >
                 <v-icon>delete</v-icon>
               </v-btn>
             </v-hover>
-            <v-btn
-              v-if="$route.params.id"
-              href="/"
-              target="_blank"
-              color="light-green darken-1"
-              icon
-            >
-              <v-icon>open_in_new</v-icon>
-            </v-btn>
           </v-flex>
         </v-layout>
         <v-card v-if="store.model">
@@ -364,13 +356,14 @@ const formTemplate = `<template>
               <v-tabs-items v-model="tab">
                 <v-tab-item eager>
                   [[raw "<!--  generated part -->"]]
-				  [[range .FormColumns]][[if .IsCheckBox]][[raw "<vt-form-field>"]]
+				  [[range .FormColumns]][[if .IsCheckBox]]<vt-form-field v-model="store.model.[[.JSName]]">
 					<template #component-slot>
 					  [[raw "<v-checkbox"]]
 					    v-model="store.model.[[.JSName]]"
 						[[raw ":error-messages="]]"$t(i18nFieldError(store.errors.[[.JSName]]))"
                     	:disabled="store.isLoading"
-						:label="$t('[[$.JSName]].form.[[.JSName]]Label')" 
+						:label="$t('[[$.JSName]].form.[[.JSName]]Label')"
+						color="primary"
 					  />
 					</template>
                   </vt-form-field>
@@ -378,13 +371,14 @@ const formTemplate = `<template>
                     component="[[.Component]]"
                     :label="$t('[[$.JSName]].form.[[if eq .JSName "statusId"]]status[[else]][[.JSName]][[end]]Label')"
                     v-model="store.model.[[.JSName]]"[[if .IsFK]]
-					entity="[[.FKJSName]]"
+					entity="[[ .FKJSName | ToLower ]]"
 					searchBy="[[.FKJSSearch]]"
 					prefetch[[end]]
                     :error-messages="$t(i18nFieldError(store.errors.[[.JSName]]))"
                     :disabled="store.isLoading"
                     placeholder=""[[if .Required]]
-					required[[else]]clearable[[end]][[range .Params]]
+					required[[else]]
+					clearable[[end]][[range .Params]]
                     [[.]][[end]]
                   />
 				  [[end]][[end]]
