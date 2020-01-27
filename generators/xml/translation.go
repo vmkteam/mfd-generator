@@ -23,7 +23,7 @@ func Translate(p *mfd.Project, language string) mfd.Translation {
 				Form: mfd.XMLMap{},
 				List: mfd.TranslationList{
 					Title:   mfd.Translate(language, mfd.MakePlural(key)),
-					Filter:  mfd.XMLMap{},
+					Filter:  mfd.XMLMap{"quickFilterPlaceholder": ""},
 					Headers: mfd.XMLMap{},
 				},
 				Crumbs: map[string]string{
@@ -35,10 +35,6 @@ func Translate(p *mfd.Project, language string) mfd.Translation {
 
 			for _, a := range e.VTEntity.TmplAttributes {
 				key := mfd.VarName(a.Name)
-				// override statusId
-				if mfd.IsStatus(key) {
-					key = "status"
-				}
 
 				trs := mfd.Translate(language, key)
 
@@ -51,6 +47,10 @@ func Translate(p *mfd.Project, language string) mfd.Translation {
 				}
 
 				if a.List {
+					// override statusId key because headers for summary, and summary have Status object
+					if mfd.IsStatus(key) {
+						key = "status"
+					}
 					te.List.Headers[key] = trs
 				}
 			}

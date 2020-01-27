@@ -1,6 +1,7 @@
 package mfd
 
 import (
+	"encoding/json"
 	"encoding/xml"
 )
 
@@ -72,12 +73,24 @@ func (n *TranslationNamespace) Merge(namespace TranslationNamespace) {
 }
 
 type TranslationEntity struct {
-	XMLName xml.Name        `xml:"Entity" json:"-"`
-	Name    string          `xml:"Name,attr" json:"-"`
-	Key     string          `xml:"Key,attr" json:"-"`
-	Crumbs  XMLMap          `xml:"Crumbs" json:"crumbs"`
-	Form    XMLMap          `xml:"Form" json:"form"`
-	List    TranslationList `xml:"List" json:"list"`
+	XMLName xml.Name        `xml:"Entity"`
+	Name    string          `xml:"Name,attr"`
+	Key     string          `xml:"Key,attr"`
+	Crumbs  XMLMap          `xml:"Crumbs"`
+	Form    XMLMap          `xml:"Form"`
+	List    TranslationList `xml:"List"`
+}
+
+func (e TranslationEntity) MarshalJSON() ([]byte, error) {
+	jsM := map[string]interface{}{
+		"breadcrumbs": e.Crumbs,
+		e.Key: map[string]interface{}{
+			"form": e.Form,
+			"list": e.List,
+		},
+	}
+
+	return json.Marshal(jsM)
 }
 
 func (e *TranslationEntity) Merge(entity TranslationEntity) {

@@ -458,6 +458,10 @@ func (a *Attribute) IsString() bool {
 	return a.DBType == model.TypePGText || a.DBType == model.TypePGVarchar
 }
 
+func (a *Attribute) IsBool() bool {
+	return a.DBType == model.TypePGBool
+}
+
 func (a *Attribute) IsDateTime() bool {
 	return a.DBType == model.TypePGTimestamp || a.DBType == model.TypePGTimestamptz ||
 		a.DBType == model.TypePGTime || a.DBType == model.TypePGTimetz || a.DBType == model.TypePGDate

@@ -2,9 +2,10 @@ package vttmpl
 
 import (
 	"fmt"
-	"github.com/vmkteam/mfd-generator/mfd"
 	"html/template"
 	"strings"
+
+	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 const MaxShortFilters = 3
@@ -79,6 +80,7 @@ type VTTemplateColumn struct {
 	JSName string
 
 	EditLink bool
+	IsBool   bool
 
 	HasPipe bool
 	Pipe    template.HTML
@@ -86,6 +88,7 @@ type VTTemplateColumn struct {
 
 func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateColumn {
 	lowerName := strings.ToLower(tmpl.Name)
+	boolType := false
 
 	pipe := ""
 	if vtAttr := entity.VTEntity.Attribute(tmpl.AttrName); vtAttr != nil {
@@ -96,12 +99,16 @@ func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateCo
 			if attr.ForeignKey != "" {
 				pipe = fmt.Sprintf(`getField("%s")`, mfd.VarName(tmpl.FKOpts))
 			}
+			if attr.IsBool() || tmpl.Search == mfd.TypeHTMLCheckbox {
+				boolType = true
+			}
 		}
 	}
 
 	return VTTemplateColumn{
 		JSName:   mfd.VarName(tmpl.Name),
 		EditLink: lowerName == "title" || lowerName == "name",
+		IsBool:   tmpl.List && boolType,
 		HasPipe:  pipe != "",
 		Pipe:     template.HTML(pipe),
 	}
