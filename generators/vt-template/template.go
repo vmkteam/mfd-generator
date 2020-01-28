@@ -385,7 +385,7 @@ const formTemplate = `<template>
                   </vt-form-field>
 				  [[else]][[raw "<vt-form-field"]]
                     component="[[.Component]]"
-                    :label="$t('[[$.JSName]].form.[[if eq .JSName "statusId"]]status[[else]][[.JSName]][[end]]Label')"
+                    :label="$t('[[$.JSName]].form.[[.JSName]]Label')"
                     v-model="store.model.[[.JSName]]"[[if .IsFK]]
 					entity="[[ .FKJSName | ToLower ]]"
 					searchBy="[[.FKJSSearch]]"

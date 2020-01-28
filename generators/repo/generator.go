@@ -1,11 +1,11 @@
 package repo
 
 import (
-	"github.com/vmkteam/mfd-generator/mfd"
 	"path"
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
+	"github.com/vmkteam/mfd-generator/mfd"
 	"golang.org/x/xerrors"
 )
 
