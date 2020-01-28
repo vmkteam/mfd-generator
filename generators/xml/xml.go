@@ -1,6 +1,8 @@
 package xml
 
 import (
+	"strings"
+
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -306,6 +308,12 @@ func listScore(attr *mfd.TmplAttribute) int {
 }
 
 func inputType(attribute mfd.Attribute, forSearch bool) string {
+	if attribute.ForeignKey == mfd.VfsFile {
+		if strings.Contains(strings.ToLower(attribute.Name), "image") {
+			return mfd.TypeHTMLImage
+		}
+		return mfd.TypeHTMLFile
+	}
 	if attribute.IsArray && attribute.ForeignKey != "" && !forSearch {
 		return mfd.TypeHTMLSelect
 	}

@@ -79,8 +79,9 @@ func NewVTTemplateEntity(entity mfd.Entity) VTTemplateEntity {
 type VTTemplateColumn struct {
 	JSName string
 
-	EditLink bool
-	IsBool   bool
+	EditLink   bool
+	IsBool     bool
+	IsSortable bool
 
 	HasPipe bool
 	Pipe    template.HTML
@@ -89,6 +90,7 @@ type VTTemplateColumn struct {
 func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateColumn {
 	lowerName := strings.ToLower(tmpl.Name)
 	boolType := false
+	isSortable := true
 
 	pipe := ""
 	if vtAttr := entity.VTEntity.Attribute(tmpl.AttrName); vtAttr != nil {
@@ -98,19 +100,22 @@ func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateCo
 			}
 			if attr.ForeignKey != "" {
 				pipe = fmt.Sprintf(`getField("%s")`, mfd.VarName(tmpl.FKOpts))
+				isSortable = false
 			}
 			if attr.IsBool() || tmpl.Search == mfd.TypeHTMLCheckbox {
 				boolType = true
+				isSortable = false
 			}
 		}
 	}
 
 	return VTTemplateColumn{
-		JSName:   mfd.VarName(tmpl.Name),
-		EditLink: lowerName == "title" || lowerName == "name",
-		IsBool:   tmpl.List && boolType,
-		HasPipe:  pipe != "",
-		Pipe:     template.HTML(pipe),
+		JSName:     mfd.VarName(tmpl.Name),
+		EditLink:   lowerName == "title" || lowerName == "name",
+		IsBool:     tmpl.List && boolType,
+		IsSortable: isSortable,
+		HasPipe:    pipe != "",
+		Pipe:       template.HTML(pipe),
 	}
 }
 
@@ -162,10 +167,27 @@ func NewVTTemplateInput(tmpl mfd.TmplAttribute, entity mfd.Entity, isSearch bool
 		inp.IsCheckBox = true
 	}
 
+	if strings.ToLower(tmpl.Name) == "alias" {
+		inp.Component = "vt-transliterator"
+
+		var trasliteratingValue template.HTML
+		if title := entity.TitleVTAttribute(); title != nil {
+			trasliteratingValue = template.HTML(mfd.VarName(title.Name))
+		}
+		inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
+	}
+
 	if vtAttr := entity.VTEntity.Attribute(tmpl.AttrName); vtAttr != nil {
 		inp.Required = vtAttr.Required
 
-		if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil && attr.ForeignKey != "" {
+		if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil && attr.ForeignKey == mfd.VfsFile {
+			inp.Component = filterComponent(tmpl.Form)
+			inp.IsFK = false
+			inp.FKJSName = mfd.VarName(mfd.FKName(tmpl.AttrName))
+			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
+			inp.Params = append(inp.Params, `:file="store.model.`+template.HTML(inp.FKJSName)+`"
+                    @input:file="file => store.model.`+template.HTML(inp.FKJSName)+` = file"`)
+		} else if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil && attr.ForeignKey != "" {
 			inp.Component = "vt-entity-autocomplete"
 			inp.IsFK = true
 			inp.FKJSName = mfd.VarName(attr.ForeignEntity.Name)
@@ -196,7 +218,9 @@ func filterComponent(input string) string {
 	case mfd.TypeHTMLDate:
 		return "vt-date-picker"
 	case mfd.TypeHTMLFile:
-		return "vt-file-input"
+		return "vt-vfs-file-input"
+	case mfd.TypeHTMLImage:
+		return "vt-vfs-image-input"
 	}
 
 	return "v-text-field"

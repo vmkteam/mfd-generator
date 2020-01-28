@@ -16,6 +16,11 @@ const (
 	NullableEmpty = "CheckEmpty"
 )
 
+// vfsFile entity name
+const (
+	VfsFile = "VfsFile"
+)
+
 // TODO Refactor
 // search types
 const (
