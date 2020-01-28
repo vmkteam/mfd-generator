@@ -3,6 +3,7 @@ package vt
 import (
 	"html/template"
 
+	"github.com/dizzyfool/genna/util"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	base "github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -74,8 +75,8 @@ func NewServiceTemplateEntity(entity mfd.Entity) ServiceTemplateEntity {
 			sortColumns = append(sortColumns, attr.Name)
 		}
 
-		if attr != nil && attr.ForeignKey != "" {
-			relations = append(relations, NewServiceTemplateRelation(*vtAttr, *attr))
+		if attr != nil && attr.ForeignKey != "" && attr.ForeignEntity != nil {
+			relations = append(relations, NewServiceTemplateRelation(*vtAttr, *attr, *attr.ForeignEntity))
 		}
 	}
 
@@ -124,19 +125,25 @@ func NewServiceTemplateEntity(entity mfd.Entity) ServiceTemplateEntity {
 }
 
 type ServiceTemplateRelation struct {
-	Name     string
-	FK       string
-	JSONName string
-	Nullable bool
+	Name      string
+	NameSpace string
+	FK        string
+	PluralFK  string
+	JSONName  string
+	Nullable  bool
+	IsArray   bool
 }
 
-func NewServiceTemplateRelation(vtAttr mfd.VTAttribute, attr mfd.Attribute) ServiceTemplateRelation {
+func NewServiceTemplateRelation(vtAttr mfd.VTAttribute, attr mfd.Attribute, entity mfd.Entity) ServiceTemplateRelation {
 	baseRelation := model.NewTemplateRelation(attr, model.Options{})
 
 	return ServiceTemplateRelation{
-		Name:     attr.Name,
-		JSONName: mfd.JSONName(vtAttr.Name),
-		FK:       baseRelation.ForeignEntity.Name,
-		Nullable: attr.Nullable(),
+		Name:      attr.Name,
+		JSONName:  mfd.JSONName(vtAttr.Name),
+		FK:        baseRelation.ForeignEntity.Name,
+		PluralFK:  mfd.MakePlural(util.CamelCased(baseRelation.ForeignEntity.Name)),
+		NameSpace: entity.Namespace,
+		Nullable:  attr.Nullable(),
+		IsArray:   attr.IsArray,
 	}
 }

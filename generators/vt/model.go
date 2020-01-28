@@ -196,6 +196,10 @@ func NewModelColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribut
 	if vtAttr.Required {
 		tags.AddTag("validate", "required")
 	}
+	if attr.Nullable() && (vtAttr.Validate != "" || vtAttr.MaxValue != 0 || vtAttr.MinValue != 0) {
+		tags.AddTag("validate", "omitempty")
+	}
+
 	if vtAttr.Validate != "" {
 		tags.AddTag("validate", vtAttr.Validate)
 	}
@@ -290,12 +294,6 @@ func NewSearchColumn(entity mfd.Entity, vtAttr mfd.VTAttribute) TemplateColumn {
 
 	tags := util.NewAnnotation()
 	tags.AddTag("json", mfd.JSONName(vtAttr.Name))
-	if vtAttr.Validate != "" {
-		tags.AddTag("validate", vtAttr.Validate)
-	}
-	if vtAttr.MaxValue != 0 {
-		tags.AddTag("validate", fmt.Sprintf("max=%d", vtAttr.MaxValue))
-	}
 
 	column := TemplateColumn{
 		VTAttribute: vtAttr,

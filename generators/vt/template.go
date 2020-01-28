@@ -1,11 +1,12 @@
 package vt
 
-const modelTemplate = `package {{.Package}}
+const modelTemplate = `//nolint:dupl
+package {{.Package}}
 
 import ({{if .HasImports}}{{range .Imports}}
     "{{.}}"{{end}}
 {{end}}
-	db "{{.ModelPackage}}"
+	"{{.ModelPackage}}"
 )
 {{range $model := .Entities}}
 type {{.Name}} struct { {{range .ModelColumns}}
@@ -56,8 +57,8 @@ func ({{.ShortVarName}}s *{{.Name}}Search) ToDB() *db.{{.Name}}Search {
 	}
 }
 
-type {{.Name}}Summary struct { {{range .SummaryColumns}}
-	{{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{if .HasSummaryRelations}}
+type {{.Name}}Summary struct { {{range .SummaryColumns}}{{if ne .Name "StatusID"}}
+	{{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{end}}{{if .HasSummaryRelations}}
 	{{range .SummaryRelations}}
 	{{.Name}} *{{.Type}}{{if ne .Name "Status"}}Summary{{end}} {{.Tag}}{{end}}{{end}}
 }{{if .HasParams}}{{range .Params}}
@@ -74,7 +75,7 @@ func ({{.ShortVarName}} *{{.Name}}) ToDB() *db.{{.FieldName}} {
 const converterTemplate = `package {{.Package}}
 
 import (
-	db "{{.ModelPackage}}"
+	"{{.ModelPackage}}"
 )
 {{range $model := .Entities}}
 func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
@@ -105,9 +106,9 @@ func New{{.Name}}Summary(in *db.{{.Name}}) *{{.Name}}Summary {
 		{{.FromDBFunc}}
 	{{end}}{{end}}
 
-	return &{{.Name}}Summary{ {{range .SummaryColumns}}{{if .IsParams}}
+	return &{{.Name}}Summary{ {{range .SummaryColumns}}{{if ne .Name "StatusID"}}{{if .IsParams}}
 		{{.Name}}: New{{.ParamsName}}(in.{{.Name}}),{{else}}
-		{{.Name}}: {{if ne .FromDBName ""}}{{.FromDBName}},{{else}}in.{{.Name}},{{end}}{{end}}{{end}}{{if .HasSummaryRelations}}
+		{{.Name}}: {{if ne .FromDBName ""}}{{.FromDBName}},{{else}}in.{{.Name}},{{end}}{{end}}{{end}}{{end}}{{if .HasSummaryRelations}}
 		{{range .SummaryRelations}}
 		{{.Name}}:   New{{.Type}}{{if ne .Name "Status"}}Summary{{end}}(in.{{.Name}}{{if eq .Name "Status"}}ID{{end}}),{{end}}{{end}}
 	}
@@ -125,8 +126,8 @@ const serviceTemplate = `package {{.Package}}
 import (
 	"context"
 
-	"apisrv/embedlog"
-	db "{{.ModelPackage}}"
+	"apisrv/pkg/embedlog"
+	"{{.ModelPackage}}"
 
 	"github.com/semrush/zenrpc"
 )
@@ -315,16 +316,24 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} *{{.Name}}, 
 	{{end}}
 
 	{{if .HasRelations}}
-	// check fks{{range .Relations}}
+	// check fks{{range .Relations}}{{if .IsArray}}
+		if len({{$model.VarName}}.{{.Name}}) != 0 {
+		items, err := s.{{.NameSpace}}Repo.{{.PluralFK}}ByFilters(ctx, &db.{{.FK}}Search{IDs:{{$model.VarName}}.{{.Name}}},db.PagerNoLimit)
+		if err != nil {
+			v.SetInternalError(err)
+		} else if len(items) != len({{$model.VarName}}.{{.Name}}) {
+			v.Append("{{.JSONName}}", FieldErrorIncorrect)
+		}
+	}{{else}}
 	if {{$model.VarName}}.{{.Name}} != {{if .Nullable}}nil{{else}}0{{end}} {
-		item, err := s.{{$.VarName}}Repo.{{.FK}}ByID(ctx, {{if .Nullable}}*{{end}}{{$model.VarName}}.{{.Name}})
+		item, err := s.{{.NameSpace}}Repo.{{.FK}}ByID(ctx, {{if .Nullable}}*{{end}}{{$model.VarName}}.{{.Name}})
 		if err != nil {
 			v.SetInternalError(err)
 		} else if item == nil {
 			v.Append("{{.JSONName}}", FieldErrorIncorrect)
 		}
 	}
-	{{end}}{{end}}
+	{{end}}{{end}}{{end}}
 	//custom validation starts here
 	return v
 }
