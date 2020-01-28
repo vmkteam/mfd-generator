@@ -230,12 +230,14 @@ export default class List extends EntityList {
   get headers() {
     return [{[[range $i, $e := .ListColumns]][[if eq .JSName "statusId"]]
         text: this.$t("[[$.JSName]].list.headers.status"),
-        value: "status"
+        value: "status",
+		sortable: false
       },
       {[[else]]
         text: this.$t("[[$.JSName]].list.headers.[[.JSName]]"),
         value: "[[.JSName]]"[[if eq $i 0]],
-        align: "left"[[end]]
+        align: "left"[[end]][[if not .IsSortable]],
+		sortable: false[[end]]
       },
       {[[end]][[end]]
         text: this.$t("[[$.JSName]].list.headers.actions"),
@@ -257,7 +259,21 @@ const filterTemplate = `<template>
         <v-form @submit.prevent="$emit('submitFilters')">
           <v-card-text class="pb-0">
             [[raw "<!-- generated part -->"]]
-            [[range $i, $e := .FilterColumns]]<vt-form-field[[if not .IsShortFilter]]
+            [[range $i, $e := .FilterColumns]][[if .IsCheckBox]]<vt-form-field[[if not .IsShortFilter]]
+              v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
+            v-model="filters.[[.JSName]]">
+			<template #component-slot>
+			[[raw "<v-checkbox"]]
+			:label="$t('[[$.JSName]].list.filter.[[.JSName]]')"
+            placeholder=""
+			v-model="filters.[[.JSName]]"
+            class="mb-2"
+            hide-details
+			clearable
+			color="primary"
+			/>
+			</template>
+			</vt-form-field>[[else]]<vt-form-field[[if not .IsShortFilter]]
               v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
               component="[[.Component]]" 
               :label="$t('[[$.JSName]].list.filter.[[.JSName]]')"[[if .IsFK]]
@@ -280,7 +296,7 @@ const filterTemplate = `<template>
                 </v-flex>
               </v-layout>
             </vt-form-field>[[else]]
-            />[[end]]
+            />[[end]][[end]]
             [[end]][[raw "<!-- generated part end -->"]]
           </v-card-text>
           <v-card-actions class="pa-4 pt-0">

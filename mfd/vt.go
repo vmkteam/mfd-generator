@@ -14,6 +14,7 @@ const (
 	TypeHTMLTime     = "HTML_TIME"
 	TypeHTMLSelect   = "HTML_SELECT"
 	TypeHTMLFile     = "HTML_FILE"
+	TypeHTMLImage    = "HTML_IMAGE"
 )
 
 // VTNamespace is xml element
