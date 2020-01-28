@@ -9,7 +9,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 )
 
@@ -21,28 +20,20 @@ const (
 )
 
 // CreateCommand creates generator command
-func CreateCommand(logger *zap.Logger) *cobra.Command {
-	return base.CreateCommand("model", "Create model from xml", New(logger))
+func CreateCommand() *cobra.Command {
+	return base.CreateCommand("model", "Create model from xml", New())
 }
 
 // Generator represents mfd generator
 type Generator struct {
-	logger  *zap.Logger
 	options Options
 
 	printNamespaces bool
 }
 
 // New creates basic generator
-func New(logger *zap.Logger) *Generator {
-	return &Generator{
-		logger: logger,
-	}
-}
-
-// Logger gets logger
-func (g *Generator) Logger() *zap.Logger {
-	return g.logger
+func New() *Generator {
+	return &Generator{}
 }
 
 // AddFlags adds flags to command

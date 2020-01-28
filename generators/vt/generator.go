@@ -10,7 +10,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 )
 
@@ -22,26 +21,18 @@ const (
 )
 
 // CreateCommand creates generator command
-func CreateCommand(logger *zap.Logger) *cobra.Command {
-	return base.CreateCommand("vt", "Create vt from xml", New(logger))
+func CreateCommand() *cobra.Command {
+	return base.CreateCommand("vt", "Create vt from xml", New())
 }
 
 // Generator represents mfd generator
 type Generator struct {
-	logger  *zap.Logger
 	options Options
 }
 
 // New creates basic generator
-func New(logger *zap.Logger) *Generator {
-	return &Generator{
-		logger: logger,
-	}
-}
-
-// Logger gets logger
-func (g *Generator) Logger() *zap.Logger {
-	return g.logger
+func New() *Generator {
+	return &Generator{}
 }
 
 // AddFlags adds flags to command
@@ -121,8 +112,14 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
+	if len(g.options.Namespaces) != 0 {
+		var filteredNameSpaces mfd.Namespaces
+		for _, ns := range g.options.Namespaces {
+			if p := project.Namespace(ns); p != nil {
+				filteredNameSpaces = append(filteredNameSpaces, p)
+			}
+		}
+		project.Namespaces = filteredNameSpaces
 	}
 
 	// generating model & converters for all namespaces
@@ -137,14 +134,12 @@ func (g *Generator) Generate() error {
 		return xerrors.Errorf("generate vt converter error: %w", err)
 	}
 
-	for _, ns := range g.options.Namespaces {
+	for _, ns := range project.Namespaces {
 		// generating each namespace in separate file
-		if p := project.Namespace(ns); p != nil {
-			// getting file name without dots
-			output := path.Join(g.options.Output, mfd.GoFileName(ns)+".go")
-			if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns), true); err != nil {
-				return xerrors.Errorf("generate service %s error: %w", ns, err)
-			}
+		// getting file name without dots
+		output := path.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
+		if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns.Name), true); err != nil {
+			return xerrors.Errorf("generate service %s error: %w", ns, err)
 		}
 	}
 

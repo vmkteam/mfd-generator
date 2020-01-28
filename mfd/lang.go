@@ -1,6 +1,8 @@
 package mfd
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+)
 
 // Translations
 type Translation struct {
@@ -21,6 +23,18 @@ func (t *Translation) Namespace(namespace string) *TranslationNamespace {
 	return nil
 }
 
+func (t *Translation) Entity(namespace, entity string) TranslationEntity {
+	if ns := t.Namespace(namespace); ns != nil {
+		for _, e := range ns.Entities {
+			if e.Name == entity {
+				return e
+			}
+		}
+	}
+
+	return TranslationEntity{}
+}
+
 func (t *Translation) Merge(translation Translation) {
 	for _, ns := range translation.Namespaces {
 		if existing := t.Namespace(ns.Name); existing != nil {
@@ -29,28 +43,6 @@ func (t *Translation) Merge(translation Translation) {
 			t.Namespaces = append(t.Namespaces, ns)
 		}
 	}
-}
-
-func (t *Translation) JSON() TranslationJSON {
-	tj := TranslationJSON{
-		Crumbs:   map[string]string{},
-		Entities: map[string]TranslationEntity{},
-	}
-	for _, ns := range t.Namespaces {
-		for _, e := range ns.Entities {
-			tj.Entities[e.Key] = e
-			for ck, cv := range e.Crumbs {
-				tj.Crumbs[ck] = cv
-			}
-		}
-	}
-
-	return tj
-}
-
-type TranslationJSON struct {
-	Crumbs   map[string]string            `json:"breadcrumbs"`
-	Entities map[string]TranslationEntity `json:"entities"`
 }
 
 type TranslationNamespace struct {
@@ -83,7 +75,7 @@ type TranslationEntity struct {
 	XMLName xml.Name        `xml:"Entity" json:"-"`
 	Name    string          `xml:"Name,attr" json:"-"`
 	Key     string          `xml:"Key,attr" json:"-"`
-	Crumbs  XMLMap          `xml:"Crumbs" json:"-"`
+	Crumbs  XMLMap          `xml:"Crumbs" json:"crumbs"`
 	Form    XMLMap          `xml:"Form" json:"form"`
 	List    TranslationList `xml:"List" json:"list"`
 }

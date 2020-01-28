@@ -176,24 +176,31 @@ func Save(content []byte, filename string) (bool, error) {
 	return true, nil
 }
 
-func LoadTranslation(project, language string) (*Translation, error) {
-	translation := &Translation{
-		Language: language,
+func LoadTranslations(project string, languages []string) (map[string]Translation, error) {
+	translations := map[string]Translation{}
+
+	for _, lang := range languages {
+		translation := Translation{
+			Language: lang,
+		}
+
+		filename := path.Join(filepath.Dir(project), lang+".xml")
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			translations[lang] = translation
+			continue
+		}
+
+		if err := UnmarshalFile(filename, &translation); err != nil {
+			return nil, err
+		}
+
+		translations[lang] = translation
 	}
 
-	filename := path.Join(filepath.Dir(project), language+".xml")
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return translation, nil
-	}
-
-	if err := UnmarshalFile(filename, translation); err != nil {
-		return nil, err
-	}
-
-	return translation, nil
+	return translations, nil
 }
 
-func SaveTranslation(translation *Translation, project, language string) error {
+func SaveTranslation(translation Translation, project, language string) error {
 	filename := path.Join(filepath.Dir(project), language+".xml")
 	return MarshalToFile(filename, translation)
 }

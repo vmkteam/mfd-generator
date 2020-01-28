@@ -10,7 +10,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 )
 
@@ -23,26 +22,18 @@ const (
 )
 
 // CreateCommand creates generator command
-func CreateCommand(logger *zap.Logger) *cobra.Command {
-	return base.CreateCommand("template", "Create vt template from xml", New(logger))
+func CreateCommand() *cobra.Command {
+	return base.CreateCommand("template", "Create vt template from xml", New())
 }
 
 // Generator represents mfd generator
 type Generator struct {
-	logger  *zap.Logger
 	options Options
 }
 
 // New creates basic generator
-func New(logger *zap.Logger) *Generator {
-	return &Generator{
-		logger: logger,
-	}
-}
-
-// Logger gets logger
-func (g *Generator) Logger() *zap.Logger {
-	return g.logger
+func New() *Generator {
+	return &Generator{}
 }
 
 // AddFlags adds flags to command
@@ -114,18 +105,18 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
-	}
-
-	// generating factory for all namespaces
-	output := path.Join(g.options.Output, "src/services/api/factory.ts")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, factoryTemplate, g.FactoryPacker(), false); err != nil {
-		return xerrors.Errorf("generate vt model error: %w", err)
+	if len(g.options.Namespaces) != 0 {
+		var filteredNameSpaces mfd.Namespaces
+		for _, ns := range g.options.Namespaces {
+			if p := project.Namespace(ns); p != nil {
+				filteredNameSpaces = append(filteredNameSpaces, p)
+			}
+		}
+		project.Namespaces = filteredNameSpaces
 	}
 
 	// generating routes for all namespaces
-	output = path.Join(g.options.Output, "src/pages/Entity/routes.ts")
+	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
 	if _, err := mfd.PackAndSave(project.Namespaces, output, routesTemplate, g.FactoryPacker(), false); err != nil {
 		return xerrors.Errorf("generate vt model error: %w", err)
 	}
@@ -155,6 +146,11 @@ func (g *Generator) Generate() error {
 		}
 	}
 
+	translations, err := mfd.LoadTranslations(g.options.MFDPath, []string{mfd.RuLang, mfd.EnLang})
+	if err != nil {
+		return xerrors.Errorf("read translation error: %w", err)
+	}
+
 	for _, namespace := range project.Namespaces {
 		for _, entity := range namespace.Entities {
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
@@ -171,19 +167,14 @@ func (g *Generator) Generate() error {
 			if err := SaveEntity(*entity, output, formTmpl); err != nil {
 				return xerrors.Errorf("generate entity %s form  error: %w", entity.Name, err)
 			}
-		}
-	}
 
-	// saving translation
-	for _, lang := range []string{mfd.RuLang, mfd.EnLang} {
-		translation, err := mfd.LoadTranslation(g.options.MFDPath, lang)
-		if err != nil {
-			return xerrors.Errorf("read translation lang %s error: %w", lang, err)
-		}
-
-		output := path.Join(g.options.Output, "src/locales", lang+".json")
-		if err := mfd.MarshalJSONToFile(output, translation.JSON()); err != nil {
-			return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+			// saving translations
+			for lang, translation := range translations {
+				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
+				if err := mfd.MarshalJSONToFile(output, translation.Entity(namespace.Name, entity.Name)); err != nil {
+					return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+				}
+			}
 		}
 	}
 

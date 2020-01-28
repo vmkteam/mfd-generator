@@ -2,6 +2,8 @@ package xml
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -10,40 +12,37 @@ import (
 	"github.com/dizzyfool/genna/lib"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 )
 
-const packages = "pkgs"
+const (
+	packages = "pkgs"
+	verbose  = "verbose"
+)
 
 // CreateCommand creates generator command
-func CreateCommand(logger *zap.Logger) *cobra.Command {
-	return base.CreateCommand("xml", "Create xml from database", New(logger))
+func CreateCommand() *cobra.Command {
+	return base.CreateCommand("xml", "Create xml from database", New())
 }
 
 // Generator represents mfd generator
 type Generator struct {
-	logger  *zap.Logger
 	options Options
+	verbose bool
 	base    base.Generator
 }
 
 // New creates generator
-func New(logger *zap.Logger) *Generator {
-	return &Generator{
-		logger: logger,
-	}
-}
-
-// Logger gets logger
-func (g *Generator) Logger() *zap.Logger {
-	return g.logger
+func New() *Generator {
+	return &Generator{}
 }
 
 // AddFlags adds flags to command
 func (g *Generator) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
+
+	flags.BoolP(verbose, "v", false, "use to print sql queries")
 
 	flags.StringP(base.Conn, "c", "", "connection string to your postgres database")
 	if err := command.MarkFlagRequired(base.Conn); err != nil {
@@ -63,6 +62,10 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 // ReadFlags reads basic flags from command
 func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	flags := command.Flags()
+
+	if g.verbose, err = flags.GetBool(verbose); err != nil {
+		return
+	}
 
 	// connection to db
 	if g.options.URL, err = flags.GetString(base.Conn); err != nil {
@@ -118,7 +121,12 @@ func parsePackagesParam(v string) map[string]string {
 
 // Generate runs whole generation process
 func (g *Generator) Generate() (err error) {
-	genna := genna.New(g.options.URL, g.logger)
+	var logger *log.Logger
+	if g.verbose {
+		logger = log.New(os.Stdout, "", log.LstdFlags)
+	}
+
+	genna := genna.New(g.options.URL, logger)
 
 	// reading tables from db
 	entities, err := genna.Read(g.options.Tables, false, false)
@@ -194,8 +202,8 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	// saving translation
-	for _, lang := range []string{mfd.RuLang, mfd.EnLang} {
-		translation, err := mfd.LoadTranslation(g.options.Output, lang)
+	translations, err := mfd.LoadTranslations(g.options.Output, []string{mfd.RuLang, mfd.EnLang})
+	for lang, translation := range translations {
 		if err != nil {
 			return xerrors.Errorf("read translation lang %s error: %w", lang, err)
 		}

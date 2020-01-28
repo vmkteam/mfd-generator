@@ -11,7 +11,6 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/xml"
 
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 var root = &cobra.Command{
@@ -34,29 +33,12 @@ var root = &cobra.Command{
 var debug = flag.Bool("debug", false, "enable debug output")
 
 func init() {
-	var config zap.Config
-
-	// using stdlib here, because cobra is not executed yet
-	flag.Parse()
-	if debug != nil && *debug {
-		config = zap.NewDevelopmentConfig()
-	} else {
-		config = zap.NewProductionConfig()
-	}
-
-	config.OutputPaths = []string{"stdout"}
-	config.Encoding = "console"
-	logger, err := config.Build()
-	if err != nil {
-		panic(err)
-	}
-
 	root.AddCommand(
-		xml.CreateCommand(logger),
-		model.CreateCommand(logger),
-		repo.CreateCommand(logger),
-		vt.CreateCommand(logger),
-		vttmpl.CreateCommand(logger),
+		xml.CreateCommand(),
+		model.CreateCommand(),
+		repo.CreateCommand(),
+		vt.CreateCommand(),
+		vttmpl.CreateCommand(),
 	)
 }
 

@@ -61,10 +61,6 @@ func NewVTTemplateEntity(entity mfd.Entity) VTTemplateEntity {
 		if i < MaxShortFilters {
 			tmpl.FilterColumns[i].IsShortFilter = true
 		}
-		// last short liter wil hold show all label
-		if i == MaxShortFilters-1 {
-			tmpl.FilterColumns[i].ShowShortFilterLabel = true
-		}
 
 		// status will override last short filter
 		if i >= MaxShortFilters && mfd.IsStatus(filter.JSName) {
@@ -133,6 +129,10 @@ func NewVTTemplateInput(tmpl mfd.TmplAttribute, entity mfd.Entity, isSearch bool
 		JSName:    mfd.VarName(tmpl.Name),
 		Component: filterComponent(tmpl.Search),
 		Params:    []template.HTML{},
+	}
+
+	if !isSearch {
+		inp.Component = filterComponent(tmpl.Form)
 	}
 
 	if mfd.IsStatus(tmpl.Name) {
