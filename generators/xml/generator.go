@@ -18,11 +18,23 @@ import (
 const (
 	packages = "pkgs"
 	verbose  = "verbose"
+
+	xmlCommand     = "xml"
+	xmlVTCommand   = "vt"
+	xmlLangCommand = "lang"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("xml", "Create xml from database", New())
+	generator := New()
+
+	xml := base.CreateCommand(xmlCommand, "Create main xml from database", generator)
+	vt := base.CreateCommand(xmlVTCommand, "Create vt xml from database", generator)
+	lang := base.CreateCommand(xmlLangCommand, "Create lang xml from database", generator)
+
+	xml.AddCommand(vt, lang)
+
+	return xml
 }
 
 // Generator represents mfd generator
@@ -61,6 +73,8 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 // ReadFlags reads basic flags from command
 func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
+	g.options.Type = command.Name()
+
 	flags := command.Flags()
 
 	if g.verbose, err = flags.GetBool(verbose); err != nil {
@@ -201,20 +215,36 @@ func (g *Generator) Generate() (err error) {
 		}
 	}
 
+	// saving mfd file
+	if err = mfd.SaveMFD(g.options.Output, project); err != nil {
+		return err
+	}
+
+	// saving main xml
+	if g.options.Type == xmlCommand {
+		return mfd.SaveProjectXML(g.options.Output, project)
+	}
+
+	// saving vt xml
+	if g.options.Type == xmlVTCommand {
+		return mfd.SaveProjectVT(g.options.Output, project)
+	}
+
 	// saving translation
-	translations, err := mfd.LoadTranslations(g.options.Output, []string{mfd.RuLang, mfd.EnLang})
-	for lang, translation := range translations {
-		if err != nil {
-			return xerrors.Errorf("read translation lang %s error: %w", lang, err)
-		}
-		translation.Merge(Translate(project, lang))
-		if err := mfd.SaveTranslation(translation, g.options.Output, lang); err != nil {
-			return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+	if g.options.Type == xmlLangCommand {
+		translations, err := mfd.LoadTranslations(g.options.Output, []string{mfd.RuLang, mfd.EnLang})
+		for lang, translation := range translations {
+			if err != nil {
+				return xerrors.Errorf("read translation lang %s error: %w", lang, err)
+			}
+			translation.Merge(Translate(project, lang))
+			if err := mfd.SaveTranslation(translation, g.options.Output, lang); err != nil {
+				return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+			}
 		}
 	}
 
-	// saving files
-	return mfd.SaveProject(g.options.Output, project)
+	return nil
 }
 
 // PromptNS prompting namespace in console

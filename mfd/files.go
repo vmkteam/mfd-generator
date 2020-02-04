@@ -99,18 +99,28 @@ func UnmarshalFile(filename string, v interface{}) (err error) {
 	return nil
 }
 
-func SaveProject(filename string, p *Project) error {
+func SaveMFD(filename string, p *Project) error {
 	if err := MarshalToFile(filename, p); err != nil {
 		return xerrors.Errorf("save project error: %w", err)
 	}
 
+	return nil
+}
+
+func SaveProjectXML(filename string, p *Project) error {
 	for _, namespace := range p.Namespaces {
 		file := path.Join(filepath.Dir(filename), namespace.Name+".xml")
 		if err := MarshalToFile(file, namespace); err != nil {
 			return xerrors.Errorf("save namespace %s error: %w", namespace.Name, err)
 		}
+	}
 
-		file = path.Join(filepath.Dir(filename), namespace.Name+".vt.xml")
+	return nil
+}
+
+func SaveProjectVT(filename string, p *Project) error {
+	for _, namespace := range p.Namespaces {
+		file := path.Join(filepath.Dir(filename), namespace.Name+".vt.xml")
 		if err := MarshalToFile(file, NewVTNamespace(namespace.VTEntities())); err != nil {
 			return xerrors.Errorf("save namespace vt entites %s error: %w", namespace.Name, err)
 		}
