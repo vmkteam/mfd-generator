@@ -153,6 +153,10 @@ func (g *Generator) Generate() error {
 
 	for _, namespace := range project.Namespaces {
 		for _, entity := range namespace.Entities {
+			if entity.VTEntity.NoTemplates {
+				continue
+			}
+
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
 			if err := SaveEntity(*entity, output, listTmpl); err != nil {
 				return xerrors.Errorf("generate entity %s list error: %w", entity.Name, err)

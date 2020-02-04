@@ -36,9 +36,11 @@ func NewVTNamespace(entities VTEntities) VTNamespace {
 
 // VTEntity is xml element
 type VTEntity struct {
-	XMLName      xml.Name `xml:"Entity" json:"-"`
-	Name         string   `xml:"Name,attr"`
-	TerminalPath string   `xml:"TerminalPath"`
+	XMLName     xml.Name `xml:"Entity" json:"-"`
+	Name        string   `xml:"Name,attr"`
+	NoTemplates bool     `xml:"WithoutTemplates,attr"`
+
+	TerminalPath string `xml:"TerminalPath"`
 
 	Attributes     VTAttributes   `xml:"Attributes>Attribute"`
 	TmplAttributes TmplAttributes `xml:"Template>Attribute"`

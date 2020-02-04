@@ -31,6 +31,10 @@ func NewTemplatePackage(namespaces mfd.Namespaces, options Options) (TemplatePac
 
 	var entities []TemplateEntity
 	for _, baseEntity := range base.Entities {
+		if baseEntity.NoTemplates {
+			continue
+		}
+
 		entity, err := NewTemplateEntity(baseEntity)
 		if err != nil {
 			return TemplatePackage{}, err
