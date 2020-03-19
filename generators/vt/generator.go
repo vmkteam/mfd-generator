@@ -92,9 +92,9 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 }
 
 // Packer returns packer function for compile entities into package
-func (g *Generator) ModelPacker() mfd.Packer {
+func (g *Generator) ModelPacker(namespace string) mfd.Packer {
 	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewTemplatePackage(namespaces, g.options)
+		return NewTemplatePackage(namespace, namespaces, g.options)
 	}
 }
 
@@ -102,6 +102,13 @@ func (g *Generator) ModelPacker() mfd.Packer {
 func (g *Generator) ServicePacker(namespace string) mfd.Packer {
 	return func(namespaces mfd.Namespaces) (interface{}, error) {
 		return NewServiceTemplatePackage(namespace, namespaces, g.options), nil
+	}
+}
+
+// Packer returns packer function for compile entities into package
+func (g *Generator) ServerPacker() mfd.Packer {
+	return func(namespaces mfd.Namespaces) (interface{}, error) {
+		return NewServerPackage(namespaces)
 	}
 }
 
@@ -122,28 +129,30 @@ func (g *Generator) Generate() error {
 		project.Namespaces = filteredNameSpaces
 	}
 
-	// generating model & converters for all namespaces
-	// TODO separate params file?
-	output := path.Join(g.options.Output, "model.go")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, modelTemplate, g.ModelPacker(), true); err != nil {
-		return xerrors.Errorf("generate vt model error: %w", err)
-	}
-
-	output = path.Join(g.options.Output, "converter.go")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, converterTemplate, g.ModelPacker(), true); err != nil {
-		return xerrors.Errorf("generate vt converter error: %w", err)
-	}
-
 	for _, ns := range project.Namespaces {
 		// generating each namespace in separate file
-		// getting file name without dots
-		output := path.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
+		baseName := mfd.GoFileName(ns.Name)
+
+		// generate model file
+		output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
+		if _, err := mfd.PackAndSave(project.Namespaces, output, modelTemplate, g.ModelPacker(ns.Name), true); err != nil {
+			return xerrors.Errorf("generate vt model error: %w", err)
+		}
+
+		// generate converter file
+		output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
+		if _, err := mfd.PackAndSave(project.Namespaces, output, converterTemplate, g.ModelPacker(ns.Name), true); err != nil {
+			return xerrors.Errorf("generate vt converter error: %w", err)
+		}
+
+		// generate service file
+		output = path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
 		if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns.Name), true); err != nil {
 			return xerrors.Errorf("generate service %s error: %w", ns, err)
 		}
 	}
 
-	if err := RenderAndPrint(project.Namespaces, serverTemplate, g.ModelPacker()); err != nil {
+	if err := RenderAndPrint(project.Namespaces, serverTemplate, g.ServerPacker()); err != nil {
 		return xerrors.Errorf("generate vt server error: %w", err)
 	}
 

@@ -29,24 +29,22 @@ type TemplatePackage struct {
 }
 
 // NewTemplatePackage creates a package for template
-func NewTemplatePackage(namespaces mfd.Namespaces, options Options) (TemplatePackage, error) {
+func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Options) (TemplatePackage, error) {
 	imports := mfd.NewSet()
 
 	var models []TemplateEntity
-	for _, namespace := range namespaces {
-		for _, entity := range namespace.Entities {
-			// creating entity for template
-			mdl, err := NewTemplateEntity(*entity)
-			if err != nil {
-				return TemplatePackage{}, err
-			}
+	ns := namespaces.Namespace(namespace)
+	for _, entity := range ns.Entities {
+		// creating entity for template
+		mdl, err := NewTemplateEntity(*entity)
+		if err != nil {
+			return TemplatePackage{}, err
+		}
 
-			models = append(models, mdl)
-			// adding imports to uniq set
-			for _, imp := range mdl.Imports {
-				imports.Add(imp)
-			}
-
+		models = append(models, mdl)
+		// adding imports to uniq set
+		for _, imp := range mdl.Imports {
+			imports.Add(imp)
 		}
 	}
 

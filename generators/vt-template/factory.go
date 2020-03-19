@@ -17,34 +17,34 @@ type PKPair struct {
 
 // TemplatePackage stores package info
 type TemplatePackage struct {
-	vt.TemplatePackage
-
 	Entities []TemplateEntity
 }
 
 // NewTemplatePackage creates a package for template
 func NewTemplatePackage(namespaces mfd.Namespaces, options Options) (TemplatePackage, error) {
-	base, err := vt.NewTemplatePackage(namespaces, vt.Options{})
-	if err != nil {
-		return TemplatePackage{}, err
-	}
-
 	var entities []TemplateEntity
-	for _, baseEntity := range base.Entities {
-		if baseEntity.NoTemplates {
-			continue
-		}
 
-		entity, err := NewTemplateEntity(baseEntity)
+	for _, namespace := range namespaces {
+		base, err := vt.NewTemplatePackage(namespace.Name, namespaces, vt.Options{})
 		if err != nil {
 			return TemplatePackage{}, err
 		}
-		entities = append(entities, entity)
+
+		for _, baseEntity := range base.Entities {
+			if baseEntity.NoTemplates {
+				continue
+			}
+
+			entity, err := NewTemplateEntity(baseEntity)
+			if err != nil {
+				return TemplatePackage{}, err
+			}
+			entities = append(entities, entity)
+		}
 	}
 
 	return TemplatePackage{
-		TemplatePackage: base,
-		Entities:        entities,
+		Entities: entities,
 	}, nil
 }
 
