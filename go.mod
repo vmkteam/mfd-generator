@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
 	github.com/dizzyfool/genna v0.0.0-20200115224154-2b327185879c
+	github.com/fatih/camelcase v1.0.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/manifoldco/promptui v0.3.2
 	github.com/spf13/cobra v0.0.5
