@@ -2,9 +2,10 @@ package mfd
 
 import (
 	"encoding/xml"
+	"strings"
+
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
-	"strings"
 
 	"golang.org/x/xerrors"
 )
@@ -24,22 +25,23 @@ const (
 // TODO Refactor
 // search types
 const (
-	SearchEquals     = "SEARCHTYPE_EQUALS"
-	SearchNotEquals  = "SEARCHTYPE_NOT_EQUALS"
-	SearchNull       = "SEARCHTYPE_NULL"
-	SearchNotNull    = "SEARCHTYPE_NOT_NULL"
-	SearchGE         = "SEARCHTYPE_GE"
-	SearchLE         = "SEARCHTYPE_LE"
-	SearchG          = "SEARCHTYPE_G"
-	SearchL          = "SEARCHTYPE_L"
-	SearchLeftLike   = "SEARCHTYPE_LEFT_LIKE"
-	SearchLeftILike  = "SEARCHTYPE_LEFT_ILIKE"
-	SearchRightLike  = "SEARCHTYPE_RIGHT_LIKE"
-	SearchRightILike = "SEARCHTYPE_RIGHT_ILIKE"
-	SearchLike       = "SEARCHTYPE_LIKE"
-	SearchILike      = "SEARCHTYPE_ILIKE"
-	SearchArray      = "SEARCHTYPE_ARRAY"
-	SearchNotArray   = "SEARCHTYPE_NOT_INARRAY"
+	SearchEquals            = "SEARCHTYPE_EQUALS"
+	SearchNotEquals         = "SEARCHTYPE_NOT_EQUALS"
+	SearchNull              = "SEARCHTYPE_NULL"
+	SearchNotNull           = "SEARCHTYPE_NOT_NULL"
+	SearchGE                = "SEARCHTYPE_GE"
+	SearchLE                = "SEARCHTYPE_LE"
+	SearchG                 = "SEARCHTYPE_G"
+	SearchL                 = "SEARCHTYPE_L"
+	SearchLeftLike          = "SEARCHTYPE_LEFT_LIKE"
+	SearchLeftILike         = "SEARCHTYPE_LEFT_ILIKE"
+	SearchRightLike         = "SEARCHTYPE_RIGHT_LIKE"
+	SearchRightILike        = "SEARCHTYPE_RIGHT_ILIKE"
+	SearchLike              = "SEARCHTYPE_LIKE"
+	SearchILike             = "SEARCHTYPE_ILIKE"
+	SearchArray             = "SEARCHTYPE_ARRAY"
+	SearchNotArray          = "SEARCHTYPE_NOT_INARRAY"
+	SearchTypeArrayContains = "SEARCHTYPE_ARRAY_CONTAINS"
 )
 
 // Project is xml element

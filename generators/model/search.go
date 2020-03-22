@@ -187,6 +187,9 @@ func NewCustomTemplateColumn(entity mfd.Entity, search mfd.Search, options Optio
 		filterType, exclude = "SearchTypeNull", "false"
 	case mfd.SearchNotNull:
 		filterType, exclude = "SearchTypeNull", "true"
+	case mfd.SearchTypeArrayContains:
+		filterType, exclude = "SearchTypeArrayContains", "false"
+		templateColumn.IsArray = false
 	}
 
 	// rendering custom template
