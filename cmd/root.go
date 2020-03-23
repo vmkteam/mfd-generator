@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"flag"
+	xmllang "github.com/vmkteam/mfd-generator/generators/xml-lang"
 	"os"
 
 	"github.com/vmkteam/mfd-generator/generators/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/vt"
 	"github.com/vmkteam/mfd-generator/generators/vt-template"
 	"github.com/vmkteam/mfd-generator/generators/xml"
+	"github.com/vmkteam/mfd-generator/generators/xml-vt"
 
 	"github.com/spf13/cobra"
 )
@@ -35,6 +37,8 @@ var debug = flag.Bool("debug", false, "enable debug output")
 func init() {
 	root.AddCommand(
 		xml.CreateCommand(),
+		xmlvt.CreateCommand(),
+		xmllang.CreateCommand(),
 		model.CreateCommand(),
 		repo.CreateCommand(),
 		vt.CreateCommand(),

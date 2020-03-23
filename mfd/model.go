@@ -2,12 +2,11 @@ package mfd
 
 import (
 	"encoding/xml"
+	"fmt"
 	"strings"
 
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
-
-	"golang.org/x/xerrors"
 )
 
 // nullable options
@@ -50,9 +49,10 @@ type Project struct {
 	XMLxsi         string   `xml:"xmlns:xsi,attr"`
 	XMLxsd         string   `xml:"xmlns:xsd,attr"`
 	Name           string
-	NamespaceNames []string   `xml:"PackageNames>string" json:"-"`
-	Namespaces     Namespaces `xml:"-"`
-	Filename       string     `xml:"-"`
+	NamespaceNames []string `xml:"PackageNames>string" json:"-"`
+
+	Namespaces   []*Namespace   `xml:"-"`
+	VTNamespaces []*VTNamespace `xml:"-"`
 }
 
 func NewProject(name string) *Project {
@@ -65,52 +65,28 @@ func NewProject(name string) *Project {
 	}
 }
 
-func (p *Project) IsConsistent() error {
-	for _, nsName := range p.NamespaceNames {
-		ns := p.Namespace(nsName)
-		if ns == nil {
-			return xerrors.Errorf("namespace %s listed in names but not found", nsName)
-		}
-
-		for _, entity := range ns.Entities {
-			for _, attr := range entity.Attributes {
-				if attr.ForeignKey != "" && attr.ForeignEntity == nil {
-					return xerrors.Errorf("fk entity %s not found for %s column in %s entity %s namespace", attr.ForeignKey, attr.Name, entity.Name, nsName)
-				}
-			}
-
-			for _, search := range entity.Searches {
-				if search.Attribute == nil || search.Entity == nil {
-					return xerrors.Errorf("attribute %s not found for %s search in %s entity %s namespace", search.AttrName, search.Name, entity.Name, nsName)
-				}
-			}
-
-			if entity.VTEntity != nil {
-				for _, attr := range entity.VTEntity.Attributes {
-					if attr.AttrName == "" && attr.SearchName == "" {
-						return xerrors.Errorf("attribute or search is not listed for %s vt attribute in %s entity %s namespace", attr.Name, entity.Name, nsName)
-					}
-
-					if attr.AttrName != "" {
-						if entity.AttributeByName(attr.AttrName) == nil {
-							return xerrors.Errorf("attribute %s not found for %s vt attribute in %s entity %s namespace", attr.AttrName, attr.Name, entity.Name, nsName)
-						}
-					}
-
-					if attr.SearchName != "" {
-						if entity.SearchByName(attr.SearchName) == nil && entity.AttributeByName(attr.SearchName) == nil {
-							return xerrors.Errorf("search %s not found for %s vt attribute in %s entity %s namespace", attr.SearchName, attr.Name, entity.Name, nsName)
-						}
-					}
-				}
-			}
+// Namespace returns mfd.Namespace by its name
+func (p *Project) Namespace(namespace string) *Namespace {
+	for _, ns := range p.Namespaces {
+		if strings.ToLower(ns.Name) == strings.ToLower(namespace) {
+			return ns
 		}
 	}
 
 	return nil
 }
 
-// EntitiesMap returns map of mfd.Entities by namespace
+// AddNamespace adds namespace and return it
+func (p *Project) AddNamespace(namespace string) *Namespace {
+	ns := NewNamespace(namespace)
+
+	p.NamespaceNames = append(p.NamespaceNames, namespace)
+	p.Namespaces = append(p.Namespaces, ns)
+
+	return ns
+}
+
+// Entity returns mfd.Entity by its name
 func (p *Project) Entity(entity string) *Entity {
 	for _, p := range p.Namespaces {
 		if e := p.Entity(entity); e != nil {
@@ -120,37 +96,71 @@ func (p *Project) Entity(entity string) *Entity {
 	return nil
 }
 
-// Namespace returns mfd.Namespace by its name or creates if not exists
-func (p *Project) Namespace(namespace string) *Namespace {
-	for _, ns := range p.Namespaces {
-		if ns.Name == namespace {
-			return ns
-		}
-	}
-
-	ns := NewNamespace(namespace)
-	p.Namespaces = append(p.Namespaces, ns)
-	p.NamespaceNames = append(p.NamespaceNames, namespace)
-
-	return ns
-}
-
+// AddEntity adds entity to namespace
 func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 	ns := p.Namespace(namespace)
+	if ns == nil {
+		ns = p.AddNamespace(namespace)
+	}
+
 	return ns.AddEntity(entity)
 }
 
-func (p *Project) AddVTEntity(namespace string, entity *VTEntity) *VTEntity {
-	ns := p.Namespace(namespace)
-	return ns.AddVTEntity(entity)
+func (p *Project) IsConsistent() error {
+	for _, nsName := range p.NamespaceNames {
+		ns := p.Namespace(nsName)
+		if ns == nil {
+			return fmt.Errorf("namespace %s listed in names but not found", nsName)
+		}
+
+		for _, entity := range ns.Entities {
+			for _, attr := range entity.Attributes {
+				if attr.ForeignKey != "" && attr.ForeignEntity == nil {
+					return fmt.Errorf("fk entity %s not found for %s column in %s entity %s namespace", attr.ForeignKey, attr.Name, entity.Name, nsName)
+				}
+			}
+
+			for _, search := range entity.Searches {
+				if search.Attribute == nil || search.Entity == nil {
+					return fmt.Errorf("attribute %s not found for %s search in %s entity %s namespace", search.AttrName, search.Name, entity.Name, nsName)
+				}
+			}
+		}
+	}
+
+	for _, vtNamespace := range p.VTNamespaces {
+		ns := p.Namespace(vtNamespace.Name)
+		if ns == nil {
+			return fmt.Errorf("namespace %s not found for vt", vtNamespace.Name)
+		}
+
+		for _, vtEntity := range vtNamespace.Entities {
+			if vtEntity.Entity == nil {
+				return fmt.Errorf("entity not found vtEntity %s in %s namespace", vtEntity.Name, vtNamespace.Name)
+			}
+
+			for _, vtAttribute := range vtEntity.Attributes {
+				if vtAttribute.Attribute == nil {
+					if vtAttribute.AttrName != "" {
+						return fmt.Errorf("attribute %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.AttrName, vtAttribute.Name, vtEntity.Name, vtNamespace.Name)
+					}
+					if vtAttribute.SearchName != "" {
+						return fmt.Errorf("search %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.SearchName, vtAttribute.Name, vtEntity.Name, vtNamespace.Name)
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p *Project) SuggestArrayLinks() {
 	for _, namespace := range p.Namespaces {
 		for _, entity := range namespace.Entities {
-			// making fk links for arrays
 			for _, attr := range entity.Attributes {
-				if attr.ForeignKey != "" || !strings.HasSuffix(attr.Name, util.IDs) || !attr.IsArray {
+				// skipping not fks and not arrays
+				if !attr.IsForeignKey() || !attr.IsIDsArray() {
 					continue
 				}
 
@@ -170,10 +180,6 @@ func (p *Project) UpdateLinks() {
 		for _, entity := range namespace.Entities {
 			// making fk links
 			for _, attr := range entity.Attributes {
-				if attr.ForeignKey == "" {
-					continue
-				}
-
 				if foreign := p.Entity(attr.ForeignKey); foreign != nil {
 					attr.ForeignEntity = foreign
 				}
@@ -181,26 +187,45 @@ func (p *Project) UpdateLinks() {
 
 			// making search links
 			for _, search := range entity.Searches {
+				// attach own attribute and entity
 				if attr := entity.AttributeByName(search.AttrName); attr != nil {
 					search.Attribute = attr
 					search.Entity = entity
 				}
 
-				if strings.Index(search.AttrName, ".") != -1 {
-					parts := strings.SplitN(search.AttrName, ".", 2)
-					entityName, columnName := util.EntityName(parts[0]), util.ColumnName(parts[1])
-					for _, attr := range entity.Attributes {
-						fkName := FKName(attr.DBName)
-						if fkName == entityName && attr.ForeignEntity != nil {
-							for _, a := range attr.ForeignEntity.Attributes {
-								if a.Name == columnName {
-									search.Attribute = a
-									search.Entity = attr.ForeignEntity
-								}
-							}
+				// attach foreign attribute and entity
+				if search.IsForeignSearch() {
+					foreignName, foreignAttribute := search.ForeignAttribute()
+					if foreign := p.Entity(foreignName); foreign != nil {
+						if attr := foreign.AttributeByName(foreignAttribute); attr != nil {
+							search.Attribute = attr
+							search.Entity = attr.ForeignEntity
 						}
 					}
 				}
+			}
+		}
+	}
+
+	// making vt links
+	for _, vtNamespace := range p.VTNamespaces {
+		for _, vtEntity := range vtNamespace.Entities {
+			if entity := p.Entity(vtEntity.Name); entity != nil {
+				vtEntity.Entity = entity
+				for _, vtAttribute := range vtEntity.Attributes {
+					if vtAttribute.AttrName != "" {
+						vtAttribute.Attribute = entity.AttributeByName(vtAttribute.AttrName)
+					}
+					if vtAttribute.SearchName != "" {
+						if search := entity.SearchByName(vtAttribute.SearchName); search != nil {
+							vtAttribute.Attribute = search.Attribute
+						}
+					}
+				}
+			}
+
+			for _, tmpl := range vtEntity.TmplAttributes {
+				tmpl.VTAttribute = vtEntity.Attribute(tmpl.AttrName)
 			}
 		}
 	}
@@ -213,7 +238,7 @@ type Namespace struct {
 	XMLxsd  string   `xml:"xmlns:xsd,attr"`
 	Name    string
 
-	Entities Entities `xml:"Entities>Entity"`
+	Entities []*Entity `xml:"Entities>Entity"`
 }
 
 // NewNamespace creates Namespace
@@ -229,7 +254,7 @@ func NewNamespace(name string) *Namespace {
 // Entity returns mfd.Entity by its name
 func (n *Namespace) Entity(entity string) *Entity {
 	for _, e := range n.Entities {
-		if e.Name == entity {
+		if strings.ToLower(e.Name) == strings.ToLower(entity) {
 			return e
 		}
 	}
@@ -237,60 +262,14 @@ func (n *Namespace) Entity(entity string) *Entity {
 	return nil
 }
 
-// AddNamespace add new Namespace to existing
+// AddEntity adds entity to namespace
 func (n *Namespace) AddEntity(entity *Entity) *Entity {
 	if existing := n.Entity(entity.Name); existing != nil {
-		if existing.VTEntity == nil {
-			existing.VTEntity = &VTEntity{}
-		}
-
-		if entity.VTEntity != nil {
-			existing.VTEntity.Merge(entity.VTEntity)
-		}
-
 		existing.Merge(entity)
 		return existing
 	}
 
 	n.Entities = append(n.Entities, entity)
-	return entity
-}
-
-func (n *Namespace) UpdateFK() {
-
-}
-
-func (n *Namespace) VTEntities() VTEntities {
-	var vtEntities VTEntities
-	for _, e := range n.Entities {
-		if e.VTEntity != nil {
-			vtEntities = append(vtEntities, e.VTEntity)
-		}
-	}
-
-	return vtEntities
-}
-
-func (n *Namespace) VTEntity(entity string) *VTEntity {
-	for _, e := range n.VTEntities() {
-		if e.Name == entity {
-			return e
-		}
-	}
-
-	return nil
-}
-
-func (n *Namespace) AddVTEntity(entity *VTEntity) *VTEntity {
-	if existing := n.VTEntity(entity.Name); existing != nil {
-		existing.Merge(entity)
-		entity = existing
-	}
-
-	if ent := n.Entity(entity.Name); ent != nil {
-		ent.VTEntity = entity
-	}
-
 	return entity
 }
 
@@ -302,12 +281,11 @@ type Entity struct {
 	Namespace string `xml:"Namespace,attr"`
 	Table     string `xml:"Table,attr"`
 
-	Attributes Attributes `xml:"Attributes>Attribute,omitempty"`
-	Searches   Searches   `xml:"Searches>Search,omitempty"`
-
-	VTEntity *VTEntity `xml:"-"`
+	Attributes []*Attribute `xml:"Attributes>Attribute,omitempty"`
+	Searches   []*Search    `xml:"Searches>Search,omitempty"`
 }
 
+// AttributeByName gets mfd.Attribute by its name
 func (e *Entity) AttributeByName(name string) *Attribute {
 	for _, a := range e.Attributes {
 		if a.Name == name {
@@ -318,10 +296,10 @@ func (e *Entity) AttributeByName(name string) *Attribute {
 	return nil
 }
 
-// Attribute gets mfd.Attribute by its db name and type
-func (e *Entity) AttributeByDBName(dbName, dbTyp string) *Attribute {
+// AttributeByDBName gets mfd.Attribute by its db name and type
+func (e *Entity) AttributeByDBName(dbName, dbType string) *Attribute {
 	for _, a := range e.Attributes {
-		if a.DBName == dbName && a.DBType == dbTyp {
+		if a.DBName == dbName && a.DBType == dbType {
 			return a
 		}
 	}
@@ -329,6 +307,7 @@ func (e *Entity) AttributeByDBName(dbName, dbTyp string) *Attribute {
 	return nil
 }
 
+// SearchByName gets mfd.Search by its name
 func (e *Entity) SearchByName(name string) *Search {
 	for _, s := range e.Searches {
 		if s.Name == name {
@@ -339,6 +318,7 @@ func (e *Entity) SearchByName(name string) *Search {
 	return nil
 }
 
+// SearchByAttrName gets mfd.Search by its attribute and searchType
 func (e *Entity) SearchByAttrName(attrName, searchType string) *Search {
 	for _, s := range e.Searches {
 		if s.AttrName == attrName && s.SearchType == searchType {
@@ -381,8 +361,8 @@ func (e *Entity) HasMultiplePKs() bool {
 }
 
 // PKs returns PKs for entity
-func (e *Entity) PKs() Attributes {
-	var pks Attributes
+func (e *Entity) PKs() []*Attribute {
+	var pks []*Attribute
 	for _, a := range e.Attributes {
 		if a.PrimaryKey {
 			pks = append(pks, a)
@@ -392,23 +372,18 @@ func (e *Entity) PKs() Attributes {
 	return pks
 }
 
-func (e *Entity) TitleVTAttribute() *VTAttribute {
-	var pkName string
-	var pkAttr *VTAttribute
-	if pks := e.PKs(); len(pks) > 0 {
-		pkName = pks[0].Name
-	}
-
-	for _, attr := range e.VTEntity.Attributes {
-		if attr.AttrName == pkName && pkAttr == nil {
-			pkAttr = attr
-		}
+func (e *Entity) TitleAttribute() *Attribute {
+	for _, attr := range e.Attributes {
 		if attr.Name == "Title" || attr.Name == "Name" || attr.Name == "Login" || attr.Name == "Alias" {
 			return attr
 		}
 	}
 
-	return pkAttr
+	if pks := e.PKs(); len(pks) > 0 {
+		return pks[0]
+	}
+
+	return nil
 }
 
 // Attribute is xml element
@@ -494,6 +469,14 @@ func (a *Attribute) IsUpdatable() bool {
 	return a.Updatable == nil || *a.Updatable
 }
 
+func (a *Attribute) IsForeignKey() bool {
+	return a.ForeignKey == ""
+}
+
+func (a *Attribute) IsIDsArray() bool {
+	return strings.HasSuffix(a.Name, util.IDs) && a.IsArray
+}
+
 // Attribute is xml element
 type Search struct {
 	XMLName xml.Name `xml:"Search" json:"-"`
@@ -506,24 +489,14 @@ type Search struct {
 	Entity    *Entity    `xml:"-"`
 }
 
-// convenient types
-type Namespaces []*Namespace
-
-func (ns Namespaces) Namespace(name string) *Namespace {
-	for _, n := range ns {
-		if n.Name == name {
-			return n
-		}
-	}
-
-	return nil
+func (s *Search) IsForeignSearch() bool {
+	return strings.Index(s.AttrName, ".") != -1
 }
 
-type Entities []*Entity
-
-type Attributes []*Attribute
-
-type Searches []*Search
+func (s *Search) ForeignAttribute() (entity, attribute string) {
+	parts := strings.SplitN(s.AttrName, ".", 2)
+	return util.EntityName(parts[0]), util.ColumnName(parts[1])
+}
 
 func IsStatus(name string) bool {
 	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status"

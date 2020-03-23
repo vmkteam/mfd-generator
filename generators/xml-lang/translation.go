@@ -1,4 +1,4 @@
-package xml
+package xmllang
 
 import "github.com/vmkteam/mfd-generator/mfd"
 
@@ -8,7 +8,7 @@ func Translate(p *mfd.Project, language string) mfd.Translation {
 		Namespaces: []mfd.TranslationNamespace{},
 	}
 
-	for _, ns := range p.Namespaces {
+	for _, ns := range p.VTNamespaces {
 		tn := mfd.TranslationNamespace{
 			Name:     ns.Name,
 			Entities: []mfd.TranslationEntity{},
@@ -33,7 +33,7 @@ func Translate(p *mfd.Project, language string) mfd.Translation {
 				},
 			}
 
-			for _, a := range e.VTEntity.TmplAttributes {
+			for _, a := range e.TmplAttributes {
 				key := mfd.VarName(a.Name)
 
 				trs := mfd.Translate(language, key)

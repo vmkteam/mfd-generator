@@ -32,26 +32,24 @@ type filterData struct {
 	NoPointer    bool
 }
 
-// this code used for creating objects to render search templates
-
-// TemplatePackage stores package info
-type SearchTemplatePackage struct {
+// NamespaceData stores namespace info for template
+type SearchNamespaceData struct {
 	Package string
 
 	HasImports bool
 	Imports    []string
 
-	Entities []SearchTemplateEntity
+	Entities []SearchEntityData
 }
 
-// NewSearchTemplatePackage creates a package for template
-func NewSearchTemplatePackage(namespaces mfd.Namespaces, options Options) SearchTemplatePackage {
+// PackSearchNamespace packs mfd namespace to template data
+func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) SearchNamespaceData {
 	imports := mfd.NewSet()
 
-	var models []SearchTemplateEntity
+	var models []SearchEntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
-			mdl := NewSearchTemplateEntity(*entity, options)
+			mdl := PackSearchEntity(*entity, options)
 			if len(mdl.Columns) == 0 {
 				continue
 			}
@@ -64,7 +62,7 @@ func NewSearchTemplatePackage(namespaces mfd.Namespaces, options Options) Search
 		}
 	}
 
-	return SearchTemplatePackage{
+	return SearchNamespaceData{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
@@ -74,20 +72,20 @@ func NewSearchTemplatePackage(namespaces mfd.Namespaces, options Options) Search
 	}
 }
 
-// SearchTemplateEntity stores struct info
-type SearchTemplateEntity struct {
+// SearchEntityData stores entity info for template
+type SearchEntityData struct {
 	// using model template as base because search depends on it
-	TemplateEntity
+	EntityData
 
-	Columns []SearchTemplateColumn
+	Columns []SearchAttributeData
 	Imports []string
 }
 
-// NewSearchTemplateEntity creates an entity for template
-func NewSearchTemplateEntity(entity mfd.Entity, options Options) SearchTemplateEntity {
+// PackSearchEntity packs mfd entity to template data
+func PackSearchEntity(entity mfd.Entity, options Options) SearchEntityData {
 	imports := util.NewSet()
 
-	var columns []SearchTemplateColumn
+	var columns []SearchAttributeData
 
 	// adding search
 	for _, attribute := range entity.Attributes {
@@ -95,7 +93,7 @@ func NewSearchTemplateEntity(entity mfd.Entity, options Options) SearchTemplateE
 			continue
 		}
 		// adding simple search for every column
-		column := NewSearchTemplateColumn(entity, *attribute, options)
+		column := PackSearchAttribute(entity, *attribute, options)
 		columns = append(columns, column)
 		if column.Import != "" {
 			imports.Add(column.Import)
@@ -104,45 +102,45 @@ func NewSearchTemplateEntity(entity mfd.Entity, options Options) SearchTemplateE
 
 	// adding search from search section
 	for _, search := range entity.Searches {
-		column := NewCustomTemplateColumn(entity, *search, options)
+		column := CustomSearchAttribute(entity, *search, options)
 		columns = append(columns, column)
 	}
 
-	return SearchTemplateEntity{
+	return SearchEntityData{
 		// base template entity
-		TemplateEntity: NewTemplateEntity(entity, options),
+		EntityData: PackEntity(entity, options),
 
 		Columns: columns,
 		Imports: imports.Elements(),
 	}
 }
 
-// SearchTemplateColumn stores column info
-type SearchTemplateColumn struct {
+// SearchAttributeData stores attribute info for template
+type SearchAttributeData struct {
 	// using model template as base because search depends on it
-	TemplateColumn
+	AttributeData
 
 	UseCustomRender bool
 	CustomRender    template.HTML
 }
 
-// NewSearchTemplateColumn creates a column for template
-func NewSearchTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Options) SearchTemplateColumn {
-	column := NewTemplateColumn(entity, attribute, options)
+// PackSearchAttribute packs mfd attribute to template data
+func PackSearchAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) SearchAttributeData {
+	column := PackAttribute(entity, attribute, options)
 
 	// making pointer for search types
 	column.GoType = fmt.Sprintf("*%s", column.Type)
 
-	return SearchTemplateColumn{
+	return SearchAttributeData{
 		// base template entity
-		TemplateColumn: column,
+		AttributeData: column,
 	}
 }
 
-// NewCustomTemplateColumn creates custom search column
-func NewCustomTemplateColumn(entity mfd.Entity, search mfd.Search, options Options) SearchTemplateColumn {
+// PackSearchAttribute packs mfd attribute to search template data
+func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options) SearchAttributeData {
 	// use default templateColumn as base
-	templateColumn := NewSearchTemplateColumn(entity, *search.Attribute, options)
+	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
 	templateColumn.Name = search.Name
 
 	// if need to change type (array searches)

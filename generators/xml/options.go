@@ -9,7 +9,4 @@ type Options struct {
 
 	// Namespaces stores table=namespace preset
 	Packages map[string]string
-
-	// xml, vt or lang
-	Type string
 }

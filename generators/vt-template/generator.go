@@ -2,6 +2,7 @@ package vttmpl
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -91,13 +91,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	return nil
 }
 
-// Packer returns packer function for compile entities into package
-func (g *Generator) FactoryPacker() mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewTemplatePackage(namespaces, g.options)
-	}
-}
-
+// Generate runs generator
 func (g *Generator) Generate() error {
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false)
@@ -106,7 +100,7 @@ func (g *Generator) Generate() error {
 	}
 
 	if len(g.options.Namespaces) != 0 {
-		var filteredNameSpaces mfd.Namespaces
+		var filteredNameSpaces []*mfd.Namespace
 		for _, ns := range g.options.Namespaces {
 			if p := project.Namespace(ns); p != nil {
 				filteredNameSpaces = append(filteredNameSpaces, p)
@@ -117,8 +111,8 @@ func (g *Generator) Generate() error {
 
 	// generating routes for all namespaces
 	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, routesTemplate, g.FactoryPacker(), false); err != nil {
-		return xerrors.Errorf("generate vt model error: %w", err)
+	if _, err := SaveRoutes(project.VTNamespaces, output); err != nil {
+		return fmt.Errorf("generate routes error: %w", err)
 	}
 
 	// loading templates
@@ -126,7 +120,7 @@ func (g *Generator) Generate() error {
 	if g.options.ListTemplate != "" {
 		listTmpl, err = loadTemplate(g.options.ListTemplate)
 		if err != nil {
-			return xerrors.Errorf("load list template error: %w", err)
+			return fmt.Errorf("load list template error: %w", err)
 		}
 	}
 
@@ -134,7 +128,7 @@ func (g *Generator) Generate() error {
 	if g.options.FiltersTemplate != "" {
 		filtersTmpl, err = loadTemplate(g.options.FiltersTemplate)
 		if err != nil {
-			return xerrors.Errorf("load filters template error: %w", err)
+			return fmt.Errorf("load filters template error: %w", err)
 		}
 	}
 
@@ -142,41 +136,41 @@ func (g *Generator) Generate() error {
 	if g.options.FormTemplate != "" {
 		listTmpl, err = loadTemplate(g.options.FormTemplate)
 		if err != nil {
-			return xerrors.Errorf("load form template error: %w", err)
+			return fmt.Errorf("load form template error: %w", err)
 		}
 	}
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, []string{mfd.RuLang, mfd.EnLang})
 	if err != nil {
-		return xerrors.Errorf("read translation error: %w", err)
+		return fmt.Errorf("read translation error: %w", err)
 	}
 
-	for _, namespace := range project.Namespaces {
+	for _, namespace := range project.VTNamespaces {
 		for _, entity := range namespace.Entities {
-			if entity.VTEntity.NoTemplates {
+			if entity.NoTemplates {
 				continue
 			}
 
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
 			if err := SaveEntity(*entity, output, listTmpl); err != nil {
-				return xerrors.Errorf("generate entity %s list error: %w", entity.Name, err)
+				return fmt.Errorf("generate entity %s list error: %w", entity.Name, err)
 			}
 
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "components/ListFilters.vue")
 			if err := SaveEntity(*entity, output, filtersTmpl); err != nil {
-				return xerrors.Errorf("generate entity %s filters  error: %w", entity.Name, err)
+				return fmt.Errorf("generate entity %s filters  error: %w", entity.Name, err)
 			}
 
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "Form.vue")
 			if err := SaveEntity(*entity, output, formTmpl); err != nil {
-				return xerrors.Errorf("generate entity %s form  error: %w", entity.Name, err)
+				return fmt.Errorf("generate entity %s form  error: %w", entity.Name, err)
 			}
 
 			// saving translations
 			for lang, translation := range translations {
 				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
 				if err := mfd.MarshalJSONToFile(output, translation.Entity(namespace.Name, entity.Name)); err != nil {
-					return xerrors.Errorf("save translation lang %s error: %w", lang, err)
+					return fmt.Errorf("save translation lang %s error: %w", lang, err)
 				}
 			}
 		}
@@ -185,27 +179,45 @@ func (g *Generator) Generate() error {
 	return nil
 }
 
-func SaveEntity(entity mfd.Entity, output, tmpl string) error {
+// SaveEntity saves vt entity to template with special delims
+func SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 	parsed, err := template.New("base").
 		Delims("[[", "]]").
 		Funcs(mfd.TemplateFunctions).
 		Parse(tmpl)
 	if err != nil {
-		return xerrors.Errorf("parsing template error: %w", err)
+		return fmt.Errorf("parsing template error: %w", err)
 	}
 
-	pack := NewVTTemplateEntity(entity)
+	packed := PackEntity(entity)
+
+	var buffer bytes.Buffer
+	if err := parsed.ExecuteTemplate(&buffer, "base", packed); err != nil {
+		return fmt.Errorf("processing model template error: %w", err)
+	}
+
+	_, err = mfd.Save(buffer.Bytes(), output)
+	return err
+}
+
+// SaveRoutes saves all vt namespaces to routes file
+func SaveRoutes(namespaces []*mfd.VTNamespace, output string) (bool, error) {
+	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(routesTemplate)
+	if err != nil {
+		return false, fmt.Errorf("parsing template error: %w", err)
+	}
+
+	pack, err := NewTemplatePackage(namespaces)
+	if err != nil {
+		return false, fmt.Errorf("packing data error: %w", err)
+	}
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", pack); err != nil {
-		return xerrors.Errorf("processing model template error: %w", err)
+		return false, fmt.Errorf("processing model template error: %w", err)
 	}
 
-	if _, err := mfd.Save(buffer.Bytes(), output); err != nil {
-		return err
-	}
-
-	return nil
+	return mfd.Save(buffer.Bytes(), output)
 }
 
 func loadTemplate(path string) (string, error) {

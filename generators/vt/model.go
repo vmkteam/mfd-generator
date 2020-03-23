@@ -2,11 +2,13 @@ package vt
 
 import (
 	"fmt"
-	"github.com/dizzyfool/genna/model"
-	"github.com/dizzyfool/genna/util"
+	"html/template"
+
 	base "github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/mfd"
-	"html/template"
+
+	"github.com/dizzyfool/genna/model"
+	"github.com/dizzyfool/genna/util"
 )
 
 // this code is used to pack mdf to template
@@ -16,8 +18,8 @@ type PKPair struct {
 	JSType template.HTML
 }
 
-// TemplatePackage stores package info
-type TemplatePackage struct {
+// NamespaceData stores vt namespace info fro template
+type NamespaceData struct {
 	Package string
 
 	ModelPackage string
@@ -25,20 +27,19 @@ type TemplatePackage struct {
 	HasImports bool
 	Imports    []string
 
-	Entities []TemplateEntity
+	Entities []EntityData
 }
 
-// NewTemplatePackage creates a package for template
-func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Options) (TemplatePackage, error) {
+// PackNamespace packs mfd vt namespace to template data
+func PackNamespace(vtNamespace *mfd.VTNamespace, options Options) (NamespaceData, error) {
 	imports := mfd.NewSet()
 
-	var models []TemplateEntity
-	ns := namespaces.Namespace(namespace)
-	for _, entity := range ns.Entities {
+	var models []EntityData
+	for _, entity := range vtNamespace.Entities {
 		// creating entity for template
-		mdl, err := NewTemplateEntity(*entity)
+		mdl, err := PackEntity(*entity)
 		if err != nil {
-			return TemplatePackage{}, err
+			return NamespaceData{}, err
 		}
 
 		models = append(models, mdl)
@@ -48,7 +49,7 @@ func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Opt
 		}
 	}
 
-	return TemplatePackage{
+	return NamespaceData{
 		Package: options.Package,
 
 		ModelPackage: options.ModelPackage,
@@ -60,8 +61,8 @@ func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Opt
 	}, nil
 }
 
-// TemplateEntity stores struct info
-type TemplateEntity struct {
+// EntityData stores mfd vt entity info
+type EntityData struct {
 	mfd.VTEntity
 
 	VarName      string
@@ -71,56 +72,58 @@ type TemplateEntity struct {
 
 	PKs []PKPair
 
-	ModelColumns      []TemplateColumn
-	ModelRelations    []TemplateRelation
+	ModelColumns      []AttributeData
+	ModelRelations    []RelationData
 	HasModelRelations bool
 
-	SummaryColumns      []TemplateColumn
-	SummaryRelations    []TemplateRelation
+	SummaryColumns      []AttributeData
+	SummaryRelations    []RelationData
 	HasSummaryRelations bool
 
-	SearchColumns []TemplateColumn
+	SearchColumns []AttributeData
 
-	Params    []TemplateParams
+	Params    []ParamsData
 	HasParams bool
 }
 
-// NewTemplateEntity creates an entity for template
-func NewTemplateEntity(entity mfd.Entity) (TemplateEntity, error) {
+// PackEntity packs mfd vt entity to template data
+func PackEntity(vtEntity mfd.VTEntity) (EntityData, error) {
 	imports := mfd.NewSet()
 
-	tmpl := TemplateEntity{
-		VTEntity: *entity.VTEntity,
+	tmpl := EntityData{
+		VTEntity: vtEntity,
 
-		VarName:      mfd.VarName(entity.VTEntity.Name),
-		ShortVarName: mfd.ShortVarName(entity.VTEntity.Name),
+		VarName:      mfd.VarName(vtEntity.Name),
+		ShortVarName: mfd.ShortVarName(vtEntity.Name),
 
 		PKs: []PKPair{},
 	}
 
 	// adding columns
-	for _, vt := range entity.VTEntity.Attributes {
+	for _, vtAttr := range vtEntity.Attributes {
 		// simple columns
-		if vt.AttrName != "" {
-			attr := entity.AttributeByName(vt.AttrName)
+		if vtAttr.Attribute != nil {
+			// corresponding entity attr
+			attr := vtAttr.Attribute
+
 			// model column
-			tmpl.ModelColumns = append(tmpl.ModelColumns, NewModelColumn(entity, *vt, *attr))
+			tmpl.ModelColumns = append(tmpl.ModelColumns, PackAttribute(vtEntity, *vtAttr))
 			if attr.ForeignKey != "" && !attr.IsArray {
-				tmpl.ModelRelations = append(tmpl.ModelRelations, NewTemplateRelation(vt, attr))
+				tmpl.ModelRelations = append(tmpl.ModelRelations, PackRelation(vtAttr))
 			}
 
 			// summary column
-			if vt.Summary {
-				tmpl.SummaryColumns = append(tmpl.SummaryColumns, NewSummaryColumn(entity, *vt, *attr))
+			if vtAttr.Summary {
+				tmpl.SummaryColumns = append(tmpl.SummaryColumns, PackSummaryAttribute(vtEntity, *vtAttr))
 
 				if attr.ForeignKey != "" && !attr.IsArray {
-					tmpl.SummaryRelations = append(tmpl.SummaryRelations, NewTemplateRelation(vt, attr))
+					tmpl.SummaryRelations = append(tmpl.SummaryRelations, PackRelation(vtAttr))
 				}
 			}
 
 			// params column
 			if attr.IsJSON() {
-				tmpl.Params = append(tmpl.Params, NewTemplateParams(vt, attr))
+				tmpl.Params = append(tmpl.Params, PackParams(vtAttr))
 			}
 
 			// adding imports
@@ -136,15 +139,15 @@ func NewTemplateEntity(entity mfd.Entity) (TemplateEntity, error) {
 			}
 
 			if mfd.IsStatus(attr.Name) {
-				tmpl.ModelRelations = append(tmpl.ModelRelations, NewStatusRelation())
-				if vt.Summary {
-					tmpl.SummaryRelations = append(tmpl.SummaryRelations, NewStatusRelation())
+				tmpl.ModelRelations = append(tmpl.ModelRelations, PackStatusRelation())
+				if vtAttr.Summary {
+					tmpl.SummaryRelations = append(tmpl.SummaryRelations, PackStatusRelation())
 				}
 			}
 		}
 		// search columns
-		if vt.Search {
-			tmpl.SearchColumns = append(tmpl.SearchColumns, NewSearchColumn(entity, *vt))
+		if vtAttr.Search {
+			tmpl.SearchColumns = append(tmpl.SearchColumns, PackSearchAttribute(vtEntity, *vtAttr))
 		}
 	}
 
@@ -159,8 +162,8 @@ func NewTemplateEntity(entity mfd.Entity) (TemplateEntity, error) {
 	return tmpl, nil
 }
 
-// TemplateColumn stores column info
-type TemplateColumn struct {
+// AttributeData stores vt attribute info
+type AttributeData struct {
 	VTAttribute mfd.VTAttribute
 	Attribute   mfd.Attribute
 
@@ -183,9 +186,14 @@ type TemplateColumn struct {
 	FromDBName template.HTML
 }
 
-func NewModelColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribute) TemplateColumn {
+// PackAttribute packs mfd vt attribute to template data
+func PackAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) AttributeData {
+	// corresponding entity and attribute
+	entity := vtEntity.Entity
+	attr := vtAttr.Attribute
+
 	// model column as base
-	baseColumn := base.NewTemplateColumn(entity, attr, base.Options{})
+	baseColumn := base.PackAttribute(*entity, *attr, base.Options{})
 
 	// adding tags
 	tags := util.NewAnnotation()
@@ -208,9 +216,9 @@ func NewModelColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribut
 		tags.AddTag("validate", fmt.Sprintf("min=%d", vtAttr.MinValue))
 	}
 
-	column := TemplateColumn{
+	column := AttributeData{
 		VTAttribute: vtAttr,
-		Attribute:   attr,
+		Attribute:   *attr,
 
 		Name:      util.ColumnName(vtAttr.Name),
 		FieldName: baseColumn.Name,
@@ -233,7 +241,7 @@ func NewModelColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribut
 	}
 
 	if attr.DBType == model.TypePGInet {
-		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(entity.VTEntity.Name), attr.Nullable())
+		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(vtEntity.Name), attr.Nullable())
 		column.FromDBName, column.FromDBFunc = customFromIPConverter(column.Name, attr.Nullable())
 		if attr.Nullable() {
 			column.GoType = "*" + model.TypeString
@@ -245,16 +253,21 @@ func NewModelColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribut
 	return column
 }
 
-func NewSummaryColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attribute) TemplateColumn {
+// PackSummaryAttribute packs mfd vt attribute to summary template data
+func PackSummaryAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) AttributeData {
+	// corresponding entity and attribute
+	entity := vtEntity.Entity
+	attr := vtAttr.Attribute
+
 	// model column as base
-	baseColumn := base.NewTemplateColumn(entity, attr, base.Options{})
+	baseColumn := base.PackAttribute(*entity, *attr, base.Options{})
 
 	tags := util.NewAnnotation()
 	tags.AddTag("json", mfd.JSONName(vtAttr.Name))
 
-	column := TemplateColumn{
+	column := AttributeData{
 		VTAttribute: vtAttr,
-		Attribute:   attr,
+		Attribute:   *attr,
 
 		Name:      util.ColumnName(vtAttr.Name),
 		FieldName: baseColumn.Name,
@@ -266,7 +279,7 @@ func NewSummaryColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attrib
 	}
 
 	if attr.DBType == model.TypePGInet {
-		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(entity.VTEntity.Name), attr.Nullable())
+		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(vtEntity.Name), attr.Nullable())
 		column.FromDBName, column.FromDBFunc = customFromIPConverter(column.Name, attr.Nullable())
 		if attr.Nullable() {
 			column.GoType = "*" + model.TypeString
@@ -278,22 +291,26 @@ func NewSummaryColumn(entity mfd.Entity, vtAttr mfd.VTAttribute, attr mfd.Attrib
 	return column
 }
 
-func NewSearchColumn(entity mfd.Entity, vtAttr mfd.VTAttribute) TemplateColumn {
+// PackSearchAttribute packs mfd vt attribute to search template data
+func PackSearchAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) AttributeData {
+	// corresponding entity
+	entity := vtEntity.Entity
+
 	// search column as base
-	var baseColumn base.SearchTemplateColumn
+	var baseColumn base.SearchAttributeData
 	var baseAttr mfd.Attribute
 	if search := entity.SearchByName(vtAttr.SearchName); search != nil {
-		baseColumn = base.NewCustomTemplateColumn(entity, *search, base.Options{})
+		baseColumn = base.CustomSearchAttribute(*entity, *search, base.Options{})
 		baseAttr = *search.Attribute
 	} else if attr := entity.AttributeByName(vtAttr.SearchName); attr != nil {
-		baseColumn = base.NewSearchTemplateColumn(entity, *attr, base.Options{})
+		baseColumn = base.PackSearchAttribute(*entity, *attr, base.Options{})
 		baseAttr = *attr
 	}
 
 	tags := util.NewAnnotation()
 	tags.AddTag("json", mfd.JSONName(vtAttr.Name))
 
-	column := TemplateColumn{
+	column := AttributeData{
 		VTAttribute: vtAttr,
 		Attribute:   baseAttr,
 
@@ -307,15 +324,15 @@ func NewSearchColumn(entity mfd.Entity, vtAttr mfd.VTAttribute) TemplateColumn {
 	}
 
 	if baseAttr.DBType == model.TypePGInet {
-		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(entity.VTEntity.Name)+"s", true)
+		column.ToDBName, column.ToDBFunc = customToIPConverter(column.Name, mfd.ShortVarName(vtEntity.Name)+"s", true)
 		column.GoType = "*" + model.TypeString
 	}
 
 	return column
 }
 
-// TemplateRelation stores relation info
-type TemplateRelation struct {
+// RelationData stores relation info
+type RelationData struct {
 	Name      string
 	FieldName string
 	Type      string
@@ -323,25 +340,27 @@ type TemplateRelation struct {
 	Tag template.HTML
 }
 
-func NewTemplateRelation(vtAttr *mfd.VTAttribute, attr *mfd.Attribute) TemplateRelation {
-	name := util.ReplaceSuffix(util.ColumnName(attr.DBName), util.ID, "")
+// PackRelation packs mfd vt attribute to relation template data
+func PackRelation(vtAttr *mfd.VTAttribute) RelationData {
+	name := util.ReplaceSuffix(util.ColumnName(vtAttr.Attribute.DBName), util.ID, "")
 
 	tags := util.NewAnnotation()
 	tags.AddTag("json", mfd.JSONName(name))
 
-	return TemplateRelation{
+	return RelationData{
 		Name:      name,
 		FieldName: name,
-		Type:      attr.ForeignKey,
+		Type:      vtAttr.Attribute.ForeignKey,
 		Tag:       template.HTML(fmt.Sprintf("`%s`", tags.String())),
 	}
 }
 
-func NewStatusRelation() TemplateRelation {
+// PackStatusRelation creates relation for status vt attribute
+func PackStatusRelation() RelationData {
 	tags := util.NewAnnotation()
 	tags.AddTag("json", mfd.JSONName("status"))
 
-	return TemplateRelation{
+	return RelationData{
 		Name:      "Status",
 		FieldName: "Status",
 		Type:      "Status",
@@ -349,25 +368,28 @@ func NewStatusRelation() TemplateRelation {
 	}
 }
 
-type TemplateParams struct {
+// ParamsData stores vt params info
+type ParamsData struct {
 	Name         string
 	ShortVarName string
 	FieldName    string
 }
 
-func NewTemplateParams(vtAttr *mfd.VTAttribute, attr *mfd.Attribute) TemplateParams {
-	name := attr.GoType
+// PackNamespace packs mfd vt attribute to vt params template data
+func PackParams(vtAttr *mfd.VTAttribute) ParamsData {
+	name := vtAttr.Attribute.GoType
 	if name[0] == '*' {
 		name = name[1:]
 	}
 
-	return TemplateParams{
+	return ParamsData{
 		Name:         name,
 		ShortVarName: mfd.ShortVarName(name),
 		FieldName:    name,
 	}
 }
 
+// Import gets import string for template
 func Import(attribute *mfd.Attribute) string {
 	return model.GoImport(attribute.DBType, attribute.Nullable(), false, 8)
 }

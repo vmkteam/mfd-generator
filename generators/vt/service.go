@@ -9,41 +9,43 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 )
 
-type ServiceTemplatePackage struct {
+// ServiceNamespaceData stores namespace info
+type ServiceNamespaceData struct {
 	Package      string
 	ModelPackage string
 
 	Name    string
 	VarName string
 
-	Entities []ServiceTemplateEntity
+	Entities []ServiceEntityData
 }
 
-func NewServiceTemplatePackage(namespace string, namespaces mfd.Namespaces, options Options) ServiceTemplatePackage {
-	basePkg := base.NewTemplatePackage(namespace, namespaces, base.Options{})
-
-	ns := namespaces.Namespace(namespace)
-	entities := make([]ServiceTemplateEntity, len(ns.Entities))
-	for i, entity := range ns.Entities {
-		entities[i] = NewServiceTemplateEntity(*entity)
+// PackServiceNamespace packs mfd vt namespace to template data
+func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNamespaceData {
+	entities := make([]ServiceEntityData, len(namespace.Entities))
+	for i, entity := range namespace.Entities {
+		entities[i] = PackServiceEntity(*entity)
 	}
 
-	return ServiceTemplatePackage{
+	name := util.CamelCased(util.Sanitize(namespace.Name))
+
+	return ServiceNamespaceData{
 		Package:      options.Package,
 		ModelPackage: options.ModelPackage,
 
-		Name:    basePkg.Name,
-		VarName: mfd.VarName(basePkg.Name),
+		Name:    name,
+		VarName: mfd.VarName(name),
 
 		Entities: entities,
 	}
 }
 
-func (tp ServiceTemplatePackage) Raw(s string) template.HTML {
+func (tp ServiceNamespaceData) Raw(s string) template.HTML {
 	return template.HTML(s)
 }
 
-type ServiceTemplateEntity struct {
+// ServiceEntityData stores entity info
+type ServiceEntityData struct {
 	Name          string
 	NamePlural    string
 	VarName       string
@@ -61,40 +63,43 @@ type ServiceTemplateEntity struct {
 	AliasArg   string
 
 	HasRelations bool
-	Relations    []ServiceTemplateRelation
+	Relations    []ServiceRelationData
 }
 
-func NewServiceTemplateEntity(entity mfd.Entity) ServiceTemplateEntity {
-	baseEntity := base.NewTemplateEntity(entity)
+// PackServiceEntity packs mfd vt entity to template data
+func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
+	baseEntity := base.PackEntity(*vtEntity.Entity)
 
-	var relations []ServiceTemplateRelation
+	var relations []ServiceRelationData
 	var sortColumns []string
-	for _, vtAttr := range entity.VTEntity.Attributes {
-		attr := entity.AttributeByName(vtAttr.AttrName)
+	for _, vtAttr := range vtEntity.Attributes {
+		attr := vtAttr.Attribute
 		if attr != nil && !attr.IsArray && vtAttr.Summary {
 			sortColumns = append(sortColumns, attr.Name)
 		}
 
 		if attr != nil && attr.ForeignKey != "" && attr.ForeignEntity != nil {
-			relations = append(relations, NewServiceTemplateRelation(*vtAttr, *attr, *attr.ForeignEntity))
+			relations = append(relations, PackServiceRelationData(*vtAttr, *attr.ForeignEntity))
 		}
 	}
 
 	// setting search for alias unique
 	var pkSearches []base.PKPair
 	var aliasField, aliasArg string
-	for _, attr := range entity.Attributes {
+	for _, vtAttr := range vtEntity.Attributes {
+		attr := vtAttr.Attribute
+
 		if attr.DBName == "alias" {
 			aliasField, aliasArg = attr.Name, attr.Name
 		}
 
 		if attr.PrimaryKey {
-			search := entity.SearchByAttrName(attr.Name, mfd.SearchNotEquals)
+			search := vtEntity.Entity.SearchByAttrName(attr.Name, mfd.SearchNotEquals)
 			if search == nil {
 				continue
 			}
 
-			column := model.NewCustomTemplateColumn(entity, *search, model.Options{})
+			column := model.CustomSearchAttribute(*vtEntity.Entity, *search, model.Options{})
 			pkSearches = append(pkSearches, base.PKPair{
 				Field: attr.Name,
 				Arg:   column.Name,
@@ -102,7 +107,7 @@ func NewServiceTemplateEntity(entity mfd.Entity) ServiceTemplateEntity {
 		}
 	}
 
-	return ServiceTemplateEntity{
+	return ServiceEntityData{
 		Name:          baseEntity.Name,
 		NamePlural:    baseEntity.NamePlural,
 		VarName:       baseEntity.VarName,
@@ -124,7 +129,8 @@ func NewServiceTemplateEntity(entity mfd.Entity) ServiceTemplateEntity {
 	}
 }
 
-type ServiceTemplateRelation struct {
+// ServiceRelationData stores relation info
+type ServiceRelationData struct {
 	Name      string
 	NameSpace string
 	FK        string
@@ -134,15 +140,18 @@ type ServiceTemplateRelation struct {
 	IsArray   bool
 }
 
-func NewServiceTemplateRelation(vtAttr mfd.VTAttribute, attr mfd.Attribute, entity mfd.Entity) ServiceTemplateRelation {
-	baseRelation := model.NewTemplateRelation(attr, model.Options{})
+// PackServiceRelationData packs mfd vt attribute to relation template data
+func PackServiceRelationData(vtAttr mfd.VTAttribute, foreign mfd.Entity) ServiceRelationData {
+	attr := vtAttr.Attribute
 
-	return ServiceTemplateRelation{
+	baseRelation := model.PackRelation(*attr, model.Options{})
+
+	return ServiceRelationData{
 		Name:      attr.Name,
 		JSONName:  mfd.JSONName(vtAttr.Name),
 		FK:        baseRelation.ForeignEntity.Name,
 		PluralFK:  mfd.MakePlural(util.CamelCased(baseRelation.ForeignEntity.Name)),
-		NameSpace: entity.Namespace,
+		NameSpace: foreign.Namespace,
 		Nullable:  attr.Nullable(),
 		IsArray:   attr.IsArray,
 	}

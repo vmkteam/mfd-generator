@@ -12,25 +12,25 @@ import (
 
 // this code is used to pack mdf to template
 
-// TemplatePackage stores package info
-type TemplatePackage struct {
+// NamespaceData stores package info
+type NamespaceData struct {
 	Package string
 
 	HasImports bool
 	Imports    []string
 
-	Entities []TemplateEntity
+	Entities []EntityData
 }
 
-// NewTemplatePackage creates a package for template
-func NewTemplatePackage(namespaces mfd.Namespaces, options Options) TemplatePackage {
+// PackNamespace creates a package for template
+func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 	imports := mfd.NewSet()
 
-	var models []TemplateEntity
+	var models []EntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
 			// creating entity for template
-			mdl := NewTemplateEntity(*entity, options)
+			mdl := PackEntity(*entity, options)
 			models = append(models, mdl)
 			// adding imports to uniq set
 			for _, imp := range mdl.Imports {
@@ -40,7 +40,7 @@ func NewTemplatePackage(namespaces mfd.Namespaces, options Options) TemplatePack
 		}
 	}
 
-	return TemplatePackage{
+	return NamespaceData{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
@@ -50,8 +50,8 @@ func NewTemplatePackage(namespaces mfd.Namespaces, options Options) TemplatePack
 	}
 }
 
-// TemplateEntity stores struct info
-type TemplateEntity struct {
+// EntityData stores struct info
+type EntityData struct {
 	mfd.Entity
 
 	ShortVarName string
@@ -63,21 +63,21 @@ type TemplateEntity struct {
 
 	Imports []string
 
-	Columns []TemplateColumn
+	Columns []AttributeData
 
 	HasRelations bool
-	Relations    []TemplateRelation
+	Relations    []RelationData
 }
 
-// NewTemplateEntity creates an entity for template
-func NewTemplateEntity(entity mfd.Entity, options Options) TemplateEntity {
+// PackEntity creates an entity for template
+func PackEntity(entity mfd.Entity, options Options) EntityData {
 	imports := mfd.NewSet()
-	var columns []TemplateColumn
-	var relations []TemplateRelation
+	var columns []AttributeData
+	var relations []RelationData
 
 	// adding columns
 	for _, attribute := range entity.Attributes {
-		column := NewTemplateColumn(entity, *attribute, options)
+		column := PackAttribute(entity, *attribute, options)
 		columns = append(columns, column)
 
 		// adding imports to uniq set
@@ -87,7 +87,7 @@ func NewTemplateEntity(entity mfd.Entity, options Options) TemplateEntity {
 
 		// adding relation from column
 		if attribute.ForeignKey != "" && !attribute.IsArray {
-			relations = append(relations, NewTemplateRelation(*attribute, options))
+			relations = append(relations, PackRelation(*attribute, options))
 		}
 	}
 
@@ -98,7 +98,7 @@ func NewTemplateEntity(entity mfd.Entity, options Options) TemplateEntity {
 	tags.AddTag(tagName, fmt.Sprintf("alias:%s", util.DefaultAlias))
 	tags.AddTag("pg", ",discard_unknown_columns")
 
-	return TemplateEntity{
+	return EntityData{
 		Entity: entity,
 
 		ShortVarName: mfd.ShortVarName(entity.Name),
@@ -116,8 +116,8 @@ func NewTemplateEntity(entity mfd.Entity, options Options) TemplateEntity {
 	}
 }
 
-// TemplateColumn stores column info
-type TemplateColumn struct {
+// AttributeData stores column info
+type AttributeData struct {
 	mfd.Attribute
 
 	Name   string
@@ -128,8 +128,8 @@ type TemplateColumn struct {
 	Comment template.HTML
 }
 
-// NewTemplateColumn creates a column for template
-func NewTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Options) TemplateColumn {
+// PackAttribute creates a column for template
+func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) AttributeData {
 	comment := ""
 	tagName := tagName(options)
 	tags := util.NewAnnotation()
@@ -174,7 +174,7 @@ func NewTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Optio
 	// fix pointer in case of inconsistency
 	attribute.GoType = fixPointer(attribute)
 
-	return TemplateColumn{
+	return AttributeData{
 		Attribute: attribute,
 
 		Type:   goType,
@@ -186,8 +186,8 @@ func NewTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Optio
 	}
 }
 
-// TemplateRelation stores relation info
-type TemplateRelation struct {
+// RelationData stores relation info
+type RelationData struct {
 	mfd.Attribute
 
 	Name string
@@ -197,8 +197,8 @@ type TemplateRelation struct {
 	Comment template.HTML
 }
 
-// NewTemplateRelation creates relation for template
-func NewTemplateRelation(relation mfd.Attribute, options Options) TemplateRelation {
+// PackRelation creates relation for template
+func PackRelation(relation mfd.Attribute, options Options) RelationData {
 	// adding go-pg's fk annotation
 	tags := util.NewAnnotation().AddTag("pg", "fk:"+relation.DBName)
 	comment := ""
@@ -218,7 +218,7 @@ func NewTemplateRelation(relation mfd.Attribute, options Options) TemplateRelati
 		comment = "// unsupported"
 	}
 
-	return TemplateRelation{
+	return RelationData{
 		Attribute: relation,
 
 		// ObjectID -> Object, UserID -> User

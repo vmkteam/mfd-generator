@@ -21,24 +21,24 @@ const (
 	Enum = "enum"
 )
 
-// TemplatePackage stores package info
-type ValidateTemplatePackage struct {
+// ValidateNamespaceData stores namespace info for template
+type ValidateNamespaceData struct {
 	Package string
 
 	HasImports bool
 	Imports    []string
 
-	Entities []ValidateTemplateEntity
+	Entities []ValidateEntityData
 }
 
-// NewTemplatePackage creates a package for template
-func NewValidateTemplatePackage(namespaces mfd.Namespaces, options Options) ValidateTemplatePackage {
+// PackValidateNamespace packs mfd namespace to validate template data
+func PackValidateNamespace(namespaces []*mfd.Namespace, options Options) ValidateNamespaceData {
 	imports := util.NewSet()
 
-	var models []ValidateTemplateEntity
+	var models []ValidateEntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
-			mdl := NewValidateTemplateEntity(*entity, options)
+			mdl := PackValidateEntity(*entity, options)
 			// if there is nothing to validate - skip
 			if len(mdl.Columns) == 0 {
 				continue
@@ -52,7 +52,7 @@ func NewValidateTemplatePackage(namespaces mfd.Namespaces, options Options) Vali
 		}
 	}
 
-	return ValidateTemplatePackage{
+	return ValidateNamespaceData{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
@@ -62,27 +62,27 @@ func NewValidateTemplatePackage(namespaces mfd.Namespaces, options Options) Vali
 	}
 }
 
-// TemplateEntity stores struct info
-type ValidateTemplateEntity struct {
+// ValidateEntityData stores entity info for template
+type ValidateEntityData struct {
 	// using model template as base because validate depends on it
-	TemplateEntity
+	EntityData
 
-	Columns []ValidateTemplateColumn
+	Columns []ValidateAttributeData
 	Imports []string
 }
 
-// NewTemplateEntity creates an entity for template
-func NewValidateTemplateEntity(entity mfd.Entity, options Options) ValidateTemplateEntity {
+// PackValidateEntity packs mfd entity to template data
+func PackValidateEntity(entity mfd.Entity, options Options) ValidateEntityData {
 	imports := mfd.NewSet()
 
-	var columns []ValidateTemplateColumn
+	var columns []ValidateAttributeData
 	for _, attribute := range entity.Attributes {
 		// if field can be validated
 		if !isValidatable(*attribute) {
 			continue
 		}
 
-		tmpl := NewValidateTemplateColumn(entity, *attribute, options)
+		tmpl := PackValidateAttribute(entity, *attribute, options)
 
 		columns = append(columns, tmpl)
 		if tmpl.Import != "" {
@@ -90,30 +90,30 @@ func NewValidateTemplateEntity(entity mfd.Entity, options Options) ValidateTempl
 		}
 	}
 
-	return ValidateTemplateEntity{
+	return ValidateEntityData{
 		// base template entity
-		TemplateEntity: NewTemplateEntity(entity, options),
+		EntityData: PackEntity(entity, options),
 
 		Columns: columns,
 		Imports: imports.Elements(),
 	}
 }
 
-// TemplateColumn stores column info
-type ValidateTemplateColumn struct {
+// ValidateAttributeData stores attribute info for validate template
+type ValidateAttributeData struct {
 	// using model template as base because validate depends on it
-	TemplateColumn
+	AttributeData
 
 	Check string
 
 	Import string
 }
 
-// NewTemplateColumn creates a column for template
-func NewValidateTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Options) ValidateTemplateColumn {
-	tmpl := ValidateTemplateColumn{
+// PackValidateAttribute packs mfd attribute to validate template data
+func PackValidateAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) ValidateAttributeData {
+	tmpl := ValidateAttributeData{
 		// base template column
-		TemplateColumn: NewTemplateColumn(entity, attribute, options),
+		AttributeData: PackAttribute(entity, attribute, options),
 
 		Check: check(attribute),
 	}

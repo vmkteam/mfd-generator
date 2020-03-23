@@ -10,6 +10,7 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
+// PKPair stores primary keys with type for template
 type PKPair struct {
 	Field string
 	Arg   string
@@ -17,29 +18,31 @@ type PKPair struct {
 	Zero  template.HTML
 }
 
+// SortPair stores sort columns with direction for template
 type SortPair struct {
 	Field, Dir string
 }
 
-type TemplatePackage struct {
+// NamespaceData stores namespace info for template
+type NamespaceData struct {
 	Package string
 
 	Name         string
 	ShortVarName string
 
-	Entities []TemplateEntity
+	Entities []EntityData
 }
 
-func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Options) TemplatePackage {
-	ns := namespaces.Namespace(namespace)
-	entities := make([]TemplateEntity, len(ns.Entities))
-	for i, entity := range ns.Entities {
-		entities[i] = NewTemplateEntity(*entity)
+// PackNamespace packs mfd namespace to template data
+func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
+	entities := make([]EntityData, len(namespace.Entities))
+	for i, entity := range namespace.Entities {
+		entities[i] = PackEntity(*entity)
 	}
 
-	name := util.CamelCased(util.Sanitize(namespace))
+	name := util.CamelCased(util.Sanitize(namespace.Name))
 
-	return TemplatePackage{
+	return NamespaceData{
 		Package: options.Package,
 
 		Name:         name,
@@ -49,7 +52,8 @@ func NewTemplatePackage(namespace string, namespaces mfd.Namespaces, options Opt
 	}
 }
 
-type TemplateEntity struct {
+// EntityData stores entity info for template
+type EntityData struct {
 	Name       string
 	NamePlural string
 
@@ -66,14 +70,15 @@ type TemplateEntity struct {
 	HasRelations bool
 	Relations    []string
 
-	Columns         []TemplateColumn
+	Columns         []AttributeData
 	HasNotAddable   bool
 	HasNotUpdatable bool
 }
 
-func NewTemplateEntity(entity mfd.Entity) TemplateEntity {
+// PackEntity packs mfd entity to template data
+func PackEntity(entity mfd.Entity) EntityData {
 	// base template entity - repo depends on int
-	te := model.NewTemplateEntity(entity, model.Options{})
+	te := model.PackEntity(entity, model.Options{})
 
 	hasStatus := false
 	hasNotAddable := false
@@ -81,7 +86,7 @@ func NewTemplateEntity(entity mfd.Entity) TemplateEntity {
 	var pks []PKPair
 
 	var relations []string
-	var columns []TemplateColumn
+	var columns []AttributeData
 
 	for _, column := range te.Columns {
 		// if has status - generate soft delete
@@ -111,7 +116,7 @@ func NewTemplateEntity(entity mfd.Entity) TemplateEntity {
 			hasNotUpdatable = true
 		}
 
-		columns = append(columns, TemplateColumn{
+		columns = append(columns, AttributeData{
 			Name:      column.Name,
 			Addable:   column.IsAddable(),
 			Updatable: column.IsUpdatable(),
@@ -140,7 +145,7 @@ func NewTemplateEntity(entity mfd.Entity) TemplateEntity {
 		varNamePlural = fmt.Sprintf("%sList", varNamePlural)
 	}
 
-	return TemplateEntity{
+	return EntityData{
 		Name:       te.Name,
 		NamePlural: goNamePlural,
 
@@ -163,7 +168,8 @@ func NewTemplateEntity(entity mfd.Entity) TemplateEntity {
 	}
 }
 
-type TemplateColumn struct {
+// AttributeData stores attribute info for template
+type AttributeData struct {
 	Name      string
 	Addable   bool
 	Updatable bool

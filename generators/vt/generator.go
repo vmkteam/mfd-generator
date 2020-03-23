@@ -10,7 +10,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -25,12 +24,12 @@ func CreateCommand() *cobra.Command {
 	return base.CreateCommand("vt", "Create vt from xml", New())
 }
 
-// Generator represents mfd generator
+// Generator represents mfd vt generator
 type Generator struct {
 	options Options
 }
 
-// New creates basic generator
+// New creates vt generator
 func New() *Generator {
 	return &Generator{}
 }
@@ -91,27 +90,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	return nil
 }
 
-// Packer returns packer function for compile entities into package
-func (g *Generator) ModelPacker(namespace string) mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewTemplatePackage(namespace, namespaces, g.options)
-	}
-}
-
-// Packer returns packer function for compile entities into package
-func (g *Generator) ServicePacker(namespace string) mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewServiceTemplatePackage(namespace, namespaces, g.options), nil
-	}
-}
-
-// Packer returns packer function for compile entities into package
-func (g *Generator) ServerPacker() mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewServerPackage(namespaces)
-	}
-}
-
+// Generate runs generator
 func (g *Generator) Generate() error {
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false)
@@ -120,7 +99,7 @@ func (g *Generator) Generate() error {
 	}
 
 	if len(g.options.Namespaces) != 0 {
-		var filteredNameSpaces mfd.Namespaces
+		var filteredNameSpaces []*mfd.Namespace
 		for _, ns := range g.options.Namespaces {
 			if p := project.Namespace(ns); p != nil {
 				filteredNameSpaces = append(filteredNameSpaces, p)
@@ -129,50 +108,57 @@ func (g *Generator) Generate() error {
 		project.Namespaces = filteredNameSpaces
 	}
 
-	for _, ns := range project.Namespaces {
+	for _, ns := range project.VTNamespaces {
 		// generating each namespace in separate file
 		baseName := mfd.GoFileName(ns.Name)
 
+		modelData, err := PackNamespace(ns, g.options)
+		if err != nil {
+			return fmt.Errorf("generate vt model error: %w", err)
+		}
+
 		// generate model file
 		output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
-		if _, err := mfd.PackAndSave(project.Namespaces, output, modelTemplate, g.ModelPacker(ns.Name), true); err != nil {
-			return xerrors.Errorf("generate vt model error: %w", err)
+		if _, err := mfd.FormatAndSave(modelData, output, modelTemplate, true); err != nil {
+			return fmt.Errorf("generate vt model error: %w", err)
 		}
 
 		// generate converter file
 		output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
-		if _, err := mfd.PackAndSave(project.Namespaces, output, converterTemplate, g.ModelPacker(ns.Name), true); err != nil {
-			return xerrors.Errorf("generate vt converter error: %w", err)
+		if _, err := mfd.FormatAndSave(modelData, output, converterTemplate, true); err != nil {
+			return fmt.Errorf("generate vt converter error: %w", err)
 		}
 
 		// generate service file
 		output = path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
-		if _, err := mfd.PackAndSave(project.Namespaces, output, serviceTemplate, g.ServicePacker(ns.Name), true); err != nil {
-			return xerrors.Errorf("generate service %s error: %w", ns, err)
+		serviceData := PackServiceNamespace(ns, g.options)
+		if _, err := mfd.FormatAndSave(serviceData, output, serviceTemplate, true); err != nil {
+			return fmt.Errorf("generate service %s error: %w", ns, err)
 		}
 	}
 
-	if err := RenderAndPrint(project.Namespaces, serverTemplate, g.ServerPacker()); err != nil {
-		return xerrors.Errorf("generate vt server error: %w", err)
+	// printing zenrpc server code
+	if err := PrintServer(project.VTNamespaces, serverTemplate); err != nil {
+		return fmt.Errorf("generate vt server error: %w", err)
 	}
 
 	return nil
 }
 
-func RenderAndPrint(namespaces mfd.Namespaces, tmpl string, packer mfd.Packer) error {
+func PrintServer(namespaces []*mfd.VTNamespace, tmpl string) error {
 	parsed, err := template.New("base").Parse(tmpl)
 	if err != nil {
-		return xerrors.Errorf("parsing template error: %w", err)
+		return fmt.Errorf("parsing template error: %w", err)
 	}
 
-	pack, err := packer(namespaces)
+	pack, err := PackServerNamespaces(namespaces)
 	if err != nil {
-		return xerrors.Errorf("packing data error: %w", err)
+		return fmt.Errorf("packing data error: %w", err)
 	}
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", pack); err != nil {
-		return xerrors.Errorf("processing model template error: %w", err)
+		return fmt.Errorf("processing model template error: %w", err)
 	}
 
 	fmt.Print(buffer.String())

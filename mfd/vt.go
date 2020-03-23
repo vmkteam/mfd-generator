@@ -1,6 +1,9 @@
 package mfd
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"strings"
+)
 
 const (
 	TypeHTMLNone     = "HTML_NONE"
@@ -17,22 +20,78 @@ const (
 	TypeHTMLImage    = "HTML_IMAGE"
 )
 
+// VTNamespace returns mfd.VTNamespace by its name
+func (p *Project) VTNamespace(namespace string) *VTNamespace {
+	for _, ns := range p.VTNamespaces {
+		if strings.ToLower(ns.Name) == strings.ToLower(namespace) {
+			return ns
+		}
+	}
+
+	return nil
+}
+
+// AddVTNamespace adds namespace and return it
+func (p *Project) AddVTNamespace(namespace string) *VTNamespace {
+	ns := NewVTNamespace(namespace)
+
+	p.NamespaceNames = append(p.NamespaceNames, namespace)
+	p.VTNamespaces = append(p.VTNamespaces, ns)
+
+	return ns
+}
+
+// AddEntity adds entity to namespace
+func (p *Project) AddVTEntity(namespace string, entity *VTEntity) *VTEntity {
+	ns := p.VTNamespace(namespace)
+	if ns == nil {
+		ns = p.AddVTNamespace(namespace)
+	}
+
+	return ns.AddVTEntity(entity)
+}
+
 // VTNamespace is xml element
 type VTNamespace struct {
 	XMLName xml.Name `xml:"VTNamespace" json:"-"`
 	XMLxsi  string   `xml:"xmlns:xsi,attr"`
 	XMLxsd  string   `xml:"xmlns:xsd,attr"`
+	Name    string
 
-	Entities VTEntities `xml:"VTEntities>Entity"`
+	Entities []*VTEntity `xml:"VTEntities>Entity"`
 }
 
-func NewVTNamespace(entities VTEntities) VTNamespace {
-	return VTNamespace{
+func NewVTNamespace(namespace string) *VTNamespace {
+	return &VTNamespace{
 		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
 		XMLxsd: "http://www.w3.org/2001/XMLSchema",
 
-		Entities: entities,
+		Name: namespace,
+
+		Entities: []*VTEntity{},
 	}
+}
+
+// Entity returns mfd.Entity by its name
+func (n *VTNamespace) VTEntity(entity string) *VTEntity {
+	for _, e := range n.Entities {
+		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+			return e
+		}
+	}
+
+	return nil
+}
+
+// AddEntity adds entity to namespace
+func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
+	if existing := n.VTEntity(entity.Name); existing != nil {
+		existing.Merge(entity)
+		return existing
+	}
+
+	n.Entities = append(n.Entities, entity)
+	return entity
 }
 
 // VTEntity is xml element
@@ -43,8 +102,11 @@ type VTEntity struct {
 
 	TerminalPath string `xml:"TerminalPath"`
 
-	Attributes     VTAttributes   `xml:"Attributes>Attribute"`
-	TmplAttributes TmplAttributes `xml:"Template>Attribute"`
+	Attributes     []*VTAttribute   `xml:"Attributes>Attribute"`
+	TmplAttributes []*TmplAttribute `xml:"Template>Attribute"`
+
+	// corresponding entity
+	Entity *Entity `xml:"-"`
 }
 
 // Attribute gets mfd.VTAttribute by its field name
@@ -92,7 +154,7 @@ func (e *VTEntity) Merge(with *VTEntity) {
 	e.Attributes = attrs
 }
 
-func (e *VTEntity) AddTmpl(attrs TmplAttributes) {
+func (e *VTEntity) AddTmpl(attrs []*TmplAttribute) {
 	tmplAttrs := e.TmplAttributes
 	for _, toAdd := range attrs {
 		// adding only new
@@ -124,6 +186,9 @@ type VTAttribute struct {
 	MinValue int    `xml:"Min,attr"`
 	Required bool   `xml:"Required,attr"`
 	Validate string `xml:"Validate,attr"`
+
+	// corresponding entity attribute
+	Attribute *Attribute `xml:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
@@ -149,6 +214,9 @@ type TmplAttribute struct {
 	FKOpts string `xml:"FKOpts,attr,omitempty"` // how to show fks
 	Form   string `xml:"Form,attr"`             // show in object editor
 	Search string `xml:"Search,attr"`           // input type in search
+
+	// corresponding vt attribute
+	VTAttribute *VTAttribute `xml:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
@@ -157,10 +225,3 @@ func (a *TmplAttribute) Merge(with *TmplAttribute) {
 		a.FKOpts = with.FKOpts
 	}
 }
-
-// convenient types
-type VTEntities []*VTEntity
-
-type VTAttributes []*VTAttribute
-
-type TmplAttributes []*TmplAttribute

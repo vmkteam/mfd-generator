@@ -10,7 +10,8 @@ import (
 
 const MaxShortFilters = 3
 
-type VTTemplateEntity struct {
+// EntityData stores entity info
+type EntityData struct {
 	Name   string
 	JSName string
 
@@ -19,41 +20,37 @@ type VTTemplateEntity struct {
 
 	PKs []PKPair
 
-	ListColumns   []VTTemplateColumn
-	FilterColumns []VTTemplateInput
-	FormColumns   []VTTemplateInput
+	ListColumns   []AttributeData
+	FilterColumns []InputData
+	FormColumns   []InputData
 }
 
-func NewVTTemplateEntity(entity mfd.Entity) VTTemplateEntity {
-	quickFilter := ""
-	if title := entity.TitleVTAttribute(); title != nil {
-		quickFilter = mfd.VarName(title.Name)
-	}
-
+// PackEntity packs mfd vt entity to template data
+func PackEntity(vtEntity mfd.VTEntity) EntityData {
 	var pks []PKPair
-	for _, pk := range entity.PKs() {
+	for _, pk := range vtEntity.Entity.PKs() {
 		pks = append(pks, PKPair{
 			JSName: mfd.VarName(pk.Name),
 		})
 	}
 
-	tmpl := VTTemplateEntity{
-		Name:           entity.VTEntity.Name,
-		JSName:         mfd.VarName(entity.VTEntity.Name),
-		HasQuickFilter: quickFilter != "",
-		TitleField:     quickFilter,
+	tmpl := EntityData{
+		Name:           vtEntity.Name,
+		JSName:         mfd.VarName(vtEntity.Name),
+		HasQuickFilter: false, // TODO remove
+		TitleField:     "",    // TODO remove
 		PKs:            pks,
 	}
 
-	for _, attr := range entity.VTEntity.TmplAttributes {
+	for _, attr := range vtEntity.TmplAttributes {
 		if attr.List {
-			tmpl.ListColumns = append(tmpl.ListColumns, NewVTTemplateColumn(*attr, entity))
+			tmpl.ListColumns = append(tmpl.ListColumns, PackAttribute(*attr))
 		}
 		if attr.Search != mfd.TypeHTMLNone && attr.Search != "" {
-			tmpl.FilterColumns = append(tmpl.FilterColumns, NewVTTemplateInput(*attr, entity, true))
+			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true))
 		}
 		if attr.Form != mfd.TypeHTMLNone && attr.Form != "" {
-			tmpl.FormColumns = append(tmpl.FormColumns, NewVTTemplateInput(*attr, entity, false))
+			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false))
 		}
 	}
 
@@ -76,7 +73,8 @@ func NewVTTemplateEntity(entity mfd.Entity) VTTemplateEntity {
 	return tmpl
 }
 
-type VTTemplateColumn struct {
+// AttributeData stores attribute info
+type AttributeData struct {
 	JSName string
 
 	EditLink   bool
@@ -87,29 +85,30 @@ type VTTemplateColumn struct {
 	Pipe    template.HTML
 }
 
-func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateColumn {
+// PackAttribute packs mfd tmpl attribute to template data
+func PackAttribute(tmpl mfd.TmplAttribute) AttributeData {
 	lowerName := strings.ToLower(tmpl.Name)
 	boolType := false
 	isSortable := true
 
 	pipe := ""
-	if vtAttr := entity.VTEntity.Attribute(tmpl.AttrName); vtAttr != nil {
-		if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil {
-			if attr.IsDateTime() {
-				pipe = "tableDate"
-			}
-			if attr.ForeignKey != "" {
-				pipe = fmt.Sprintf(`getField("%s")`, mfd.VarName(tmpl.FKOpts))
-				isSortable = false
-			}
-			if attr.IsBool() || tmpl.Search == mfd.TypeHTMLCheckbox {
-				boolType = true
-				isSortable = false
-			}
+	if tmpl.VTAttribute != nil {
+		attr := tmpl.VTAttribute.Attribute
+
+		if attr.IsDateTime() {
+			pipe = "tableDate"
+		}
+		if attr.ForeignKey != "" {
+			pipe = fmt.Sprintf(`getField("%s")`, mfd.VarName(tmpl.FKOpts))
+			isSortable = false
+		}
+		if attr.IsBool() || tmpl.Search == mfd.TypeHTMLCheckbox {
+			boolType = true
+			isSortable = false
 		}
 	}
 
-	return VTTemplateColumn{
+	return AttributeData{
 		JSName:     mfd.VarName(tmpl.Name),
 		EditLink:   lowerName == "title" || lowerName == "name",
 		IsBool:     tmpl.List && boolType,
@@ -119,7 +118,8 @@ func NewVTTemplateColumn(tmpl mfd.TmplAttribute, entity mfd.Entity) VTTemplateCo
 	}
 }
 
-type VTTemplateInput struct {
+// InputData stores attribute info for inputs
+type InputData struct {
 	JSName string
 
 	Component  string
@@ -136,8 +136,9 @@ type VTTemplateInput struct {
 	Params     []template.HTML
 }
 
-func NewVTTemplateInput(tmpl mfd.TmplAttribute, entity mfd.Entity, isSearch bool) VTTemplateInput {
-	inp := VTTemplateInput{
+// PackInput packs mfd tmpl attribute to template input data
+func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) InputData {
+	inp := InputData{
 		JSName:    mfd.VarName(tmpl.Name),
 		Component: filterComponent(tmpl.Search),
 		Params:    []template.HTML{},
@@ -168,26 +169,27 @@ func NewVTTemplateInput(tmpl mfd.TmplAttribute, entity mfd.Entity, isSearch bool
 	}
 
 	if strings.ToLower(tmpl.Name) == "alias" {
-		inp.Component = "vt-transliterator"
+		if title := vtEntity.Entity.TitleAttribute(); title != nil {
+			trasliteratingValue := template.HTML(mfd.VarName(title.Name))
 
-		var trasliteratingValue template.HTML
-		if title := entity.TitleVTAttribute(); title != nil {
-			trasliteratingValue = template.HTML(mfd.VarName(title.Name))
+			inp.Component = "vt-transliterator"
+			inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
 		}
-		inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
 	}
 
-	if vtAttr := entity.VTEntity.Attribute(tmpl.AttrName); vtAttr != nil {
-		inp.Required = vtAttr.Required
+	if tmpl.VTAttribute != nil {
+		inp.Required = tmpl.VTAttribute.Required
 
-		if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil && attr.ForeignKey == mfd.VfsFile {
+		attr := tmpl.VTAttribute.Attribute
+
+		if attr.ForeignKey == mfd.VfsFile {
 			inp.Component = filterComponent(tmpl.Form)
 			inp.IsFK = false
 			inp.FKJSName = mfd.VarName(mfd.FKName(tmpl.AttrName))
 			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
 			inp.Params = append(inp.Params, `:file="store.model.`+template.HTML(inp.FKJSName)+`"
                     @input:file="file => store.model.`+template.HTML(inp.FKJSName)+` = file"`)
-		} else if attr := entity.AttributeByName(vtAttr.AttrName); attr != nil && attr.ForeignKey != "" {
+		} else if attr.ForeignKey != "" {
 			inp.Component = "vt-entity-autocomplete"
 			inp.IsFK = true
 			inp.FKJSName = mfd.VarName(attr.ForeignEntity.Name)

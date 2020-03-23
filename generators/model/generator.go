@@ -9,7 +9,6 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -85,7 +84,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.GoPgVer != 8 && g.options.GoPgVer != 9 {
-		return xerrors.Errorf("go pg version %d is not supported", g.options.GoPgVer)
+		return fmt.Errorf("go pg version %d is not supported", g.options.GoPgVer)
 	}
 
 	g.options.Def()
@@ -93,27 +92,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	return nil
 }
 
-// SearchPacker is custom packer for model file
-func (g *Generator) ModelPacker() mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewTemplatePackage(namespaces, g.options), nil
-	}
-}
-
-// SearchPacker is custom packer for search file
-func (g *Generator) SearchPacker() mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewSearchTemplatePackage(namespaces, g.options), nil
-	}
-}
-
-// SearchPacker is custom packer for validate file
-func (g *Generator) ValidatePacker() mfd.Packer {
-	return func(namespaces mfd.Namespaces) (interface{}, error) {
-		return NewValidateTemplatePackage(namespaces, g.options), nil
-	}
-}
-
+// Generate runs generator
 func (g *Generator) Generate() error {
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false)
@@ -129,26 +108,29 @@ func (g *Generator) Generate() error {
 
 	// basic generator
 	output := path.Join(g.options.Output, "model.go")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, modelTemplate, g.ModelPacker(), true); err != nil {
-		return xerrors.Errorf("generate project model error: %w", err)
+	modelData := PackNamespace(project.Namespaces, g.options)
+	if _, err := mfd.FormatAndSave(modelData, output, modelTemplate, true); err != nil {
+		return fmt.Errorf("generate project model error: %w", err)
 	}
 
 	// generating search
 	output = path.Join(g.options.Output, "model_search.go")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, searchTemplate, g.SearchPacker(), true); err != nil {
-		return xerrors.Errorf("generate project search error: %w", err)
+	searchData := PackSearchNamespace(project.Namespaces, g.options)
+	if _, err := mfd.FormatAndSave(searchData, output, searchTemplate, true); err != nil {
+		return fmt.Errorf("generate project search error: %w", err)
 	}
 
 	// generating validate
 	output = path.Join(g.options.Output, "model_validate.go")
-	if _, err := mfd.PackAndSave(project.Namespaces, output, validateTemplate, g.ValidatePacker(), true); err != nil {
-		return xerrors.Errorf("generate project validate error: %w", err)
+	validateDate := PackValidateNamespace(project.Namespaces, g.options)
+	if _, err := mfd.FormatAndSave(validateDate, output, validateTemplate, true); err != nil {
+		return fmt.Errorf("generate project validate error: %w", err)
 	}
 
 	// generating params
 	output = path.Join(g.options.Output, "model_params.go")
 	if _, err := GenerateParams(project.Namespaces, output, g.options); err != nil {
-		return xerrors.Errorf("generate project params error: %w", err)
+		return fmt.Errorf("generate project params error: %w", err)
 	}
 
 	return nil

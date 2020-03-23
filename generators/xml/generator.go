@@ -12,29 +12,16 @@ import (
 	"github.com/dizzyfool/genna/lib"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
-	"golang.org/x/xerrors"
 )
 
 const (
 	packages = "pkgs"
 	verbose  = "verbose"
-
-	xmlCommand     = "xml"
-	xmlVTCommand   = "vt"
-	xmlLangCommand = "lang"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	generator := New()
-
-	xml := base.CreateCommand(xmlCommand, "Create main xml from database", generator)
-	vt := base.CreateCommand(xmlVTCommand, "Create vt xml from database", generator)
-	lang := base.CreateCommand(xmlLangCommand, "Create lang xml from database", generator)
-
-	xml.AddCommand(vt, lang)
-
-	return xml
+	return base.CreateCommand("xml", "Create main xml from database", New())
 }
 
 // Generator represents mfd generator
@@ -73,8 +60,6 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 // ReadFlags reads basic flags from command
 func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
-	g.options.Type = command.Name()
-
 	flags := command.Flags()
 
 	if g.verbose, err = flags.GetBool(verbose); err != nil {
@@ -133,7 +118,7 @@ func parsePackagesParam(v string) map[string]string {
 	return mp
 }
 
-// Generate runs whole generation process
+// Generate runs generator
 func (g *Generator) Generate() (err error) {
 	var logger *log.Logger
 	if g.verbose {
@@ -145,7 +130,7 @@ func (g *Generator) Generate() (err error) {
 	// reading tables from db
 	entities, err := genna.Read(g.options.Tables, false, false, 8)
 	if err != nil {
-		return xerrors.Errorf("read database error: %w", err)
+		return fmt.Errorf("read database error: %w", err)
 	}
 
 	// loading project from file
@@ -155,8 +140,6 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	set := mfd.NewSet()
-	nse := map[string]mfd.Entities{}
-
 	for _, entity := range entities {
 		exiting := project.Entity(entity.GoName)
 		if exiting != nil {
@@ -186,65 +169,19 @@ func (g *Generator) Generate() (err error) {
 		// adding to set
 		set.Prepend(namespace)
 
-		// adding to map
-		nse[namespace] = append(nse[namespace], PackEntity(namespace, entity))
+		// adding to project
+		project.AddEntity(namespace, PackEntity(namespace, entity))
 	}
 
-	// adding entities to project
-	for namespace, entities := range nse {
-		for i, entity := range entities {
-			nse[namespace][i] = project.Namespace(namespace).AddEntity(entity)
-		}
-	}
-
-	// updating links
-	project.UpdateLinks()
+	// suggesting searches
 	project.SuggestArrayLinks()
-
-	// adding vt entities to project
-	for namespace, entities := range nse {
-		for i, entity := range entities {
-			nse[namespace][i].VTEntity = project.Namespace(namespace).AddVTEntity(PackVTEntity(entity))
-		}
-	}
-
-	// adding vt templates to project
-	for namespace, entities := range nse {
-		for i, entity := range entities {
-			nse[namespace][i].VTEntity.AddTmpl(PackTemplate(entity, entity.VTEntity))
-		}
-	}
 
 	// saving mfd file
 	if err = mfd.SaveMFD(g.options.Output, project); err != nil {
 		return err
 	}
 
-	// saving main xml
-	if g.options.Type == xmlCommand {
-		return mfd.SaveProjectXML(g.options.Output, project)
-	}
-
-	// saving vt xml
-	if g.options.Type == xmlVTCommand {
-		return mfd.SaveProjectVT(g.options.Output, project)
-	}
-
-	// saving translation
-	if g.options.Type == xmlLangCommand {
-		translations, err := mfd.LoadTranslations(g.options.Output, []string{mfd.RuLang, mfd.EnLang})
-		for lang, translation := range translations {
-			if err != nil {
-				return xerrors.Errorf("read translation lang %s error: %w", lang, err)
-			}
-			translation.Merge(Translate(project, lang))
-			if err := mfd.SaveTranslation(translation, g.options.Output, lang); err != nil {
-				return xerrors.Errorf("save translation lang %s error: %w", lang, err)
-			}
-		}
-	}
-
-	return nil
+	return mfd.SaveProjectXML(g.options.Output, project)
 }
 
 // PromptNS prompting namespace in console

@@ -15,17 +15,17 @@ type PKPair struct {
 	JSType template.HTML
 }
 
-// TemplatePackage stores package info
+// NamespaceData stores package info
 type TemplatePackage struct {
 	Entities []TemplateEntity
 }
 
-// NewTemplatePackage creates a package for template
-func NewTemplatePackage(namespaces mfd.Namespaces, options Options) (TemplatePackage, error) {
+// PackNamespace creates a package for template
+func NewTemplatePackage(namespaces []*mfd.VTNamespace) (TemplatePackage, error) {
 	var entities []TemplateEntity
 
 	for _, namespace := range namespaces {
-		base, err := vt.NewTemplatePackage(namespace.Name, namespaces, vt.Options{})
+		base, err := vt.PackNamespace(namespace, vt.Options{})
 		if err != nil {
 			return TemplatePackage{}, err
 		}
@@ -48,9 +48,9 @@ func NewTemplatePackage(namespaces mfd.Namespaces, options Options) (TemplatePac
 	}, nil
 }
 
-// TemplateEntity stores struct info
+// EntityData stores struct info
 type TemplateEntity struct {
-	vt.TemplateEntity
+	vt.EntityData
 
 	TerminalPath string
 
@@ -68,10 +68,10 @@ type TemplateEntity struct {
 	Params []TemplateParams
 }
 
-// NewTemplateEntity creates an entity for template
-func NewTemplateEntity(base vt.TemplateEntity) (TemplateEntity, error) {
+// PackEntity creates an entity for template
+func NewTemplateEntity(base vt.EntityData) (TemplateEntity, error) {
 	entity := TemplateEntity{
-		TemplateEntity: base,
+		EntityData: base,
 
 		TerminalPath: base.VTEntity.TerminalPath,
 		JSName:       mfd.VarName(base.Name),
@@ -109,23 +109,23 @@ func NewTemplateEntity(base vt.TemplateEntity) (TemplateEntity, error) {
 	return entity, nil
 }
 
-// TemplateColumn stores column info
+// AttributeData stores column info
 type TemplateColumn struct {
-	vt.TemplateColumn
+	vt.AttributeData
 
 	JSName string
 	JSType template.HTML
 	JSZero template.HTML
 }
 
-func NewTemplateColumn(base vt.TemplateColumn, entity TemplateEntity) TemplateColumn {
+func NewTemplateColumn(base vt.AttributeData, entity TemplateEntity) TemplateColumn {
 	jsType := mfd.MakeJSType(base.Attribute.GoType, base.IsArray)
 	if base.IsParams {
 		jsType = fmt.Sprintf("I%s%s", entity.Name, base.Name)
 	}
 
 	return TemplateColumn{
-		TemplateColumn: base,
+		AttributeData: base,
 
 		JSName: mfd.VarName(base.VTAttribute.Name),
 		JSType: template.HTML(jsType),
@@ -133,30 +133,30 @@ func NewTemplateColumn(base vt.TemplateColumn, entity TemplateEntity) TemplateCo
 	}
 }
 
-// TemplateRelation stores relation info
+// RelationData stores relation info
 type TemplateRelation struct {
-	vt.TemplateRelation
+	vt.RelationData
 
 	JSName string
 }
 
-func NewTemplateRelation(base vt.TemplateRelation) TemplateRelation {
+func NewTemplateRelation(base vt.RelationData) TemplateRelation {
 	return TemplateRelation{
-		TemplateRelation: base,
+		RelationData: base,
 
 		JSName: mfd.VarName(base.Name),
 	}
 }
 
 type TemplateParams struct {
-	vt.TemplateParams
+	vt.ParamsData
 
 	JSName string
 }
 
-func NewTemplateParams(base vt.TemplateParams) TemplateParams {
+func NewTemplateParams(base vt.ParamsData) TemplateParams {
 	return TemplateParams{
-		TemplateParams: base,
+		ParamsData: base,
 
 		JSName: mfd.VarName(base.Name),
 	}

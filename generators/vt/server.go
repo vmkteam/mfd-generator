@@ -2,21 +2,22 @@ package vt
 
 import "github.com/vmkteam/mfd-generator/mfd"
 
-func NewServerPackage(namespaces mfd.Namespaces) (TemplatePackage, error) {
-	var models []TemplateEntity
+// PackServerNamespaces packs namespaces for zenprc server code
+func PackServerNamespaces(namespaces []*mfd.VTNamespace) (NamespaceData, error) {
+	var models []EntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
 			// creating entity for template
-			mdl, err := NewTemplateEntity(*entity)
+			mdl, err := PackEntity(*entity)
 			if err != nil {
-				return TemplatePackage{}, err
+				return NamespaceData{}, err
 			}
 
 			models = append(models, mdl)
 		}
 	}
 
-	return TemplatePackage{
+	return NamespaceData{
 		Entities: models,
 	}, nil
 }

@@ -13,11 +13,10 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/util"
-	"golang.org/x/xerrors"
 )
 
 // GenerateParams packs json fields to params file
-func GenerateParams(namespaces mfd.Namespaces, output string, options Options) (bool, error) {
+func GenerateParams(namespaces []*mfd.Namespace, output string, options Options) (bool, error) {
 	paramsFile, err := ReadParamsFile(output, options.Package)
 	if err != nil {
 		return false, err
@@ -41,25 +40,27 @@ type ParamsFile struct {
 	file *ast.File
 }
 
+// ReadParamsFile reads exiting params file
 func ReadParamsFile(filename, pack string) (*ParamsFile, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		src := fmt.Sprintf("package %s", pack)
 		if err := ioutil.WriteFile(filename, []byte(src), 0644); err != nil {
-			return nil, xerrors.Errorf("write file error: %w", err)
+			return nil, fmt.Errorf("write file error: %w", err)
 		}
 	} else if err != nil {
-		return nil, xerrors.Errorf("open file error: %w", err)
+		return nil, fmt.Errorf("open file error: %w", err)
 	}
 
 	set := token.NewFileSet()
 	file, err := parser.ParseFile(set, filename, nil, parser.ParseComments)
 	if err != nil {
-		return nil, xerrors.Errorf("open file error: %w", err)
+		return nil, fmt.Errorf("open file error: %w", err)
 	}
 
 	return &ParamsFile{set: set, file: file}, nil
 }
 
+// Has checks if params file has specific param
 func (p *ParamsFile) Has(name string) bool {
 	if len(p.file.Decls) == 0 {
 		return false
@@ -83,6 +84,7 @@ func (p *ParamsFile) Has(name string) bool {
 	return false
 }
 
+// Add adds new param to file
 func (p *ParamsFile) Add(name string) bool {
 	if p.Has(name) {
 		return false
@@ -103,10 +105,11 @@ func (p *ParamsFile) Add(name string) bool {
 	return true
 }
 
+// Save saves params to filename
 func (p *ParamsFile) Save(filename string) (bool, error) {
 	var buffer bytes.Buffer
 	if err := printer.Fprint(&buffer, p.set, p.file); err != nil {
-		return false, xerrors.Errorf("dump ast to file error: %w", err)
+		return false, fmt.Errorf("dump ast to file error: %w", err)
 	}
 
 	return util.FmtAndSave(buffer.Bytes(), filename)

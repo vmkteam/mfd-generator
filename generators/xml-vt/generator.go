@@ -1,8 +1,7 @@
-package repo
+package xmlvt
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -12,21 +11,22 @@ import (
 
 const (
 	mfdFlag = "mfd"
-	pkgFlag = "package"
 	nsFlag  = "ns"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("repo", "Create repo from xml", New())
+	return base.CreateCommand("xml-vt", "Create vt xml from database", New())
 }
 
-// Generator represents repo generator
+// Generator represents mfd generator
 type Generator struct {
 	options Options
+	verbose bool
+	base    base.Generator
 }
 
-// New creates repo generator
+// New creates generator
 func New() *Generator {
 	return &Generator{}
 }
@@ -36,36 +36,21 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
 
-	flags.StringP(base.Output, "o", "", "output dir path")
-	if err := command.MarkFlagRequired(base.Output); err != nil {
-		panic(err)
-	}
-
 	flags.StringP(mfdFlag, "m", "", "mfd file")
 	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
-	flags.StringP(pkgFlag, "p", "", "package name")
-
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces")
 }
 
-// ReadFlags read flags from command
+// ReadFlags reads basic flags from command
 func (g *Generator) ReadFlags(command *cobra.Command) error {
 	var err error
 
 	flags := command.Flags()
 
-	if g.options.Output, err = flags.GetString(base.Output); err != nil {
-		return err
-	}
-
 	if g.options.MFDPath, err = flags.GetString(mfdFlag); err != nil {
-		return err
-	}
-
-	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {
 		return err
 	}
 
@@ -73,15 +58,13 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	g.options.Def()
-
 	return nil
 }
 
 // Generate runs generator
 func (g *Generator) Generate() error {
 	// loading project from file
-	project, err := mfd.LoadProject(g.options.MFDPath, false)
+	project, err := mfd.LoadProject(g.options.MFDPath, true)
 	if err != nil {
 		return err
 	}
@@ -90,17 +73,18 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.NamespaceNames
 	}
 
+	// adding vt entities to project
 	for _, namespace := range g.options.Namespaces {
-		// generating each namespace in separate file
-		if ns := project.Namespace(namespace); ns != nil {
-			// getting file name without dots
-			output := path.Join(g.options.Output, mfd.GoFileName(namespace)+".go")
-			data := PackNamespace(ns, g.options)
-			if _, err := mfd.FormatAndSave(data, output, repoTemplate, true); err != nil {
-				return fmt.Errorf("generate repo %s error: %w", namespace, err)
-			}
+		ns := project.Namespace(namespace)
+		if ns == nil {
+			return fmt.Errorf("namespace %s not found", namespace)
+		}
+
+		for _, entity := range ns.Entities {
+			project.AddVTEntity(namespace, PackVTEntity(entity))
 		}
 	}
 
-	return nil
+	// saving vt xml
+	return mfd.SaveProjectVT(g.options.MFDPath, project)
 }
