@@ -56,6 +56,11 @@ func LoadProject(filename string, create bool) (*Project, error) {
 		project.VTNamespaces = append(project.VTNamespaces, vtns)
 	}
 
+	// backward compatibility
+	if len(project.Languages) == 0 {
+		project.Languages = []string{EnLang}
+	}
+
 	project.UpdateLinks()
 
 	return project, project.IsConsistent()

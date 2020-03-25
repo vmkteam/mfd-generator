@@ -41,7 +41,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSliceP(langsFlag, "l", []string{mfd.RuLang, mfd.EnLang}, "namespaces")
+	flags.StringSliceP(langsFlag, "l", []string{}, "namespaces")
 }
 
 // ReadFlags reads basic flags from command
@@ -69,7 +69,9 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	translations, err := mfd.LoadTranslations(g.options.MFDPath, g.options.Languages)
+	langs := mergeLangs(project.Languages, g.options.Languages)
+
+	translations, err := mfd.LoadTranslations(g.options.MFDPath, langs)
 	for lang, translation := range translations {
 		if err != nil {
 			return fmt.Errorf("read translation lang %s error: %w", lang, err)
@@ -80,5 +82,19 @@ func (g *Generator) Generate() error {
 		}
 	}
 
-	return nil
+	project.Languages = langs
+	return mfd.SaveMFD(g.options.MFDPath, project)
+}
+
+func mergeLangs(project, input []string) []string {
+	set := mfd.NewSet()
+
+	for _, lang := range project {
+		set.Append(lang)
+	}
+	for _, lang := range input {
+		set.Append(lang)
+	}
+
+	return set.Elements()
 }

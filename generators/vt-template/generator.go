@@ -140,7 +140,7 @@ func (g *Generator) Generate() error {
 		}
 	}
 
-	translations, err := mfd.LoadTranslations(g.options.MFDPath, []string{mfd.RuLang, mfd.EnLang})
+	translations, err := mfd.LoadTranslations(g.options.MFDPath, project.Languages)
 	if err != nil {
 		return fmt.Errorf("read translation error: %w", err)
 	}
@@ -176,7 +176,7 @@ func (g *Generator) Generate() error {
 		}
 	}
 
-	return nil
+	return mfd.SaveMFD(g.options.MFDPath, project)
 }
 
 // SaveEntity saves vt entity to template with special delims

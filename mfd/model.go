@@ -50,6 +50,7 @@ type Project struct {
 	XMLxsd         string   `xml:"xmlns:xsd,attr"`
 	Name           string
 	NamespaceNames []string `xml:"PackageNames>string" json:"-"`
+	Languages      []string `xml:"Languages>string" json:"-"`
 
 	Namespaces   []*Namespace   `xml:"-"`
 	VTNamespaces []*VTNamespace `xml:"-"`
