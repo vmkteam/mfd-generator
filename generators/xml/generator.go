@@ -170,7 +170,7 @@ func (g *Generator) Generate() (err error) {
 		set.Prepend(namespace)
 
 		// adding to project
-		project.AddEntity(namespace, PackEntity(namespace, entity))
+		project.AddEntity(namespace, PackEntity(namespace, entity, exiting))
 	}
 
 	// suggesting searches

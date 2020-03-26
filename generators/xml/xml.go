@@ -10,10 +10,16 @@ import (
 // this code used to convert entities from database to namespace in mfd project file
 
 // PackEntity packs entity from db to mfd.Entity
-func PackEntity(namespace string, entity model.Entity) *mfd.Entity {
+func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity) *mfd.Entity {
+	var attribute *mfd.Attribute
+
 	// processing all columns
-	attributes := []*mfd.Attribute{}
-	searches := []*mfd.Search{}
+	var attributes mfd.Attributes
+	var searches mfd.Searches
+	if existing != nil {
+		attributes = existing.Attributes
+		searches = existing.Searches
+	}
 
 	hasAlias := false
 	for _, column := range entity.Columns {
@@ -23,21 +29,20 @@ func PackEntity(namespace string, entity model.Entity) *mfd.Entity {
 	}
 
 	for _, column := range entity.Columns {
-		attribute := newAttribute(entity, column)
-
-		attributes = append(attributes, attribute)
+		attributes, attribute = attributes.Merge(newAttribute(entity, column))
 
 		// adding search if needed
 		if column.IsPK {
-			searches = append(searches, newSearch(*attribute, mfd.SearchArray))
+			searches = searches.Append(newSearch(*attribute, mfd.SearchArray))
+
 			if hasAlias {
-				searches = append(searches, newSearch(*attribute, mfd.SearchNotEquals))
+				searches = searches.Append(newSearch(*attribute, mfd.SearchNotEquals))
 			}
 		}
 
 		// making string searchable by like
 		if !column.IsArray && column.GoType == model.TypeString && column.PGName != "alias" && column.PGName != "password" {
-			searches = append(searches, newSearch(*attribute, mfd.SearchILike))
+			searches = searches.Append(newSearch(*attribute, mfd.SearchILike))
 		}
 	}
 

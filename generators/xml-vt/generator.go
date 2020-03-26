@@ -79,9 +79,10 @@ func (g *Generator) Generate() error {
 		if ns == nil {
 			return fmt.Errorf("namespace %s not found", namespace)
 		}
-
 		for _, entity := range ns.Entities {
-			project.AddVTEntity(namespace, PackVTEntity(entity))
+			exitsting := project.VTEntity(entity.Name)
+
+			project.AddVTEntity(namespace, PackVTEntity(entity, exitsting))
 		}
 	}
 

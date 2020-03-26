@@ -72,7 +72,7 @@ func NewVTNamespace(namespace string) *VTNamespace {
 	}
 }
 
-// Entity returns mfd.Entity by its name
+// VTEntity returns mfd.VTEntity by its name
 func (n *VTNamespace) VTEntity(entity string) *VTEntity {
 	for _, e := range n.Entities {
 		if strings.ToLower(e.Name) == strings.ToLower(entity) {
@@ -83,11 +83,22 @@ func (n *VTNamespace) VTEntity(entity string) *VTEntity {
 	return nil
 }
 
+// VTEntityIndex returns mfd.VTEntity index by its name
+func (n *VTNamespace) VTEntityIndex(entity string) int {
+	for i, e := range n.Entities {
+		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // AddEntity adds entity to namespace
 func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
-	if existing := n.VTEntity(entity.Name); existing != nil {
-		existing.Merge(entity)
-		return existing
+	if index := n.VTEntityIndex(entity.Name); index != -1 {
+		n.Entities[index] = entity
+		return entity
 	}
 
 	n.Entities = append(n.Entities, entity)
@@ -102,8 +113,8 @@ type VTEntity struct {
 
 	TerminalPath string `xml:"TerminalPath"`
 
-	Attributes     []*VTAttribute   `xml:"Attributes>Attribute"`
-	TmplAttributes []*TmplAttribute `xml:"Template>Attribute"`
+	Attributes     VTAttributes   `xml:"Attributes>Attribute"`
+	TmplAttributes TmplAttributes `xml:"Template>Attribute"`
 
 	// corresponding entity
 	Entity *Entity `xml:"-"`
@@ -137,35 +148,6 @@ func (e *VTEntity) TmplAttributeByNames(name, attrName string) *TmplAttribute {
 		}
 	}
 	return nil
-}
-
-// Merge fills entity (generated from db) with attributes from old (in file) entity
-func (e *VTEntity) Merge(with *VTEntity) {
-	attrs := e.Attributes
-	for _, toAdd := range with.Attributes {
-		// adding only new
-		if existing := e.AttributeByNames(toAdd.AttrName, toAdd.SearchName); existing != nil {
-			existing.Merge(toAdd)
-		} else {
-			attrs = append(attrs, toAdd)
-		}
-	}
-
-	e.Attributes = attrs
-}
-
-func (e *VTEntity) AddTmpl(attrs []*TmplAttribute) {
-	tmplAttrs := e.TmplAttributes
-	for _, toAdd := range attrs {
-		// adding only new
-		if existing := e.TmplAttributeByNames(toAdd.Name, toAdd.AttrName); existing != nil {
-			existing.Merge(toAdd)
-		} else {
-			tmplAttrs = append(tmplAttrs, toAdd)
-		}
-	}
-
-	e.TmplAttributes = tmplAttrs
 }
 
 // VTAttribute is xml element
@@ -224,4 +206,34 @@ func (a *TmplAttribute) Merge(with *TmplAttribute) {
 	if a.FKOpts == "" {
 		a.FKOpts = with.FKOpts
 	}
+}
+
+type VTAttributes []*VTAttribute
+
+// Merge adds new attribute, update if exists
+func (a VTAttributes) Merge(attr *VTAttribute) (VTAttributes, *VTAttribute) {
+	for i, existing := range a {
+		if existing.AttrName == attr.AttrName && existing.SearchName == attr.SearchName {
+			existing.Merge(attr)
+			a[i] = existing
+			return a, existing
+		}
+	}
+
+	return append(a, attr), attr
+}
+
+type TmplAttributes []*TmplAttribute
+
+// Merge adds new attribute, update if exists
+func (a TmplAttributes) Merge(tmpl *TmplAttribute) (TmplAttributes, *TmplAttribute) {
+	for i, existing := range a {
+		if existing.AttrName == tmpl.AttrName && existing.Name == tmpl.Name {
+			existing.Merge(tmpl)
+			a[i] = existing
+			return a, existing
+		}
+	}
+
+	return append(a, tmpl), tmpl
 }

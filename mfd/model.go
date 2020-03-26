@@ -89,8 +89,18 @@ func (p *Project) AddNamespace(namespace string) *Namespace {
 
 // Entity returns mfd.Entity by its name
 func (p *Project) Entity(entity string) *Entity {
-	for _, p := range p.Namespaces {
-		if e := p.Entity(entity); e != nil {
+	for _, n := range p.Namespaces {
+		if e := n.Entity(entity); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+// Entity returns mfd.VTEntity by its name
+func (p *Project) VTEntity(entity string) *VTEntity {
+	for _, n := range p.VTNamespaces {
+		if e := n.VTEntity(entity); e != nil {
 			return e
 		}
 	}
@@ -194,13 +204,13 @@ func (p *Project) UpdateLinks() {
 					search.Entity = entity
 				}
 
-				// attach foreign attribute and entity
 				if search.IsForeignSearch() {
 					foreignName, foreignAttribute := search.ForeignAttribute()
+
 					if foreign := p.Entity(foreignName); foreign != nil {
 						if attr := foreign.AttributeByName(foreignAttribute); attr != nil {
 							search.Attribute = attr
-							search.Entity = attr.ForeignEntity
+							search.Entity = foreign
 						}
 					}
 				}
@@ -263,11 +273,22 @@ func (n *Namespace) Entity(entity string) *Entity {
 	return nil
 }
 
+// Entity returns mfd.Entity index by its name
+func (n *Namespace) EntityIndex(entity string) int {
+	for i, e := range n.Entities {
+		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // AddEntity adds entity to namespace
 func (n *Namespace) AddEntity(entity *Entity) *Entity {
-	if existing := n.Entity(entity.Name); existing != nil {
-		existing.Merge(entity)
-		return existing
+	if index := n.EntityIndex(entity.Name); index != -1 {
+		n.Entities[index] = entity
+		return entity
 	}
 
 	n.Entities = append(n.Entities, entity)
@@ -282,8 +303,8 @@ type Entity struct {
 	Namespace string `xml:"Namespace,attr"`
 	Table     string `xml:"Table,attr"`
 
-	Attributes []*Attribute `xml:"Attributes>Attribute,omitempty"`
-	Searches   []*Search    `xml:"Searches>Search,omitempty"`
+	Attributes Attributes `xml:"Attributes>Attribute,omitempty"`
+	Searches   Searches   `xml:"Searches>Search,omitempty"`
 }
 
 // AttributeByName gets mfd.Attribute by its name
@@ -330,26 +351,6 @@ func (e *Entity) SearchByAttrName(attrName, searchType string) *Search {
 	return nil
 }
 
-// Merge fills entity from file with attributes from db
-func (e *Entity) Merge(with *Entity) {
-	for _, toAdd := range with.Attributes {
-		if existing := e.AttributeByDBName(toAdd.DBName, toAdd.DBType); existing != nil {
-			// updating exiting
-			existing.Merge(toAdd)
-		} else {
-			// adding new
-			with.Attributes = append(with.Attributes, toAdd)
-		}
-	}
-
-	for _, toAdd := range with.Searches {
-		// adding only new
-		if existing := e.SearchByAttrName(toAdd.AttrName, toAdd.SearchType); existing == nil {
-			e.Searches = append(e.Searches, toAdd)
-		}
-	}
-}
-
 // HasMultiplePKs returns true if mfd.Entity has several PKs
 func (e *Entity) HasMultiplePKs() bool {
 	count := 0
@@ -362,8 +363,8 @@ func (e *Entity) HasMultiplePKs() bool {
 }
 
 // PKs returns PKs for entity
-func (e *Entity) PKs() []*Attribute {
-	var pks []*Attribute
+func (e *Entity) PKs() Attributes {
+	var pks Attributes
 	for _, a := range e.Attributes {
 		if a.PrimaryKey {
 			pks = append(pks, a)
@@ -415,7 +416,7 @@ type Attribute struct {
 
 // Merge fills attribute (from file) values from db
 func (a *Attribute) Merge(with *Attribute) {
-	a.Name = with.Name
+	// a.Name = with.Name
 	a.DBName = with.DBName
 	a.DBType = with.DBType
 	a.IsArray = with.IsArray
@@ -505,4 +506,32 @@ func IsStatus(name string) bool {
 
 func IsArraySearch(search string) bool {
 	return search == SearchArray || search == SearchNotArray
+}
+
+type Searches []*Search
+
+// Append adds search to collection if not exists
+func (s Searches) Append(search *Search) Searches {
+	for _, existing := range s {
+		if existing.AttrName == search.AttrName && existing.SearchType == search.SearchType {
+			return s
+		}
+	}
+
+	return append(s, search)
+}
+
+type Attributes []*Attribute
+
+// Merge adds new attribute, update if exists
+func (a Attributes) Merge(attr *Attribute) (Attributes, *Attribute) {
+	for i, existing := range a {
+		if existing.DBName == attr.DBName && existing.DBType == attr.DBType {
+			existing.Merge(attr)
+			a[i] = existing
+			return a, existing
+		}
+	}
+
+	return append(a, attr), attr
 }

@@ -11,9 +11,17 @@ import (
 
 // this code used to convert entities from database to namespace in mfd project file
 
-func PackVTEntity(entity *mfd.Entity) *mfd.VTEntity {
+func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
 	// processing all columns
-	var attributes []*mfd.VTAttribute
+	vtEntity := existing
+	if existing == nil {
+		vtEntity = &mfd.VTEntity{
+			Name:         entity.Name,
+			TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
+			Attributes:   mfd.VTAttributes{},
+		}
+	}
+
 	index := mfd.NewSet()
 
 	for _, attr := range entity.Attributes {
@@ -26,25 +34,19 @@ func PackVTEntity(entity *mfd.Entity) *mfd.VTEntity {
 			}
 		}
 
-		attributes = append(attributes, newVTAttribute(*attr, search))
+		vtEntity.Attributes, _ = vtEntity.Attributes.Merge(newVTAttribute(*attr, search))
 	}
 
 	// adding searches
 	for _, search := range entity.Searches {
 		// if was not added already
 		if !index.Exists(search.Name) {
-			attributes = append(attributes, newVTSearch(*search))
+			vtEntity.Attributes, _ = vtEntity.Attributes.Merge(newVTSearch(*search))
 		}
 	}
 
-	vtEntity := &mfd.VTEntity{
-		Name:         entity.Name,
-		TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
-		Attributes:   attributes,
-	}
-
 	// adding template
-	vtEntity.AddTmpl(PackTemplate(entity, vtEntity))
+	vtEntity.TmplAttributes = PackTemplate(entity, vtEntity, existing)
 
 	return vtEntity
 }
@@ -97,8 +99,8 @@ func newVTSearch(search mfd.Search) *mfd.VTAttribute {
 	}
 }
 
-func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity) []*mfd.TmplAttribute {
-	var tmplAttributes []*mfd.TmplAttribute
+func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) mfd.TmplAttributes {
+	tmplAttributes := existing.TmplAttributes
 
 	for _, vtAttr := range vt.Attributes {
 		tmpl := &mfd.TmplAttribute{
@@ -153,18 +155,18 @@ func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity) []*mfd.TmplAttribute {
 		}
 
 		if tmpl.List || tmpl.Form != mfd.TypeHTMLNone || tmpl.Search != mfd.TypeHTMLNone {
-			tmplAttributes = append(tmplAttributes, tmpl)
+			tmplAttributes, _ = tmplAttributes.Merge(tmpl)
 		}
 
 		if fk != nil {
-			tmplAttributes = append(tmplAttributes, fk)
+			tmplAttributes, _ = tmplAttributes.Merge(fk)
 		}
 	}
 
 	return reorderList(tmplAttributes)
 }
 
-func reorderList(attrs []*mfd.TmplAttribute) []*mfd.TmplAttribute {
+func reorderList(attrs mfd.TmplAttributes) mfd.TmplAttributes {
 	mp := map[int][]int{}
 	for i, attr := range attrs {
 		// scoring each column
