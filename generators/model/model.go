@@ -19,6 +19,8 @@ type NamespaceData struct {
 	HasImports bool
 	Imports    []string
 
+	GoPGVer string
+
 	Entities []EntityData
 }
 
@@ -40,11 +42,18 @@ func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 		}
 	}
 
+	goPGVer := ""
+	if options.GoPGVer == mfd.GoPG9 {
+		goPGVer = "/v9"
+	}
+
 	return NamespaceData{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
+
+		GoPGVer: goPGVer,
 
 		Entities: models,
 	}
@@ -152,7 +161,7 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 
 	// nullable tag
 	if !attribute.Nullable() && !attribute.PrimaryKey {
-		if options.GoPgVer == 9 {
+		if options.GoPGVer == mfd.GoPG9 {
 			tags.AddTag(tagName, "use_zero")
 		} else {
 			tags.AddTag(tagName, "notnull")
@@ -179,7 +188,7 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 
 		Type:   goType,
 		Name:   util.ColumnName(attribute.Name),
-		Import: model.GoImport(attribute.DBType, attribute.Nullable(), false, 8),
+		Import: model.GoImport(attribute.DBType, attribute.Nullable(), false, options.GoPGVer),
 
 		Tag:     template.HTML(fmt.Sprintf("`%s`", tags.String())),
 		Comment: template.HTML(comment),
@@ -231,7 +240,7 @@ func PackRelation(relation mfd.Attribute, options Options) RelationData {
 }
 
 func tagName(options Options) string {
-	if options.GoPgVer == 9 {
+	if options.GoPGVer == mfd.GoPG9 {
 		return "pg"
 	}
 	return "sql"

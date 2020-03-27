@@ -60,6 +60,9 @@ func LoadProject(filename string, create bool) (*Project, error) {
 	if len(project.Languages) == 0 {
 		project.Languages = []string{EnLang}
 	}
+	if project.GoPGVer == 0 {
+		project.GoPGVer = GoPG8
+	}
 
 	project.UpdateLinks()
 

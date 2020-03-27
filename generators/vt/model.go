@@ -37,7 +37,7 @@ func PackNamespace(vtNamespace *mfd.VTNamespace, options Options) (NamespaceData
 	var models []EntityData
 	for _, entity := range vtNamespace.Entities {
 		// creating entity for template
-		mdl, err := PackEntity(*entity)
+		mdl, err := PackEntity(*entity, options)
 		if err != nil {
 			return NamespaceData{}, err
 		}
@@ -87,7 +87,7 @@ type EntityData struct {
 }
 
 // PackEntity packs mfd vt entity to template data
-func PackEntity(vtEntity mfd.VTEntity) (EntityData, error) {
+func PackEntity(vtEntity mfd.VTEntity, options Options) (EntityData, error) {
 	imports := mfd.NewSet()
 
 	tmpl := EntityData{
@@ -102,7 +102,7 @@ func PackEntity(vtEntity mfd.VTEntity) (EntityData, error) {
 	// adding columns
 	for _, vtAttr := range vtEntity.Attributes {
 		// simple columns
-		if vtAttr.Attribute != nil {
+		if vtAttr.AttrName != "" {
 			// corresponding entity attr
 			attr := vtAttr.Attribute
 
@@ -127,7 +127,7 @@ func PackEntity(vtEntity mfd.VTEntity) (EntityData, error) {
 			}
 
 			// adding imports
-			if imp := Import(attr); imp != "" {
+			if imp := Import(attr, options.GoPGVer); imp != "" {
 				imports.Add(imp)
 			}
 
@@ -390,8 +390,8 @@ func PackParams(vtAttr *mfd.VTAttribute) ParamsData {
 }
 
 // Import gets import string for template
-func Import(attribute *mfd.Attribute) string {
-	return model.GoImport(attribute.DBType, attribute.Nullable(), false, 8)
+func Import(attribute *mfd.Attribute, goPGVer int) string {
+	return model.GoImport(attribute.DBType, attribute.Nullable(), false, goPGVer)
 }
 
 func customToIPConverter(name, entityShortName string, nullable bool) (template.HTML, template.HTML) {

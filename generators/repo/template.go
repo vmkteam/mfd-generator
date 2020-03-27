@@ -6,8 +6,8 @@ package {{.Package}}
 import (
 	"context"
 
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg{{.GoPGVer}}"
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
 )
 
 type {{.Name}}Repo struct {

@@ -12,10 +12,9 @@ import (
 )
 
 const (
-	mfdFlag     = "mfd"
-	pkgFlag     = "package"
-	nsFlag      = "ns"
-	goPgVerFlag = "gopg"
+	mfdFlag = "mfd"
+	pkgFlag = "package"
+	nsFlag  = "ns"
 )
 
 // CreateCommand creates generator command
@@ -53,8 +52,6 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringP(pkgFlag, "p", "", "package name")
 
 	flags.BoolP(nsFlag, "n", false, "print package struct")
-
-	flags.IntP(goPgVerFlag, "g", 8, "specify go-pg version")
 }
 
 // ReadFlags read flags from command
@@ -79,14 +76,6 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	if g.options.GoPgVer, err = flags.GetInt(goPgVerFlag); err != nil {
-		return err
-	}
-
-	if g.options.GoPgVer != 8 && g.options.GoPgVer != 9 {
-		return fmt.Errorf("go pg version %d is not supported", g.options.GoPgVer)
-	}
-
 	g.options.Def()
 
 	return nil
@@ -105,6 +94,8 @@ func (g *Generator) Generate() error {
 		fmt.Print(PrintNamespaces(project))
 		return nil
 	}
+
+	g.options.GoPGVer = project.GoPGVer
 
 	// basic generator
 	output := path.Join(g.options.Output, "model.go")

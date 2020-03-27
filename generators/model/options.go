@@ -18,7 +18,7 @@ type Options struct {
 	Package string
 
 	// go-pg version
-	GoPgVer int
+	GoPGVer int
 }
 
 // Def fills default values of an options

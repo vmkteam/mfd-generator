@@ -127,16 +127,16 @@ func (g *Generator) Generate() (err error) {
 
 	genna := genna.New(g.options.URL, logger)
 
-	// reading tables from db
-	entities, err := genna.Read(g.options.Tables, false, false, 8)
-	if err != nil {
-		return fmt.Errorf("read database error: %w", err)
-	}
-
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.Output, true)
 	if err != nil {
 		return err
+	}
+
+	// reading tables from db
+	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer)
+	if err != nil {
+		return fmt.Errorf("read database error: %w", err)
 	}
 
 	set := mfd.NewSet()

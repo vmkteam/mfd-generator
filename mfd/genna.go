@@ -8,11 +8,11 @@ import (
 // this code used to make array of model.Entity from mfd file
 
 // NewGennaEntities convert Namespace to genna entities
-func NewGennaEntities(pack *Namespace) []model.Entity {
+func NewGennaEntities(pack *Namespace, goPGVer int) []model.Entity {
 	result := make([]model.Entity, len(pack.Entities))
 	index := map[string]int{}
 	for i, e := range pack.Entities {
-		entity := NewGennaEntity(e)
+		entity := NewGennaEntity(e, goPGVer)
 
 		result[i] = entity
 		index[util.Join(entity.PGSchema, entity.PGName)] = i
@@ -34,14 +34,14 @@ func NewGennaEntities(pack *Namespace) []model.Entity {
 	return result
 }
 
-func NewGennaEntity(entity *Entity) model.Entity {
+func NewGennaEntity(entity *Entity, goPGVer int) model.Entity {
 	// creating genna entity
 	schema, table := util.Split(entity.Table)
 	e := model.NewEntity(util.Sanitize(schema), util.Sanitize(table), nil, nil)
 
 	// adding columns & relations from mfd attributes
 	for _, a := range entity.Attributes {
-		column := NewGennaColumn(e, a)
+		column := NewGennaColumn(e, a, goPGVer)
 
 		if a.ForeignKey != "" {
 			relation := NewGennaRelation(a)
@@ -61,7 +61,7 @@ func NewGennaRelation(attr *Attribute) model.Relation {
 	return model.NewRelation([]string{attr.DBName}, schema, table)
 }
 
-func NewGennaColumn(entity model.Entity, attr *Attribute) model.Column {
+func NewGennaColumn(entity model.Entity, attr *Attribute, goPGVer int) model.Column {
 	// getting simple go type (for search mostly)
 	goType, err := model.GoType(attr.DBType)
 	if err != nil {
@@ -87,7 +87,7 @@ func NewGennaColumn(entity model.Entity, attr *Attribute) model.Column {
 		Dimensions: dims,
 		IsPK:       attr.PrimaryKey,
 		IsFK:       attr.ForeignKey != "",
-		Import:     model.GoImport(attr.DBType, nullable, false, 8),
+		Import:     model.GoImport(attr.DBType, nullable, false, goPGVer),
 		MaxLen:     attr.Max,
 	}
 }

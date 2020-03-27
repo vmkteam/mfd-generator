@@ -86,6 +86,7 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	g.options.GoPGVer = project.GoPGVer
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
 	}

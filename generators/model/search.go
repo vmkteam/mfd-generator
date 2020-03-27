@@ -39,6 +39,8 @@ type SearchNamespaceData struct {
 	HasImports bool
 	Imports    []string
 
+	GoPGVer string
+
 	Entities []SearchEntityData
 }
 
@@ -62,11 +64,18 @@ func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) SearchNam
 		}
 	}
 
+	goPGVer := ""
+	if options.GoPGVer == mfd.GoPG9 {
+		goPGVer = "/v9"
+	}
+
 	return SearchNamespaceData{
 		Package: options.Package,
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
+
+		GoPGVer: goPGVer,
 
 		Entities: models,
 	}

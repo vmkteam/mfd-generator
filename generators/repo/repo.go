@@ -30,6 +30,8 @@ type NamespaceData struct {
 	Name         string
 	ShortVarName string
 
+	GoPGVer string
+
 	Entities []EntityData
 }
 
@@ -42,11 +44,18 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 
+	goPGVer := ""
+	if options.GoPGVer == mfd.GoPG9 {
+		goPGVer = "/v9"
+	}
+
 	return NamespaceData{
 		Package: options.Package,
 
 		Name:         name,
 		ShortVarName: mfd.ShortVarName(name),
+
+		GoPGVer: goPGVer,
 
 		Entities: entities,
 	}

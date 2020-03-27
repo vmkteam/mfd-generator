@@ -58,8 +58,8 @@ package {{.Package}}
 import ({{if .HasImports}}{{range .Imports}}
 	"{{.}}"{{end}}
 	{{end}}
-	"github.com/go-pg/pg"
-	"github.com/go-pg/pg/orm"
+	"github.com/go-pg/pg{{.GoPGVer}}"
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
 )
 
 const condition =  "?.? = ?"

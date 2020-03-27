@@ -22,6 +22,9 @@ type Options struct {
 
 	// Namespaces to generate
 	Namespaces []string
+
+	// go-pg version
+	GoPGVer int
 }
 
 // Def fills default values of an options

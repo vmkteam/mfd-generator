@@ -9,6 +9,12 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
+// go-pg versions
+const (
+	GoPG8 = 8
+	GoPG9 = 9
+)
+
 // nullable options
 const (
 	NullableYes   = "Yes"
@@ -51,6 +57,7 @@ type Project struct {
 	Name           string
 	NamespaceNames []string `xml:"PackageNames>string" json:"-"`
 	Languages      []string `xml:"Languages>string" json:"-"`
+	GoPGVer        int      `xml:"GoPGVer"`
 
 	Namespaces   []*Namespace   `xml:"-"`
 	VTNamespaces []*VTNamespace `xml:"-"`
@@ -60,6 +67,8 @@ func NewProject(name string) *Project {
 	return &Project{
 		Name:           name,
 		NamespaceNames: []string{},
+
+		GoPGVer: GoPG8,
 
 		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
 		XMLxsd: "http://www.w3.org/2001/XMLSchema",
@@ -118,6 +127,10 @@ func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 }
 
 func (p *Project) IsConsistent() error {
+	if p.GoPGVer != GoPG9 && p.GoPGVer != GoPG8 {
+		return fmt.Errorf("unsupported go-pg version: %d", p.GoPGVer)
+	}
+
 	for _, nsName := range p.NamespaceNames {
 		ns := p.Namespace(nsName)
 		if ns == nil {

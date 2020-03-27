@@ -73,13 +73,14 @@ func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
 	var relations []ServiceRelationData
 	var sortColumns []string
 	for _, vtAttr := range vtEntity.Attributes {
-		attr := vtAttr.Attribute
-		if attr != nil && !attr.IsArray && vtAttr.Summary {
-			sortColumns = append(sortColumns, attr.Name)
-		}
+		if vtAttr.AttrName != "" {
+			if !vtAttr.Attribute.IsArray && vtAttr.Summary {
+				sortColumns = append(sortColumns, vtAttr.Attribute.Name)
+			}
 
-		if attr != nil && attr.ForeignKey != "" && attr.ForeignEntity != nil {
-			relations = append(relations, PackServiceRelationData(*vtAttr, *attr.ForeignEntity))
+			if vtAttr.Attribute.ForeignKey != "" && vtAttr.Attribute.ForeignEntity != nil {
+				relations = append(relations, PackServiceRelationData(*vtAttr, *vtAttr.Attribute.ForeignEntity))
+			}
 		}
 	}
 
@@ -87,6 +88,9 @@ func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
 	var pkSearches []base.PKPair
 	var aliasField, aliasArg string
 	for _, vtAttr := range vtEntity.Attributes {
+		if vtAttr.AttrName == "" {
+			continue
+		}
 		attr := vtAttr.Attribute
 
 		if attr.DBName == "alias" {

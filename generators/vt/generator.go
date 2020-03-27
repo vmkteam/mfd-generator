@@ -98,6 +98,8 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	g.options.GoPGVer = project.GoPGVer
+
 	if len(g.options.Namespaces) != 0 {
 		var filteredNameSpaces []*mfd.Namespace
 		for _, ns := range g.options.Namespaces {
@@ -138,20 +140,20 @@ func (g *Generator) Generate() error {
 	}
 
 	// printing zenrpc server code
-	if err := PrintServer(project.VTNamespaces, serverTemplate); err != nil {
+	if err := PrintServer(project.VTNamespaces, serverTemplate, g.options); err != nil {
 		return fmt.Errorf("generate vt server error: %w", err)
 	}
 
 	return nil
 }
 
-func PrintServer(namespaces []*mfd.VTNamespace, tmpl string) error {
+func PrintServer(namespaces []*mfd.VTNamespace, tmpl string, options Options) error {
 	parsed, err := template.New("base").Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("parsing template error: %w", err)
 	}
 
-	pack, err := PackServerNamespaces(namespaces)
+	pack, err := PackServerNamespaces(namespaces, options)
 	if err != nil {
 		return fmt.Errorf("packing data error: %w", err)
 	}

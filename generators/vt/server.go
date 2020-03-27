@@ -3,12 +3,12 @@ package vt
 import "github.com/vmkteam/mfd-generator/mfd"
 
 // PackServerNamespaces packs namespaces for zenprc server code
-func PackServerNamespaces(namespaces []*mfd.VTNamespace) (NamespaceData, error) {
+func PackServerNamespaces(namespaces []*mfd.VTNamespace, options Options) (NamespaceData, error) {
 	var models []EntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
 			// creating entity for template
-			mdl, err := PackEntity(*entity)
+			mdl, err := PackEntity(*entity, options)
 			if err != nil {
 				return NamespaceData{}, err
 			}

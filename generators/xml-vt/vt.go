@@ -100,7 +100,10 @@ func newVTSearch(search mfd.Search) *mfd.VTAttribute {
 }
 
 func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) mfd.TmplAttributes {
-	tmplAttributes := existing.TmplAttributes
+	var tmplAttributes mfd.TmplAttributes
+	if existing != nil {
+		tmplAttributes = existing.TmplAttributes
+	}
 
 	for _, vtAttr := range vt.Attributes {
 		tmpl := &mfd.TmplAttribute{
