@@ -15,41 +15,41 @@ type PKPair struct {
 	JSType template.HTML
 }
 
-// NamespaceData stores package info
-type TemplatePackage struct {
-	Entities []TemplateEntity
+// RoutesNamespaceData stores package info
+type RoutesNamespaceData struct {
+	Entities []RoutesEntityData
 }
 
-// PackNamespace creates a package for template
-func NewTemplatePackage(namespaces []*mfd.VTNamespace) (TemplatePackage, error) {
-	var entities []TemplateEntity
+// PackRoutesNamespace creates a package for template
+func PackRoutesNamespace(namespaces []*mfd.VTNamespace) (RoutesNamespaceData, error) {
+	var entities []RoutesEntityData
 
 	for _, namespace := range namespaces {
 		base, err := vt.PackNamespace(namespace, vt.Options{})
 		if err != nil {
-			return TemplatePackage{}, err
+			return RoutesNamespaceData{}, err
 		}
 
 		for _, baseEntity := range base.Entities {
-			if baseEntity.NoTemplates {
+			if baseEntity.Mode == mfd.ModeReadOnly {
 				continue
 			}
 
-			entity, err := NewTemplateEntity(baseEntity)
+			entity, err := PackRoutesEntity(baseEntity)
 			if err != nil {
-				return TemplatePackage{}, err
+				return RoutesNamespaceData{}, err
 			}
 			entities = append(entities, entity)
 		}
 	}
 
-	return TemplatePackage{
+	return RoutesNamespaceData{
 		Entities: entities,
 	}, nil
 }
 
 // EntityData stores struct info
-type TemplateEntity struct {
+type RoutesEntityData struct {
 	vt.EntityData
 
 	TerminalPath string
@@ -57,28 +57,32 @@ type TemplateEntity struct {
 	JSName string
 	PKs    []PKPair
 
-	ModelColumns   []TemplateColumn
-	ModelRelations []TemplateRelation
+	ModelColumns   []RoutesAttributeData
+	ModelRelations []RoutesRelationData
 
-	SummaryColumns   []TemplateColumn
-	SummaryRelations []TemplateRelation
+	SummaryColumns   []RoutesAttributeData
+	SummaryRelations []RoutesRelationData
 
-	SearchColumns []TemplateColumn
+	SearchColumns []RoutesAttributeData
 
-	Params []TemplateParams
+	Params []RouterParamsData
+
+	ReadOnly bool
 }
 
 // PackEntity creates an entity for template
-func NewTemplateEntity(base vt.EntityData) (TemplateEntity, error) {
-	entity := TemplateEntity{
+func PackRoutesEntity(base vt.EntityData) (RoutesEntityData, error) {
+	entity := RoutesEntityData{
 		EntityData: base,
 
 		TerminalPath: base.VTEntity.TerminalPath,
 		JSName:       mfd.VarName(base.Name),
+
+		ReadOnly: base.Mode == mfd.ModeReadOnlyWithTemplates,
 	}
 
 	for _, baseColumn := range base.ModelColumns {
-		entity.ModelColumns = append(entity.ModelColumns, NewTemplateColumn(baseColumn, entity))
+		entity.ModelColumns = append(entity.ModelColumns, PackRoutesAttribute(baseColumn, entity))
 
 		if baseColumn.Attribute.PrimaryKey {
 			entity.PKs = append(entity.PKs, PKPair{
@@ -88,29 +92,29 @@ func NewTemplateEntity(base vt.EntityData) (TemplateEntity, error) {
 		}
 	}
 	for _, baseRelation := range base.ModelRelations {
-		entity.ModelRelations = append(entity.ModelRelations, NewTemplateRelation(baseRelation))
+		entity.ModelRelations = append(entity.ModelRelations, PackRoutesRelation(baseRelation))
 	}
 
 	for _, baseColumn := range base.SummaryColumns {
-		entity.SummaryColumns = append(entity.SummaryColumns, NewTemplateColumn(baseColumn, entity))
+		entity.SummaryColumns = append(entity.SummaryColumns, PackRoutesAttribute(baseColumn, entity))
 	}
 	for _, baseRelation := range base.SummaryRelations {
-		entity.SummaryRelations = append(entity.SummaryRelations, NewTemplateRelation(baseRelation))
+		entity.SummaryRelations = append(entity.SummaryRelations, PackRoutesRelation(baseRelation))
 	}
 
 	for _, baseColumn := range base.SearchColumns {
-		entity.SearchColumns = append(entity.SearchColumns, NewTemplateColumn(baseColumn, entity))
+		entity.SearchColumns = append(entity.SearchColumns, PackRoutesAttribute(baseColumn, entity))
 	}
 
 	for _, baseParams := range base.Params {
-		entity.Params = append(entity.Params, NewTemplateParams(baseParams))
+		entity.Params = append(entity.Params, PackRoutesParams(baseParams))
 	}
 
 	return entity, nil
 }
 
 // AttributeData stores column info
-type TemplateColumn struct {
+type RoutesAttributeData struct {
 	vt.AttributeData
 
 	JSName string
@@ -118,13 +122,13 @@ type TemplateColumn struct {
 	JSZero template.HTML
 }
 
-func NewTemplateColumn(base vt.AttributeData, entity TemplateEntity) TemplateColumn {
+func PackRoutesAttribute(base vt.AttributeData, entity RoutesEntityData) RoutesAttributeData {
 	jsType := mfd.MakeJSType(base.Attribute.GoType, base.IsArray)
 	if base.IsParams {
 		jsType = fmt.Sprintf("I%s%s", entity.Name, base.Name)
 	}
 
-	return TemplateColumn{
+	return RoutesAttributeData{
 		AttributeData: base,
 
 		JSName: mfd.VarName(base.VTAttribute.Name),
@@ -134,28 +138,28 @@ func NewTemplateColumn(base vt.AttributeData, entity TemplateEntity) TemplateCol
 }
 
 // RelationData stores relation info
-type TemplateRelation struct {
+type RoutesRelationData struct {
 	vt.RelationData
 
 	JSName string
 }
 
-func NewTemplateRelation(base vt.RelationData) TemplateRelation {
-	return TemplateRelation{
+func PackRoutesRelation(base vt.RelationData) RoutesRelationData {
+	return RoutesRelationData{
 		RelationData: base,
 
 		JSName: mfd.VarName(base.Name),
 	}
 }
 
-type TemplateParams struct {
+type RouterParamsData struct {
 	vt.ParamsData
 
 	JSName string
 }
 
-func NewTemplateParams(base vt.ParamsData) TemplateParams {
-	return TemplateParams{
+func PackRoutesParams(base vt.ParamsData) RouterParamsData {
+	return RouterParamsData{
 		ParamsData: base,
 
 		JSName: mfd.VarName(base.Name),

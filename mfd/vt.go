@@ -20,6 +20,13 @@ const (
 	TypeHTMLImage    = "HTML_IMAGE"
 )
 
+const (
+	ModeFull                  = "Full"
+	ModeNone                  = "None"
+	ModeReadOnly              = "ReadOnly"
+	ModeReadOnlyWithTemplates = "ReadOnlyWithTemplates"
+)
+
 // VTNamespace returns mfd.VTNamespace by its name
 func (p *Project) VTNamespace(namespace string) *VTNamespace {
 	for _, ns := range p.VTNamespaces {
@@ -107,14 +114,17 @@ func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
 
 // VTEntity is xml element
 type VTEntity struct {
-	XMLName     xml.Name `xml:"Entity" json:"-"`
-	Name        string   `xml:"Name,attr"`
-	NoTemplates bool     `xml:"WithoutTemplates,attr"`
+	XMLName xml.Name `xml:"Entity" json:"-"`
+	Name    string   `xml:"Name,attr"`
 
 	TerminalPath string `xml:"TerminalPath"`
 
 	Attributes     VTAttributes   `xml:"Attributes>Attribute"`
 	TmplAttributes TmplAttributes `xml:"Template>Attribute"`
+
+	// DEPRECATED
+	NoTemplates bool   `xml:"WithoutTemplates,attr,omitempty"`
+	Mode        string `xml:"Mode,attr"`
 
 	// corresponding entity
 	Entity *Entity `xml:"-"`

@@ -20,6 +20,8 @@ type EntityData struct {
 
 	PKs []PKPair
 
+	ReadOnly bool
+
 	ListColumns   []AttributeData
 	FilterColumns []InputData
 	FormColumns   []InputData
@@ -40,11 +42,12 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 		HasQuickFilter: false, // TODO remove
 		TitleField:     "",    // TODO remove
 		PKs:            pks,
+		ReadOnly:       vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
 	}
 
 	for _, attr := range vtEntity.TmplAttributes {
 		if attr.List {
-			tmpl.ListColumns = append(tmpl.ListColumns, PackAttribute(*attr))
+			tmpl.ListColumns = append(tmpl.ListColumns, PackAttribute(vtEntity, *attr))
 		}
 		if attr.Search != mfd.TypeHTMLNone && attr.Search != "" {
 			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true))
@@ -86,7 +89,7 @@ type AttributeData struct {
 }
 
 // PackAttribute packs mfd tmpl attribute to template data
-func PackAttribute(tmpl mfd.TmplAttribute) AttributeData {
+func PackAttribute(vtEntity mfd.VTEntity, tmpl mfd.TmplAttribute) AttributeData {
 	lowerName := strings.ToLower(tmpl.Name)
 	boolType := false
 	isSortable := true
@@ -110,7 +113,7 @@ func PackAttribute(tmpl mfd.TmplAttribute) AttributeData {
 
 	return AttributeData{
 		JSName:     mfd.VarName(tmpl.Name),
-		EditLink:   lowerName == "title" || lowerName == "name",
+		EditLink:   vtEntity.Mode == mfd.ModeFull && (lowerName == "title" || lowerName == "name"),
 		IsBool:     tmpl.List && boolType,
 		IsSortable: isSortable,
 		HasPipe:    pipe != "",

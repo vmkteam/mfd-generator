@@ -7,6 +7,10 @@ func PackServerNamespaces(namespaces []*mfd.VTNamespace, options Options) (Names
 	var models []EntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
+			if entity.Mode == mfd.ModeNone {
+				continue
+			}
+
 			// creating entity for template
 			mdl, err := PackEntity(*entity, options)
 			if err != nil {

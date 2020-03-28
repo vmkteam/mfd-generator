@@ -22,9 +22,14 @@ type ServiceNamespaceData struct {
 
 // PackServiceNamespace packs mfd vt namespace to template data
 func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNamespaceData {
-	entities := make([]ServiceEntityData, len(namespace.Entities))
-	for i, entity := range namespace.Entities {
-		entities[i] = PackServiceEntity(*entity)
+	var entities []ServiceEntityData
+	for _, entity := range namespace.Entities {
+		if entity.Mode == mfd.ModeNone {
+			continue
+		}
+
+		entities = append(entities, PackServiceEntity(*entity))
+
 	}
 
 	name := util.CamelCased(util.Sanitize(namespace.Name))
@@ -64,6 +69,8 @@ type ServiceEntityData struct {
 
 	HasRelations bool
 	Relations    []ServiceRelationData
+
+	ReadOnly bool
 }
 
 // PackServiceEntity packs mfd vt entity to template data
@@ -130,6 +137,8 @@ func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
 
 		HasRelations: len(relations) > 0,
 		Relations:    relations,
+
+		ReadOnly: vtEntity.Mode == mfd.ModeReadOnly || vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
 	}
 }
 

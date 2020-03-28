@@ -213,7 +213,7 @@ func (s {{.Name}}Service) byID(ctx context.Context{{range .PKs}}, {{.Arg}} {{.Ty
 		return nil, ErrNotFound
 	}
 	return db, nil
-}
+}{{if not .ReadOnly}}
 
 // Add a {{.Name}} from from the query
 //zenrpc:{{.VarName}} {{.Name}}
@@ -338,7 +338,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} *{{.Name}}, 
 	return v
 }
 
-{{end}}`
+{{end}}{{end}}`
 
 const serverTemplate = `
 	Put this into your server code:

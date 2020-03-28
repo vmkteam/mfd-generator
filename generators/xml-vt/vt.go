@@ -19,6 +19,7 @@ func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
 			Name:         entity.Name,
 			TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
 			Attributes:   mfd.VTAttributes{},
+			Mode:         mfd.ModeFull,
 		}
 	}
 

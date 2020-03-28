@@ -12,6 +12,7 @@ export default [{{range $model := .Entities}}
       breadcrumbs: ["dashboard", "{{.JSName}}List"]
     }
   },
+  {{if not .ReadOnly}}
   {
     name: "{{.JSName}}Edit",
     path: "/{{.TerminalPath}}/:id/edit",
@@ -29,7 +30,7 @@ export default [{{range $model := .Entities}}
     meta: {
       breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
     }
-  },{{end}}
+  },{{end}}{{end}}
 ];
 `
 
@@ -72,10 +73,12 @@ const listTemplate = `<template>
                       : ""
                   }}
                 </v-btn>
+				[[if not .ReadOnly]]
                 <v-btn small dark color="success" :to="{ name: '[[.JSName]]Add' }">
                   <v-icon>add</v-icon>
                   {{ $t("common.list.addNewLabel") }}
                 </v-btn>
+				[[end]]
               </v-flex>
             </v-layout>
             <filters
@@ -174,7 +177,7 @@ const listTemplate = `<template>
                   >[[end]]
                   {{ item.[[.JSName]][[if .HasPipe]] | [[.Pipe]][[end]] }}[[end]][[if .EditLink]]
                   </router-link>[[end]]
-                </template>[[end]][[end]]
+                </template>[[end]][[end]][[if not $.ReadOnly]]
                 <template #item.[[range $.PKs]][[.JSName]]="{ item }"[[end]]>
                   <span class="text-no-wrap">
                     <v-btn
@@ -198,7 +201,7 @@ const listTemplate = `<template>
                       </v-btn>
                     </v-hover>
                   </span>
-                </template>
+                </template>[[end]]
               </v-data-table>
             </v-card>
           </v-flex>
@@ -228,22 +231,27 @@ export default class List extends EntityList {
   store: Store = new Store(Model, SearchModel);
 
   get headers() {
-    return [{[[range $i, $e := .ListColumns]][[if eq .JSName "statusId"]]
+    return [ [[range $i, $e := .ListColumns]][[if ne $i 0]]
+      },		
+[[end]][[if eq .JSName "statusId"]]
+      {
         text: this.$t("[[$.JSName]].list.headers.status"),
         value: "status",
 		sortable: false
-      },
-      {[[else]]
+      [[else]]
+      {
         text: this.$t("[[$.JSName]].list.headers.[[.JSName]]"),
         value: "[[.JSName]]"[[if eq $i 0]],
         align: "left"[[end]][[if not .IsSortable]],
-		sortable: false[[end]]
-      },
-      {[[end]][[end]]
+		sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]
+      }[[else]]
+	  },
+      {
         text: this.$t("[[$.JSName]].list.headers.actions"),
         value: "id",
         sortable: false
       }
+[[end]]
     ];
   }
 }

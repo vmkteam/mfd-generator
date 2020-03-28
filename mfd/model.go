@@ -234,6 +234,16 @@ func (p *Project) UpdateLinks() {
 	// making vt links
 	for _, vtNamespace := range p.VTNamespaces {
 		for _, vtEntity := range vtNamespace.Entities {
+			// Backward compatibility
+			if vtEntity.NoTemplates {
+				vtEntity.NoTemplates = false
+				vtEntity.Mode = ModeReadOnly
+			}
+
+			if vtEntity.Mode == "" {
+				vtEntity.Mode = ModeFull
+			}
+
 			if entity := p.Entity(vtEntity.Name); entity != nil {
 				vtEntity.Entity = entity
 				for _, vtAttribute := range vtEntity.Attributes {

@@ -36,6 +36,10 @@ func PackNamespace(vtNamespace *mfd.VTNamespace, options Options) (NamespaceData
 
 	var models []EntityData
 	for _, entity := range vtNamespace.Entities {
+		if entity.Mode == mfd.ModeNone {
+			continue
+		}
+
 		// creating entity for template
 		mdl, err := PackEntity(*entity, options)
 		if err != nil {

@@ -147,7 +147,8 @@ func (g *Generator) Generate() error {
 
 	for _, namespace := range project.VTNamespaces {
 		for _, entity := range namespace.Entities {
-			if entity.NoTemplates {
+			// skip if read only
+			if entity.Mode == mfd.ModeReadOnly {
 				continue
 			}
 
@@ -161,9 +162,12 @@ func (g *Generator) Generate() error {
 				return fmt.Errorf("generate entity %s filters  error: %w", entity.Name, err)
 			}
 
-			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "Form.vue")
-			if err := SaveEntity(*entity, output, formTmpl); err != nil {
-				return fmt.Errorf("generate entity %s form  error: %w", entity.Name, err)
+			// do not generate form on
+			if entity.Mode != mfd.ModeReadOnlyWithTemplates {
+				output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "Form.vue")
+				if err := SaveEntity(*entity, output, formTmpl); err != nil {
+					return fmt.Errorf("generate entity %s form  error: %w", entity.Name, err)
+				}
 			}
 
 			// saving translations
@@ -207,7 +211,7 @@ func SaveRoutes(namespaces []*mfd.VTNamespace, output string) (bool, error) {
 		return false, fmt.Errorf("parsing template error: %w", err)
 	}
 
-	pack, err := NewTemplatePackage(namespaces)
+	pack, err := PackRoutesNamespace(namespaces)
 	if err != nil {
 		return false, fmt.Errorf("packing data error: %w", err)
 	}
