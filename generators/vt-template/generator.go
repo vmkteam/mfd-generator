@@ -99,16 +99,6 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	if len(g.options.Namespaces) != 0 {
-		var filteredNameSpaces []*mfd.Namespace
-		for _, ns := range g.options.Namespaces {
-			if p := project.Namespace(ns); p != nil {
-				filteredNameSpaces = append(filteredNameSpaces, p)
-			}
-		}
-		project.Namespaces = filteredNameSpaces
-	}
-
 	// generating routes for all namespaces
 	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
 	if _, err := SaveRoutes(project.VTNamespaces, output); err != nil {
@@ -140,13 +130,22 @@ func (g *Generator) Generate() error {
 		}
 	}
 
+	if len(g.options.Namespaces) == 0 {
+		g.options.Namespaces = project.NamespaceNames
+	}
+
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, project.Languages)
 	if err != nil {
 		return fmt.Errorf("read translation error: %w", err)
 	}
 
-	for _, namespace := range project.VTNamespaces {
-		for _, entity := range namespace.Entities {
+	for _, namespace := range g.options.Namespaces {
+		ns := project.VTNamespace(namespace)
+		if ns == nil {
+			return fmt.Errorf("namespace %s not found in project", namespace)
+		}
+
+		for _, entity := range ns.Entities {
 			// skip if read only or none
 			if entity.Mode == mfd.ModeReadOnly || entity.Mode == mfd.ModeNone {
 				continue
@@ -173,7 +172,7 @@ func (g *Generator) Generate() error {
 			// saving translations
 			for lang, translation := range translations {
 				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
-				if err := mfd.MarshalJSONToFile(output, translation.Entity(namespace.Name, entity.Name)); err != nil {
+				if err := mfd.MarshalJSONToFile(output, translation.Entity(ns.Name, entity.Name)); err != nil {
 					return fmt.Errorf("save translation lang %s error: %w", lang, err)
 				}
 			}

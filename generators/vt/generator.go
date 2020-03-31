@@ -100,17 +100,16 @@ func (g *Generator) Generate() error {
 
 	g.options.GoPGVer = project.GoPGVer
 
-	if len(g.options.Namespaces) != 0 {
-		var filteredNameSpaces []*mfd.Namespace
-		for _, ns := range g.options.Namespaces {
-			if p := project.Namespace(ns); p != nil {
-				filteredNameSpaces = append(filteredNameSpaces, p)
-			}
-		}
-		project.Namespaces = filteredNameSpaces
+	if len(g.options.Namespaces) == 0 {
+		g.options.Namespaces = project.NamespaceNames
 	}
 
-	for _, ns := range project.VTNamespaces {
+	for _, namespace := range g.options.Namespaces {
+		ns := project.VTNamespace(namespace)
+		if ns == nil {
+			return fmt.Errorf("namespace %s not found in project", namespace)
+		}
+
 		// generating each namespace in separate file
 		baseName := mfd.GoFileName(ns.Name)
 
