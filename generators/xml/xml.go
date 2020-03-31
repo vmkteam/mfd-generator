@@ -31,6 +31,11 @@ func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity) *mf
 	for _, column := range entity.Columns {
 		attributes, attribute = attributes.Merge(newAttribute(entity, column))
 
+		// do not add searches for existing columns
+		if existing != nil && existing.AttributeByDBName(attribute.DBName, attribute.DBType) != nil {
+			continue
+		}
+
 		// adding search if needed
 		if column.IsPK {
 			searches = searches.Append(newSearch(*attribute, mfd.SearchArray))

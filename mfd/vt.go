@@ -184,8 +184,8 @@ type VTAttribute struct {
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
-func (a *VTAttribute) Merge(with *VTAttribute) {
-	a.SearchName = with.SearchName
+func (a *VTAttribute) Merge(with *VTAttribute) *VTAttribute {
+	//a.SearchName = with.SearchName
 
 	if a.Validate == "" {
 		a.Validate = with.Validate
@@ -194,6 +194,8 @@ func (a *VTAttribute) Merge(with *VTAttribute) {
 	if !a.Required {
 		a.Required = with.Required
 	}
+
+	return a
 }
 
 type TmplAttribute struct {
@@ -220,12 +222,11 @@ func (a *TmplAttribute) Merge(with *TmplAttribute) {
 
 type VTAttributes []*VTAttribute
 
-// Merge adds new attribute, update if exists
+// Merge adds new attribute, skip if exists
 func (a VTAttributes) Merge(attr *VTAttribute) (VTAttributes, *VTAttribute) {
-	for i, existing := range a {
-		if existing.AttrName == attr.AttrName && existing.SearchName == attr.SearchName {
-			existing.Merge(attr)
-			a[i] = existing
+	for _, existing := range a {
+		if (attr.AttrName != "" && existing.AttrName == attr.AttrName) ||
+			(attr.AttrName == "" && existing.SearchName == attr.SearchName) {
 			return a, existing
 		}
 	}

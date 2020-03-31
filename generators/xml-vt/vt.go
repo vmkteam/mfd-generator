@@ -12,10 +12,10 @@ import (
 // this code used to convert entities from database to namespace in mfd project file
 
 func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
-	// processing all columns
-	vtEntity := existing
+	// making copy
+	vtEntity := *existing
 	if existing == nil {
-		vtEntity = &mfd.VTEntity{
+		vtEntity = mfd.VTEntity{
 			Name:         entity.Name,
 			TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
 			Attributes:   mfd.VTAttributes{},
@@ -47,9 +47,9 @@ func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
 	}
 
 	// adding template
-	vtEntity.TmplAttributes = PackTemplate(entity, vtEntity, existing)
+	vtEntity.TmplAttributes = PackTemplate(entity, &vtEntity, existing)
 
-	return vtEntity
+	return &vtEntity
 }
 
 func newVTAttribute(attr mfd.Attribute, search *mfd.Search) *mfd.VTAttribute {
@@ -107,6 +107,11 @@ func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) 
 	}
 
 	for _, vtAttr := range vt.Attributes {
+		// if vtAttribute already exists in file - do not generate tmpl for it
+		if existing != nil && existing.Attribute(vtAttr.Name) != nil {
+			continue
+		}
+
 		tmpl := &mfd.TmplAttribute{
 			Name:     vtAttr.Name,
 			AttrName: vtAttr.Name,
