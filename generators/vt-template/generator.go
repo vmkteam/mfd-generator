@@ -147,8 +147,8 @@ func (g *Generator) Generate() error {
 
 	for _, namespace := range project.VTNamespaces {
 		for _, entity := range namespace.Entities {
-			// skip if read only
-			if entity.Mode == mfd.ModeReadOnly {
+			// skip if read only or none
+			if entity.Mode == mfd.ModeReadOnly || entity.Mode == mfd.ModeNone {
 				continue
 			}
 

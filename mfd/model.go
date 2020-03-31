@@ -235,7 +235,7 @@ func (p *Project) UpdateLinks() {
 	for _, vtNamespace := range p.VTNamespaces {
 		for _, vtEntity := range vtNamespace.Entities {
 			// Backward compatibility
-			if vtEntity.NoTemplates {
+			if vtEntity.NoTemplates && vtEntity.Mode == "" {
 				vtEntity.NoTemplates = false
 				vtEntity.Mode = ModeReadOnly
 			}
