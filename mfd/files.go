@@ -222,7 +222,7 @@ func SaveTranslation(translation Translation, project, language string) error {
 	return MarshalToFile(filename, translation)
 }
 
-func MarshalJSONToFile(filename string, v TranslationEntity) error {
+func MarshalJSONToFile(filename string, v *TranslationEntity) error {
 	bytes, err := json.MarshalIndent(v, "", "    ")
 	if err != nil {
 		return fmt.Errorf("marshal data error: %w", err)

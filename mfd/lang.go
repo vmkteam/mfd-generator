@@ -7,24 +7,24 @@ import (
 
 // Translations
 type Translation struct {
-	XMLName    xml.Name               `xml:"Translation" json:"-"`
-	XMLxsi     string                 `xml:"xmlns:xsi,attr"`
-	XMLxsd     string                 `xml:"xmlns:xsd,attr"`
-	Language   string                 `xml:"Language"`
-	Namespaces []TranslationNamespace `xml:"Namespaces>Namespace" json:"-"`
+	XMLName    xml.Name                `xml:"Translation" json:"-"`
+	XMLxsi     string                  `xml:"xmlns:xsi,attr"`
+	XMLxsd     string                  `xml:"xmlns:xsd,attr"`
+	Language   string                  `xml:"Language"`
+	Namespaces []*TranslationNamespace `xml:"Namespaces>Namespace" json:"-"`
 }
 
 func (t *Translation) Namespace(namespace string) *TranslationNamespace {
 	for _, ns := range t.Namespaces {
 		if ns.Name == namespace {
-			return &ns
+			return ns
 		}
 	}
 
 	return nil
 }
 
-func (t *Translation) Entity(namespace, entity string) TranslationEntity {
+func (t *Translation) Entity(namespace, entity string) *TranslationEntity {
 	if ns := t.Namespace(namespace); ns != nil {
 		for _, e := range ns.Entities {
 			if e.Name == entity {
@@ -33,10 +33,10 @@ func (t *Translation) Entity(namespace, entity string) TranslationEntity {
 		}
 	}
 
-	return TranslationEntity{}
+	return &TranslationEntity{}
 }
 
-func (t *Translation) Merge(translation Translation) {
+func (t *Translation) Merge(translation *Translation) {
 	for _, ns := range translation.Namespaces {
 		if existing := t.Namespace(ns.Name); existing != nil {
 			existing.Merge(ns)
@@ -47,22 +47,22 @@ func (t *Translation) Merge(translation Translation) {
 }
 
 type TranslationNamespace struct {
-	XMLName  xml.Name            `xml:"Namespace" json:"-"`
-	Name     string              `xml:"Name,attr"`
-	Entities []TranslationEntity `xml:"Entities>Entity"`
+	XMLName  xml.Name             `xml:"Namespace" json:"-"`
+	Name     string               `xml:"Name,attr"`
+	Entities []*TranslationEntity `xml:"Entities>Entity"`
 }
 
 func (n TranslationNamespace) Entity(entity string) *TranslationEntity {
 	for _, e := range n.Entities {
 		if e.Name == entity {
-			return &e
+			return e
 		}
 	}
 
 	return nil
 }
 
-func (n *TranslationNamespace) Merge(namespace TranslationNamespace) {
+func (n *TranslationNamespace) Merge(namespace *TranslationNamespace) {
 	for _, e := range namespace.Entities {
 		if existing := n.Entity(e.Name); existing != nil {
 			existing.Merge(e)
@@ -93,7 +93,7 @@ func (e TranslationEntity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(jsM)
 }
 
-func (e *TranslationEntity) Merge(entity TranslationEntity) {
+func (e *TranslationEntity) Merge(entity *TranslationEntity) {
 	if e.List.Title == "" {
 		e.List.Title = entity.List.Title
 	}

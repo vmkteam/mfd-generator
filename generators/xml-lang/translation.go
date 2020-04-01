@@ -1,23 +1,25 @@
 package xmllang
 
-import "github.com/vmkteam/mfd-generator/mfd"
+import (
+	"github.com/vmkteam/mfd-generator/mfd"
+)
 
-func Translate(p *mfd.Project, language string) mfd.Translation {
-	tr := mfd.Translation{
+func Translate(p *mfd.Project, language string) *mfd.Translation {
+	tr := &mfd.Translation{
 		Language:   language,
-		Namespaces: []mfd.TranslationNamespace{},
+		Namespaces: []*mfd.TranslationNamespace{},
 	}
 
 	for _, ns := range p.VTNamespaces {
-		tn := mfd.TranslationNamespace{
+		tn := &mfd.TranslationNamespace{
 			Name:     ns.Name,
-			Entities: []mfd.TranslationEntity{},
+			Entities: []*mfd.TranslationEntity{},
 		}
 
 		for _, e := range ns.Entities {
 			key := mfd.VarName(e.Name)
 
-			te := mfd.TranslationEntity{
+			te := &mfd.TranslationEntity{
 				Name: e.Name,
 				Key:  key,
 				Form: mfd.XMLMap{},
