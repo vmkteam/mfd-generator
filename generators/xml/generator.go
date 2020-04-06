@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	packages = "pkgs"
-	verbose  = "verbose"
+	mfdFlag     = "mfd"
+	nssFlag     = "nss"
+	verboseFlag = "verbose"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("xml", "Create main xml from database", New())
+	return base.CreateCommand("xml", "Create or update project base with namespaces and entities", New())
 }
 
 // Generator represents mfd generator
@@ -41,28 +42,28 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
 
-	flags.BoolP(verbose, "v", false, "use to print sql queries")
+	flags.BoolP(verboseFlag, "v", false, "print sql queries")
 
-	flags.StringP(base.Conn, "c", "", "connection string to your postgres database")
+	flags.StringP(base.Conn, "c", "", "connection string to postgres database, e.g. postgres://usr:pwd@localhost:5432/db")
 	if err := command.MarkFlagRequired(base.Conn); err != nil {
 		panic(err)
 	}
 
-	flags.StringP(base.Output, "o", "", "output mfd file name")
-	if err := command.MarkFlagRequired(base.Output); err != nil {
+	flags.StringP(mfdFlag, "m", "", "mfd file path")
+	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
 	flags.StringSliceP(base.Tables, "t", []string{"public.*"}, "table names for model generation separated by comma\nuse 'schema_name.*' to generate model for every table in model")
 
-	flags.StringP(packages, "p", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
+	flags.StringP(nssFlag, "p", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
 }
 
 // ReadFlags reads basic flags from command
 func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	flags := command.Flags()
 
-	if g.verbose, err = flags.GetBool(verbose); err != nil {
+	if g.verbose, err = flags.GetBool(verboseFlag); err != nil {
 		return
 	}
 
@@ -72,7 +73,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	}
 
 	// filepath to project model
-	if g.options.Output, err = flags.GetString(base.Output); err != nil {
+	if g.options.Output, err = flags.GetString(mfdFlag); err != nil {
 		return
 	}
 
@@ -82,7 +83,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	}
 
 	// preset packages
-	pkgs, err := flags.GetString(packages)
+	pkgs, err := flags.GetString(nssFlag)
 	if err != nil {
 		return
 	}

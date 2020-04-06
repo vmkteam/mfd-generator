@@ -13,14 +13,15 @@ import (
 
 func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
 	// making copy
-	vtEntity := *existing
-	if existing == nil {
-		vtEntity = mfd.VTEntity{
-			Name:         entity.Name,
-			TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
-			Attributes:   mfd.VTAttributes{},
-			Mode:         mfd.ModeFull,
-		}
+	vtEntity := mfd.VTEntity{
+		Name:         entity.Name,
+		TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
+		Attributes:   mfd.VTAttributes{},
+		Mode:         mfd.ModeFull,
+	}
+
+	if existing != nil {
+		vtEntity = *existing
 	}
 
 	index := mfd.NewSet()
