@@ -16,7 +16,7 @@ import (
 
 const (
 	mfdFlag     = "mfd"
-	nssFlag     = "nss"
+	nssFlag     = "namespaces"
 	verboseFlag = "verbose"
 )
 
@@ -83,19 +83,19 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	}
 
 	// preset packages
-	pkgs, err := flags.GetString(nssFlag)
+	nss, err := flags.GetString(nssFlag)
 	if err != nil {
 		return
 	}
 
-	if pkgs != "" {
-		g.options.Packages = parsePackagesParam(pkgs)
+	if nss != "" {
+		g.options.Packages = parseNamespacesFlag(nss)
 	}
 
 	return
 }
 
-func parsePackagesParam(v string) map[string]string {
+func parseNamespacesFlag(v string) map[string]string {
 	// processing format
 	// namespace1:table1,table2;namespace2:table3
 

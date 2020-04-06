@@ -21,3 +21,8 @@
 Описание форматов xml файлов можно найти в соотвествующих генераторах [xml](#xml), [xml-vt](#xml-vt) и [xml-lang](#xml-lang)
 
 ### CHANGELOG
+
+#### v0.0.1  
+**xml**
+- `-o --output` renamed to `-m --mfd` 
+- `-p --pkgs`  renamed to `-n --namespaces`     

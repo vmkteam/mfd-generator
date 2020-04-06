@@ -11,12 +11,12 @@ import (
 
 const (
 	mfdFlag = "mfd"
-	nsFlag  = "ns"
+	nssFlag = "namespaces"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("xml-vt", "Create vt xml from database", New())
+	return base.CreateCommand("xml-vt", "Create vt xml from mfd", New())
 }
 
 // Generator represents mfd generator
@@ -41,7 +41,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces")
+	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces")
 }
 
 // ReadFlags reads basic flags from command
@@ -54,7 +54,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	if g.options.Namespaces, err = flags.GetStringSlice(nsFlag); err != nil {
+	if g.options.Namespaces, err = flags.GetStringSlice(nssFlag); err != nil {
 		return err
 	}
 
