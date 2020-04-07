@@ -87,7 +87,7 @@ func NewGennaColumn(entity model.Entity, attr *Attribute) model.Column {
 		Dimensions: dims,
 		IsPK:       attr.PrimaryKey,
 		IsFK:       attr.ForeignKey != "",
-		Import:     model.GoImport(attr.DBType, nullable, false),
+		Import:     model.GoImport(attr.DBType, nullable, false, 8),
 		MaxLen:     attr.Max,
 	}
 }

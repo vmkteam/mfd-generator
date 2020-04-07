@@ -369,7 +369,7 @@ func NewTemplateParams(vtAttr *mfd.VTAttribute, attr *mfd.Attribute) TemplatePar
 }
 
 func Import(attribute *mfd.Attribute) string {
-	return model.GoImport(attribute.DBType, attribute.Nullable(), false)
+	return model.GoImport(attribute.DBType, attribute.Nullable(), false, 8)
 }
 
 func customToIPConverter(name, entityShortName string, nullable bool) (template.HTML, template.HTML) {

@@ -179,7 +179,7 @@ func NewTemplateColumn(entity mfd.Entity, attribute mfd.Attribute, options Optio
 
 		Type:   goType,
 		Name:   util.ColumnName(attribute.Name),
-		Import: model.GoImport(attribute.DBType, attribute.Nullable(), false),
+		Import: model.GoImport(attribute.DBType, attribute.Nullable(), false, 8),
 
 		Tag:     template.HTML(fmt.Sprintf("`%s`", tags.String())),
 		Comment: template.HTML(comment),

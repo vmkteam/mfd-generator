@@ -143,7 +143,7 @@ func (g *Generator) Generate() (err error) {
 	genna := genna.New(g.options.URL, logger)
 
 	// reading tables from db
-	entities, err := genna.Read(g.options.Tables, false, false)
+	entities, err := genna.Read(g.options.Tables, false, false, 8)
 	if err != nil {
 		return xerrors.Errorf("read database error: %w", err)
 	}
