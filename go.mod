@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
-	github.com/dizzyfool/genna v0.0.0-20200326233101-1b8e624c7ae8
+	github.com/dizzyfool/genna v1.0.0
 	github.com/fatih/camelcase v1.0.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/manifoldco/promptui v0.3.2
