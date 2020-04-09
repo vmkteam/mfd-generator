@@ -51,8 +51,8 @@ Flags:
 ```
 
 **PackageNames** - Указанные неймспейсы будут использоваться для дальнейшей генерации. Если неймспейс не указан в списке, даже если файл с неймспейсом присутствует, генерироваться не будет  
-**Languages** управление этим полем происходит в генераторе [xml-lang]. В дальнейшем генератор [template] будет использовать этот список чтобы сгенерировать языковые файлы для интерфейса vt       
-**GoPGVer** - версия go-pg. Поддерживаемые значения 8 и 9. От этого параметра зависят все генераторы golang кода:
+**Languages** Управление этим полем происходит в генераторе [xml-lang]. В дальнейшем генератор [template] будет использовать этот список чтобы сгенерировать языковые файлы для интерфейса vt       
+**GoPGVer** - Версия go-pg. Поддерживаемые значения 8 и 9. От этого параметра зависят все генераторы golang кода:
   - импорты (`"github.com/go-pg/pg"` vs `"github.com/go-pg/pg/v9"`)  
   - аннотации к структурам (`sql:"title"` vs `pg:"title"`)  
   - функции (`pg.F` и `pg.Q` vs `pg.Ident` и `pg.SafeQuery`)  
@@ -64,7 +64,7 @@ Flags:
 <Package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Name>blog</Name> <!-- имя неймспейса -->
     <Entities> <!-- список сущностей -->
-        <Entity Name="Post" Namespace="blog" Table="post"> <!-- сущность -->
+        <Entity Name="Post" Namespace="blog" Table="posts">
             <Attributes> <!-- список атрибутов -->
                 <Attribute Name="ID" DBName="postId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
@@ -73,7 +73,7 @@ Flags:
                 <Attribute Name="Views" DBName="views" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamp" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0"></Attribute>
                 <Attribute Name="UserID" DBName="userId" DBType="int4" GoType="int" PK="false" FK="User" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="TagID" DBName="tagId" IsArray="true" DBType="int4" GoType="[]int" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="TagIDs" DBName="tagIds" IsArray="true" DBType="int4" GoType="[]int" PK="false" FK="Tag" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
             </Attributes>
             <Searches> <!-- список поисков -->
@@ -84,7 +84,7 @@ Flags:
             </Searches>
         </Entity>
         <Entity Name="Tag" Namespace="blog" Table="tags">
-            <Attributes>
+            <Attributes> 
                 <Attribute Name="ID" DBName="tagId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
@@ -101,36 +101,38 @@ Flags:
 </Package>
 ``` 
 
-**Entity** - описание каждой сущности, содержит в себе имя (Name), неймспейс (Namespace) и соответствующую таблицу в бд (Table). 
+**Entity** - Описание каждой сущности, содержит в себе имя (Name), неймспейс (Namespace) и соответствующую таблицу в бд (Table). 
 В поле Table если не указана схема будет использоваться public  
-Атрибут **Name** - содержит имя сущности, которое будет использоваться для генерирования имени структуры в генераторе [model]() и имени репозитория в генераторе [repo]() 
+Атрибут **Name** - содержит имя сущности, соответствует имени таблицы, капитализированное и приведённое к единственному числу.
   
 #### Атрибуты 
 
-**Attribute** - содержит описание поля таблицы в бд, используется для генерирования vt aтрибутов в генераторе [xml-vt]() а та же для генерирования полей структуры в генераторе [model](model) и всех [зависимых](repo) [генераторах](vt)  
+**Attribute** - Содержит описание поля таблицы в бд  
 
-**Name** - имя атрибута, используется для генерирования названия поля в структуре модели и поиска в генераторе [model](model). Уникально для сущности  
-На это имя будут ссылаться поиски в разделе `<Searches>`, атрибуты `VTEntity` которые генерируются [xml-vt]()   
-**DBName** - имя соответствующей колонки в таблице в бд.  
-**DBType** - тип соответствующей колонки в таблице в бд.  
-**GoType** - тип который будет сгенерирован генераторами golang кода. Поумолчанию для nullable атрибутов в типе будет присутствовать указатель, который можно убрать, если необходимо  
-**PK** - флаг Primary ключа, важное значение для генерирования vt-модели, функций типа GetByID, шаблонов и так далее  
-**Nullable** - Может ли значение быть nil. Флаг определяющий код модели и vt-модели (в конвертерах и валидаторах). Возможные значения `Yes` и `No`  
-**Addable** - Можно ли указать значение этого поля, при добавлении сущности в базу (например, ID). Флаг определяющий код модели vt-модели (в конвертерах). Возможные значения `true` и `false`    
-**Updatable** - Можно ли указать значение этого поля, при обновлении сущности в базе (например, CreatedAt). Флаг определяющий код модели vt-модели (в конвертерах). Возможные значения `true` и `false`   
-**Min** - Минимально возможное значение этого поля для чисел (например Age). Для строк - минимальное количество символов (например Description) Влияет на генерирование vt-модели (в валидаторах)  
-**Max** - Максимально возможное значение этого поля (например Age). Для строк - максимальное количество символов (например Title) Влияет на генерирование vt-модели (в валидаторах)  
+**Name** - Имя атрибута, сгенерировано из имени поля таблицы как поле структуры в Go. Уникально для сущности  
+На это имя будут ссылаться поиски в разделе `<Searches>`, атрибуты `VTEntity` которые генерируются [xml-vt]()  
+Если поле primary key - имя будет изменено на `ID` 
+**DBName** - Имя соответствующей колонки в таблице в бд.  
+**DBType** - Тип соответствующей колонки в таблице в бд.  
+**GoType** - Тип в Go соотвествующий типу колонки в таблице. [Соотвествие типов](#gotype). Поумолчанию для nullable атрибутов в типе будет присутствовать указатель, который можно убрать, если необходимо  
+**PK** - Флаг Primary ключа, генерируется у primary ключей
+**FK** - Ссылка на сущность в проекте, для foreign ключей. Указывается так, как в в `Entity>Name`. Может быть сгенерирован для массиов внешних Id: полей c именем `EntityIDs`, если сущность `Entity` существует. 
+**Nullable** - Может ли значение быть nil. `false` ставится для полей `NOT NULL` . Возможные значения `Yes` и `No`  
+**Addable** - Можно ли указать значение этого поля, при добавлении сущности в базу (например, ID). [Addable/Updatable](#addable-updatable). Возможные значения `true` и `false`    
+**Updatable** - Можно ли указать значение этого поля, при обновлении сущности в базе (например, CreatedAt). [Addable/Updatable](#addable-updatable). Возможные значения `true` и `false`   
+**Min** - Минимально возможное значение этого поля для чисел (например Age). Для строк - минимальное количество символов (например Description)  
+**Max** - Максимально возможное значение этого поля (например Age). Для строк - максимальное количество символов (например Title) 
 
 #### Поиски
  
 **Searches** - содержит в себе список полей для поиска по сущностям.  
 
 **Name** - Имя поиска в структуре поиска Search. Уникально для сущности, включая атрибуты.  
-**AttrName** - Ссылка на трибут сущности. Может быть ссылкой на другую сущность, в формате Entity.Attribute, например `User.ID` или `Category.ShowOnMain`. Влияет на генерирование всех моделей и [xml-vt]()  
+**AttrName** - Ссылка на трибут сущности. Может быть ссылкой на другую сущность, в формате Entity.Attribute, например `User.ID` или `Category.ShowOnMain`.   
 **SearchType** - Тип поиска, влияет на соотвествеющий тип поиска при постороении запросов в БД. Влияет на структуру Search и тип поля [возможные значения](#SEARCH_TYPE)  
 
 Если атрибут добавляемый в модель новый (новая колонка в базе, новая таблица, новый проект) - то для этого атрибута будут сгенерированы поиски.   
-Для строковых атрибутов - ilike, кроме поля Alias. Для ID - поиск по массиву IDs. Если присутсвует поле Alias, то добавляется поиск notID для генерирования поиска в vt- модели при проверке уникальности.  
+Для строковых атрибутовк роме поля `Alias` появится `SEARCHTYPE_ILIKE` поиск, добавляя к имени аттрибута `ILike`, например `TitleILike`. Для `ID` - поиск по массиву `IDs`. Если присутсвует поле Alias, то добавляется поиск notID для генерирования поиска в vt- модели при проверке уникальности.  
 
 #### SEARCH_TYPE  
 
@@ -156,6 +158,31 @@ SEARCHTYPE_ARRAY_CONTAIN  -  v any (f)
 ``` 
 f - имя поля, v - значение
  
+#### GoType
+
+```
+integer, serial            -> int
+bigint                     -> int64
+real                       -> floaf32
+double, numeric            -> float64
+text, varchar, uuid, point -> string
+boolean                    -> bool
+timestamp, date, time      -> time.Time
+interval                   -> time.Duration
+hstore                     -> map[string]string
+inet                       -> net.IP
+cidr                       -> net.IPNet
+```
+
+`json` и `jsonb` сгенерируют тип с названием имя сущности + имя поля. Наприме `UserParams`  
+Если поле массив - к типу будет добавлены `[]`. hstore и json(b) не могут быть массивами.  
+Если поле `Nullable=yes` будет добавлен `*` перед типом
+
+Неизветсные типы генерируют interface{}
+
+#### Addable/Updatable
+
+Поля с именами `createdAt` и `modifiedAt` генерируют флаги `Addable` и `Updatable` со значением `false`
 
 ### Особенности проверки консистентности
 
@@ -163,6 +190,7 @@ f - имя поля, v - значение
 Проверка включает в себя:
 - каждый поиск в секции `<Searches>` ссылается на существующие в xml сущность и атрибут.  
 - каждый FK атрибут ссылается на а существующие в xml сущность и атрибут. 
+
 В случае если проверки не пройдены - проект не загрузится с ошибкой.   
  
 ### Особенности работы с существующими сущностями
@@ -172,4 +200,5 @@ f - имя поля, v - значение
 - Новые атрибуты определяются по паре `DBName` и `DBType`. Это значит поля, у которых имя и тип уже пристуствуют в xml, добавляться не будут.
   - Если поменять тип колонки в таблице, то она будет добавлена в сущность как новая
 - Если атрибут уже существует в xml, для него не будут сгенерированы новые поиски, даже если должны.
-  - Если удалить поиск из секции `<Searches>` от при повторной генерации он не будет добавлен.  
+  - Если удалить поиск из секции `<Searches>` от при повторной генерации он не будет добавлен.
+    

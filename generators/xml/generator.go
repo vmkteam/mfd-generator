@@ -195,7 +195,7 @@ func (g *Generator) PromptNS(table string, namespaces []string) (result string, 
 	prompts := promptui.SelectWithAdd{
 		Label:    fmt.Sprintf("Choose namespace for table %s", table),
 		Items:    append(namespaces, "skip"),
-		AddLabel: "or add new",
+		AddLabel: "add new",
 	}
 
 	_, result, err = prompts.Run()
