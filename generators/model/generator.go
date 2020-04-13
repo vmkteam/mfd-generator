@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"path"
-	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -25,8 +24,6 @@ func CreateCommand() *cobra.Command {
 // Generator represents mfd generator
 type Generator struct {
 	options Options
-
-	printNamespaces bool
 }
 
 // New creates basic generator
@@ -72,10 +69,6 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	if g.printNamespaces, err = flags.GetBool(nsFlag); err != nil {
-		return err
-	}
-
 	g.options.Def()
 
 	return nil
@@ -87,12 +80,6 @@ func (g *Generator) Generate() error {
 	project, err := mfd.LoadProject(g.options.MFDPath, false)
 	if err != nil {
 		return err
-	}
-
-	// printing namespaces string
-	if g.printNamespaces {
-		fmt.Print(PrintNamespaces(project))
-		return nil
 	}
 
 	g.options.GoPGVer = project.GoPGVer
@@ -125,18 +112,4 @@ func (g *Generator) Generate() error {
 	}
 
 	return nil
-}
-
-func PrintNamespaces(project *mfd.Project) string {
-	var formats []string
-
-	for _, namespace := range project.Namespaces {
-		var format []string
-		for _, entity := range namespace.Entities {
-			format = append(format, entity.Table)
-		}
-		formats = append(formats, fmt.Sprintf("%s:%s", namespace, strings.Join(format, ",")))
-	}
-
-	return strings.Join(formats, ";")
 }

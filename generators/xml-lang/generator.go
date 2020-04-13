@@ -16,7 +16,7 @@ const (
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("xml-lang", "Create lang xml from database", New())
+	return base.CreateCommand("xml-lang", "Create lang xml from mfd", New())
 }
 
 // Generator represents mfd generator
@@ -36,12 +36,12 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
 
-	flags.StringP(mfdFlag, "m", "", "mfd file")
+	flags.StringP(mfdFlag, "m", "", "mfd file path")
 	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
-	flags.StringSliceP(langsFlag, "l", []string{}, "namespaces")
+	flags.StringSliceP(langsFlag, "l", []string{}, "languages to generate, use two letters code, eg. ru,en,de. separate by comma")
 }
 
 // ReadFlags reads basic flags from command

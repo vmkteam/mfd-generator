@@ -36,12 +36,12 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
 
-	flags.StringP(mfdFlag, "m", "", "mfd file")
+	flags.StringP(mfdFlag, "m", "", "mfd file path")
 	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
-	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces")
+	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces to generate, must be in mfd file. separate by comma")
 }
 
 // ReadFlags reads basic flags from command

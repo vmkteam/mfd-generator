@@ -26,6 +26,7 @@
 **xml**
 - `-o --output` renamed to `-m --mfd` 
 - `-p --pkgs`  renamed to `-n --namespaces`  
+- added `-p --print` flag to print value for `namespaces` flag based on current project. flag was moved from `model` generator
 
 **xml-vt**
 - generator command renamed from `xml vt` to `xml-vt`
@@ -33,3 +34,6 @@
 
 **xml-lang**
 - generator command renamed from `xml lang` to `xml-lang`
+
+**model**
+- `-n --ns` flag renamed to `-p --print` and moved to **xml** generator

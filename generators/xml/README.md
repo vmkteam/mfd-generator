@@ -25,13 +25,15 @@ Flags:
   -m, --mfd string          mfd file path
   -t, --tables strings      table names for model generation separated by comma
                             use 'schema_name.*' to generate model for every table in model (default [public.*])
-  -p, --namespaces string   use this parameter to set table & namespace in format "users=users,projects;shop=orders,prices"
+  -n, --namespaces string   use this parameter to set table & namespace in format "users=users,projects;shop=orders,prices"
+  -p, --print               print namespace - tables association
   -h, --help                help for xml
 ```
   
 `-t, --tables` - позволяет вводить исходные таблицы для генератора через запятую, если не указана схема для таблицы, то будет использоваться public.   
 `*` - для генерирования всех таблиц в схеме, например: `public.*,geo.locations,geo.cities`      
-`-n, --namespaces` - сайлент-режим, позволяет задать ассоциацию неймспейс - таблица. Формат; `namespace1=table1,table2;namespace2=table3,table4`   
+`-n, --namespaces` - сайлент-режим, позволяет задать ассоциацию неймспейс - таблица. Формат; `namespace1=table1,table2;namespace2=table3,table4`  
+`-p, --print` - на основе загруженного проекта выводит ассоциации неймспейс - таблица в формате, подходящем для флага `-n, --namespaces`. Не зупаскает генератор    
  
 ### MFD файл
 
@@ -51,7 +53,7 @@ Flags:
 ```
 
 **PackageNames** - Указанные неймспейсы будут использоваться для дальнейшей генерации. Если неймспейс не указан в списке, даже если файл с неймспейсом присутствует, генерироваться не будет  
-**Languages** Управление этим полем происходит в генераторе [xml-lang]. В дальнейшем генератор [template] будет использовать этот список чтобы сгенерировать языковые файлы для интерфейса vt       
+**Languages** Управление этим полем происходит в генераторе [xml-lang](/generators/xml-lang). В дальнейшем генератор [template](/generators/vt-template) будет использовать этот список чтобы сгенерировать языковые файлы для интерфейса vt       
 **GoPGVer** - Версия go-pg. Поддерживаемые значения 8 и 9. От этого параметра зависят все генераторы golang кода:
   - импорты (`"github.com/go-pg/pg"` vs `"github.com/go-pg/pg/v9"`)  
   - аннотации к структурам (`sql:"title"` vs `pg:"title"`)  

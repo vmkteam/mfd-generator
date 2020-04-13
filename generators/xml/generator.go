@@ -17,6 +17,7 @@ import (
 const (
 	mfdFlag     = "mfd"
 	nssFlag     = "namespaces"
+	printFlag   = "print"
 	verboseFlag = "verbose"
 )
 
@@ -30,6 +31,8 @@ type Generator struct {
 	options Options
 	verbose bool
 	base    base.Generator
+
+	printNamespaces bool
 }
 
 // New creates generator
@@ -56,7 +59,9 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringSliceP(base.Tables, "t", []string{"public.*"}, "table names for model generation separated by comma\nuse 'schema_name.*' to generate model for every table in model")
 
-	flags.StringP(nssFlag, "p", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
+	flags.StringP(nssFlag, "n", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
+
+	flags.BoolP(printFlag, "p", false, "print namespace - tables association")
 }
 
 // ReadFlags reads basic flags from command
@@ -80,6 +85,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	// tables to process
 	if g.options.Tables, err = flags.GetStringSlice(base.Tables); err != nil {
 		return
+	}
+
+	if g.printNamespaces, err = flags.GetBool(printFlag); err != nil {
+		return err
 	}
 
 	// preset packages
@@ -132,6 +141,12 @@ func (g *Generator) Generate() (err error) {
 	project, err := mfd.LoadProject(g.options.Output, true)
 	if err != nil {
 		return err
+	}
+
+	// printing namespaces string
+	if g.printNamespaces {
+		fmt.Print(PrintNamespaces(project))
+		return nil
 	}
 
 	// reading tables from db
@@ -201,4 +216,18 @@ func (g *Generator) PromptNS(table string, namespaces []string) (result string, 
 	_, result, err = prompts.Run()
 
 	return result, err
+}
+
+func PrintNamespaces(project *mfd.Project) string {
+	var formats []string
+
+	for _, namespace := range project.Namespaces {
+		var format []string
+		for _, entity := range namespace.Entities {
+			format = append(format, entity.Table)
+		}
+		formats = append(formats, fmt.Sprintf("%s:%s", namespace, strings.Join(format, ",")))
+	}
+
+	return strings.Join(formats, ";")
 }
