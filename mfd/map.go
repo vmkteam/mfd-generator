@@ -5,17 +5,48 @@ import (
 	"io"
 )
 
-type XMLMap map[string]string
+type XMLMap struct {
+	elements []xmlMapElement
+}
 
-type xmlMapEntry struct {
+type xmlMapElement struct {
 	XMLName xml.Name
 	Value   string `xml:",chardata"`
+}
+
+func NewXMLMap(init map[string]string) *XMLMap {
+	xmlMap := &XMLMap{
+		elements: []xmlMapElement{},
+	}
+
+	for key, value := range init {
+		xmlMap.Append(key, value)
+	}
+
+	return xmlMap
+}
+
+func (m *XMLMap) Append(key, value string) {
+	if m.elements == nil {
+		m.elements = []xmlMapElement{{
+			XMLName: xml.Name{Local: key},
+			Value:   value,
+		}}
+		return
+	}
+
+	m.elements = append(m.elements, xmlMapElement{
+		XMLName: xml.Name{Local: key},
+		Value:   value,
+	})
+
+	return
 }
 
 // MarshalXML marshals the map to XML, with each key in the map being a
 // tag and it's corresponding value being it's contents.
 func (m XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if len(m) == 0 {
+	if len(m.elements) == 0 {
 		return nil
 	}
 
@@ -24,8 +55,8 @@ func (m XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		return err
 	}
 
-	for k, v := range m {
-		e.Encode(xmlMapEntry{XMLName: xml.Name{Local: k}, Value: v})
+	for _, element := range m.elements {
+		e.Encode(element)
 	}
 
 	return e.EncodeToken(start.End())
@@ -37,12 +68,14 @@ func (m XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 //
 // The fact this function is on the pointer of XMLMap is important, so that
 // if m is nil it can be initialized, which is often the case if m is
-// nested in another xml structurel. This is also why the first thing done
+// nested in another xml structure. This is also why the first thing done
 // on the first line is initialize it.
 func (m *XMLMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	*m = XMLMap{}
+	*m = XMLMap{
+		elements: []xmlMapElement{},
+	}
 	for {
-		var e xmlMapEntry
+		var e xmlMapElement
 
 		err := d.Decode(&e)
 		if err == io.EOF {
@@ -51,7 +84,7 @@ func (m *XMLMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			return err
 		}
 
-		(*m)[e.XMLName.Local] = e.Value
+		m.elements = append(m.elements, e)
 	}
 	return nil
 }

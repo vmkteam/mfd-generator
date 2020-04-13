@@ -22,17 +22,17 @@ func Translate(p *mfd.Project, language string) *mfd.Translation {
 			te := &mfd.TranslationEntity{
 				Name: e.Name,
 				Key:  key,
-				Form: mfd.XMLMap{},
+				Form: mfd.NewXMLMap(nil),
 				List: mfd.TranslationList{
 					Title:   mfd.Translate(language, mfd.MakePlural(key)),
-					Filter:  mfd.XMLMap{"quickFilterPlaceholder": ""},
-					Headers: mfd.XMLMap{},
+					Filter:  mfd.NewXMLMap(map[string]string{"quickFilterPlaceholder": ""}),
+					Headers: mfd.NewXMLMap(nil),
 				},
-				Crumbs: map[string]string{
+				Crumbs: mfd.NewXMLMap(map[string]string{
 					key + "List": mfd.Translate(language, mfd.MakePlural(key)),
 					key + "Add":  mfd.Translate(language, "add"),
 					key + "Edit": mfd.Translate(language, "edit"),
-				},
+				}),
 			}
 
 			for _, a := range e.TmplAttributes {
@@ -41,11 +41,11 @@ func Translate(p *mfd.Project, language string) *mfd.Translation {
 				trs := mfd.Translate(language, key)
 
 				if a.Form != "" && a.Form != mfd.TypeHTMLNone {
-					te.Form[key+"Label"] = trs
+					te.Form.Append(key+"Label", trs)
 				}
 
 				if a.Search != "" && a.Search != mfd.TypeHTMLNone {
-					te.List.Filter[key] = trs
+					te.List.Filter.Append(key, trs)
 				}
 
 				if a.List {
@@ -53,10 +53,10 @@ func Translate(p *mfd.Project, language string) *mfd.Translation {
 					if mfd.IsStatus(key) {
 						key = "status"
 					}
-					te.List.Headers[key] = trs
+					te.List.Headers.Append(key, trs)
 				}
 			}
-			te.List.Headers["actions"] = mfd.Translate(language, "actions")
+			te.List.Headers.Append("actions", mfd.Translate(language, "actions"))
 
 			tn.Entities = append(tn.Entities, te)
 		}

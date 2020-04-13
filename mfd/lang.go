@@ -76,8 +76,8 @@ type TranslationEntity struct {
 	XMLName xml.Name        `xml:"Entity"`
 	Name    string          `xml:"Name,attr"`
 	Key     string          `xml:"Key,attr"`
-	Crumbs  XMLMap          `xml:"Crumbs"`
-	Form    XMLMap          `xml:"Form"`
+	Crumbs  *XMLMap         `xml:"Crumbs"`
+	Form    *XMLMap         `xml:"Form"`
 	List    TranslationList `xml:"List"`
 }
 
@@ -105,19 +105,24 @@ func (e *TranslationEntity) Merge(entity *TranslationEntity) {
 }
 
 type TranslationList struct {
-	Title   string `xml:"Title" json:"title"`
-	Filter  XMLMap `xml:"Filter" json:"filter"`
-	Headers XMLMap `xml:"Headers" json:"headers"`
+	Title   string  `xml:"Title" json:"title"`
+	Filter  *XMLMap `xml:"Filter" json:"filter"`
+	Headers *XMLMap `xml:"Headers" json:"headers"`
 }
 
-func mergeMap(base, new map[string]string) map[string]string {
+func mergeMap(base, new *XMLMap) *XMLMap {
 	if base == nil {
 		return new
 	}
 
-	for k, v := range new {
-		if e, ok := base[k]; !ok || e == "" {
-			base[k] = v
+	existing := map[string]struct{}{}
+	for _, element := range base.elements {
+		existing[element.XMLName.Local] = struct{}{}
+	}
+
+	for _, element := range new.elements {
+		if _, ok := existing[element.XMLName.Local]; !ok {
+			base.Append(element.XMLName.Local, element.Value)
 		}
 	}
 
