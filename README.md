@@ -25,4 +25,11 @@
 #### v0.0.1  
 **xml**
 - `-o --output` renamed to `-m --mfd` 
-- `-p --pkgs`  renamed to `-n --namespaces`     
+- `-p --pkgs`  renamed to `-n --namespaces`  
+
+**xml-vt**
+- generator command renamed from `xml vt` to `xml-vt`
+- `-p --ns`  renamed to `-n --namespaces`    
+
+**xml-lang**
+- generator command renamed from `xml lang` to `xml-lang`
