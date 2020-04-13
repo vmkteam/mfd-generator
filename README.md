@@ -37,3 +37,4 @@
 
 **model**
 - `-n --ns` flag renamed to `-p --print` and moved to **xml** generator
+- `-p --package` flag now not required. if flag not set - last element of output path will be used

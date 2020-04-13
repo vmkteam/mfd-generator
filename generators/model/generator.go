@@ -13,12 +13,11 @@ import (
 const (
 	mfdFlag = "mfd"
 	pkgFlag = "package"
-	nsFlag  = "ns"
 )
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("model", "Create model from xml", New())
+	return base.CreateCommand("model", "Create golang model from xml", New())
 }
 
 // Generator represents mfd generator
@@ -46,9 +45,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringP(pkgFlag, "p", "", "package name")
-
-	flags.BoolP(nsFlag, "n", false, "print package struct")
+	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 }
 
 // ReadFlags read flags from command
@@ -67,6 +64,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {
 		return err
+	}
+
+	if g.options.Package == "" {
+		g.options.Package = path.Base(g.options.Output)
 	}
 
 	g.options.Def()
