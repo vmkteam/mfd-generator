@@ -13,7 +13,7 @@ import (
 const (
 	mfdFlag = "mfd"
 	pkgFlag = "package"
-	nsFlag  = "ns"
+	nsFlag  = "namespaces"
 )
 
 // CreateCommand creates generator command
@@ -41,14 +41,14 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringP(mfdFlag, "m", "", "mfd file")
+	flags.StringP(mfdFlag, "m", "", "mfd file path")
 	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
-	flags.StringP(pkgFlag, "p", "", "package name")
+	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces")
+	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma")
 }
 
 // ReadFlags read flags from command
@@ -65,12 +65,16 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
+	if g.options.Namespaces, err = flags.GetStringSlice(nsFlag); err != nil {
+		return err
+	}
+
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {
 		return err
 	}
 
-	if g.options.Namespaces, err = flags.GetStringSlice(nsFlag); err != nil {
-		return err
+	if g.options.Package == "" {
+		g.options.Package = path.Base(g.options.Output)
 	}
 
 	g.options.Def()

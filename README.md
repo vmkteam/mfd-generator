@@ -38,3 +38,9 @@
 **model**
 - `-n --ns` flag renamed to `-p --print` and moved to **xml** generator
 - `-p --package` flag now not required. if flag not set - last element of output path will be used
+
+#### v0.0.2 
+
+**repo**
+- `-n --ns`  renamed to `-n --namespaces` 
+- `-p --package` flag now not required. if flag not set - last element of output path will be used

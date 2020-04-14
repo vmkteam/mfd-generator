@@ -10,7 +10,8 @@ model - генератор модели: структур призванных �
 - model_validate.go - функции для валидации структур. используются при записи в базу
 - model_params.go - структуры для json(b) атрибутов.  
 
-Файлы записываются в папку указанную в параметре `-o --output`
+Файлы записываются в папку указанную в параметре `-o --output`  
+Так же генератор использует общие компонены: Filter, SortField и другие
 
 ### CLI
 ```
@@ -90,7 +91,7 @@ var Tables = struct {
 // Сущность, используется параметр значение Name сущности. Используется как модель в pg.Model(&Post{})
 type Post struct {
 	// sql:"posts" <- используется значение Table сущности
-	tableName struct{} `sql:"posts,alias:t" pg:",discard_unknown_columns"`
+	tableName struct{} `pg:"posts,alias:t,discard_unknown_columns"`
 
     // ID - Name атрибута
     // int - GoType атрибута
@@ -99,6 +100,8 @@ type Post struct {
     // pg:"alias,use_zero" - для Nullable=No
     // pg:"tagIds,array" - для IsArray=true
     // pg:"fk:userId" - для FK
+    // если в mfd файле указана 8 версия будет сгенерирован теги sql
+    // если в mfd файле указана 9 версия будет сгенерирован теги pg
     ID        int       `pg:"postId,pk"`
 	Alias     string    `pg:"alias,use_zero"`
 	Title     string    `pg:"title,use_zero"`
@@ -113,16 +116,16 @@ type Post struct {
 }
 
 type User struct {
-	tableName struct{} `sql:"users,alias:t" pg:",discard_unknown_columns"`
+	tableName struct{} `pg:"users,alias:t,discard_unknown_columns"`
 
-	ID          int         `sql:"userId,pk"`
-	Email       string      `sql:"email,notnull"`
-	Password    string      `sql:"password,notnull"`
-	Active      bool        `sql:"active,notnull"`
+	ID          int         `pg:"userId,pk"`
+	Email       string      `pg:"email,use_zero"`
+	Password    string      `pg:"password,use_zero"`
+	Active      bool        `pg:"active,use_zero"`
     // для json(b) типов будут сгенерированы специальные структуры в отдельный файд model_params.go
-	Params      *UserParams `sql:"params"`
-	StatusID    int         `sql:"statusId,notnull"`
-	LastLoginAt *time.Time  `sql:"lastLoginAt"`
+	Params      *UserParams `pg:"params"`
+	StatusID    int         `pg:"statusId,use_zero"`
+	LastLoginAt *time.Time  `pg:"lastLoginAt"`
 }
 ```
 
@@ -135,7 +138,8 @@ package db // значение параметра -p --package
 
 import (
 	"time"
-
+ 
+    // если в mfd файле указана 9 версия импорты будут иметь постфикс /v9
 	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
 )
@@ -158,6 +162,8 @@ func (s *search) apply(query *orm.Query) {
 }
 
 func (s *search) where(query *orm.Query, table, field string, value interface{}) {
+    // если в mfd файле указана 8 версия будет использоваться pg.F и так далее
+    // если в mfd файле указана 9 версия будет использоваться pg.Ident и так далее
 	query.Where(condition, pg.Ident(table), pg.Ident(field), value)
 }
 
