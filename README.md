@@ -44,3 +44,11 @@
 **repo**
 - `-n --ns`  renamed to `-n --namespaces` 
 - `-p --package` flag now not required. if flag not set - last element of output path will be used
+
+**vt**
+- `-n --ns`  renamed to `-n --namespaces`
+- `-x --model-pkg`  renamed to `-x --model`
+
+**vt-template** 
+- `-n --ns`  renamed to `-n --namespaces`
+- disabled custom templates flags

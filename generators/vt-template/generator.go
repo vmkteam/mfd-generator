@@ -15,7 +15,7 @@ import (
 
 const (
 	mfdFlag         = "mfd"
-	nsFlag          = "ns"
+	nsFlag          = "namespaces"
 	listTmplFlag    = "list-tmpl"
 	filtersTmplFlag = "filter-tmpl"
 	formTmplFlag    = "form-tmpl"
@@ -46,16 +46,16 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringP(mfdFlag, "m", "", "mfd file")
+	flags.StringP(mfdFlag, "m", "", "mfd file path")
 	if err := command.MarkFlagRequired(mfdFlag); err != nil {
 		panic(err)
 	}
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces")
+	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma")
 
-	flags.StringP(listTmplFlag, "l", "", "path to file with list template")
-	flags.StringP(filtersTmplFlag, "f", "", "path to file with filters template")
-	flags.StringP(formTmplFlag, "d", "", "path to file with form template")
+	//flags.StringP(listTmplFlag, "l", "", "path to file with list template")
+	//flags.StringP(filtersTmplFlag, "f", "", "path to file with filters template")
+	//flags.StringP(formTmplFlag, "d", "", "path to file with form template")
 }
 
 // ReadFlags read flags from command
@@ -76,17 +76,17 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	if g.options.ListTemplate, err = flags.GetString(listTmplFlag); err != nil {
-		return err
-	}
-
-	if g.options.FiltersTemplate, err = flags.GetString(formTmplFlag); err != nil {
-		return err
-	}
-
-	if g.options.FormTemplate, err = flags.GetString(formTmplFlag); err != nil {
-		return err
-	}
+	//if g.options.ListTemplate, err = flags.GetString(listTmplFlag); err != nil {
+	//	return err
+	//}
+	//
+	//if g.options.FiltersTemplate, err = flags.GetString(formTmplFlag); err != nil {
+	//	return err
+	//}
+	//
+	//if g.options.FormTemplate, err = flags.GetString(formTmplFlag); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
