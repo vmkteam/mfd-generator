@@ -1,6 +1,7 @@
 package mfd
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"io"
 )
@@ -24,6 +25,14 @@ func NewXMLMap(init map[string]string) *XMLMap {
 	}
 
 	return xmlMap
+}
+
+func (m XMLMap) MarshalJSON() ([]byte, error) {
+	jsM := make(map[string]interface{})
+	for _, i := range m.elements {
+		jsM[i.XMLName.Local] = i.Value
+	}
+	return json.Marshal(jsM)
 }
 
 func (m *XMLMap) Append(key, value string) {

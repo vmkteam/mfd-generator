@@ -12,8 +12,7 @@ export default [{{range $model := .Entities}}
       breadcrumbs: ["dashboard", "{{.JSName}}List"]
     }
   },
-  {{if not .ReadOnly}}
-  {
+  {{if not .ReadOnly}}{
     name: "{{.JSName}}Edit",
     path: "/{{.TerminalPath}}/:id/edit",
     component: () =>
@@ -73,8 +72,7 @@ const listTemplate = `<template>
                       : ""
                   }}
                 </v-btn>
-				[[if not .ReadOnly]]
-                <v-btn small dark color="success" :to="{ name: '[[.JSName]]Add' }">
+				[[if not .ReadOnly]]<v-btn small dark color="success" :to="{ name: '[[.JSName]]Add' }">
                   <v-icon>add</v-icon>
                   {{ $t("common.list.addNewLabel") }}
                 </v-btn>
@@ -232,26 +230,21 @@ export default class List extends EntityList {
 
   get headers() {
     return [ [[range $i, $e := .ListColumns]][[if ne $i 0]]
-      },		
-[[end]][[if eq .JSName "statusId"]]
-      {
+      },
+[[end]]{[[if eq .JSName "statusId"]]
         text: this.$t("[[$.JSName]].list.headers.status"),
         value: "status",
 		sortable: false
-      [[else]]
-      {
+[[else]]
         text: this.$t("[[$.JSName]].list.headers.[[.JSName]]"),
         value: "[[.JSName]]"[[if eq $i 0]],
         align: "left"[[end]][[if not .IsSortable]],
-		sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]
-      }[[else]]
-	  },
+		sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]}[[else]]},
       {
         text: this.$t("[[$.JSName]].list.headers.actions"),
         value: "id",
         sortable: false
-      }
-[[end]]
+      }[[end]]
     ];
   }
 }
