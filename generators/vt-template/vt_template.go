@@ -35,12 +35,16 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 			JSName: mfd.VarName(pk.Name),
 		})
 	}
+	quickFilter := ""
+	if title := vtEntity.Entity.TitleAttribute(); title != nil {
+		quickFilter = mfd.VarName(title.Name)
+	}
 
 	tmpl := EntityData{
 		Name:           vtEntity.Name,
 		JSName:         mfd.VarName(vtEntity.Name),
-		HasQuickFilter: false, // TODO remove
-		TitleField:     "",    // TODO remove
+		HasQuickFilter: quickFilter != "", // TODO remove
+		TitleField:     quickFilter,       // TODO remove
 		PKs:            pks,
 		ReadOnly:       vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
 	}
