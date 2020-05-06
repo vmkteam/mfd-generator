@@ -27,7 +27,7 @@ func NewXMLMap(init map[string]string) *XMLMap {
 	return xmlMap
 }
 
-func (m XMLMap) MarshalJSON() ([]byte, error) {
+func (m *XMLMap) MarshalJSON() ([]byte, error) {
 	jsM := make(map[string]interface{})
 	for _, i := range m.elements {
 		jsM[i.XMLName.Local] = i.Value
@@ -44,17 +44,35 @@ func (m *XMLMap) Append(key, value string) {
 		return
 	}
 
-	m.elements = append(m.elements, xmlMapElement{
-		XMLName: xml.Name{Local: key},
-		Value:   value,
-	})
+	if m.Index(key) == -1 {
+		m.elements = append(m.elements, xmlMapElement{
+			XMLName: xml.Name{Local: key},
+			Value:   value,
+		})
+	}
 
 	return
 }
 
+func (m *XMLMap) Delete(key string) {
+	if i := m.Index(key); i != -1 {
+		m.elements = append(m.elements[:i], m.elements[i+1:]...)
+	}
+}
+
+func (m *XMLMap) Index(key string) int {
+	for i, el := range m.elements {
+		if el.XMLName.Local == key {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // MarshalXML marshals the map to XML, with each key in the map being a
 // tag and it's corresponding value being it's contents.
-func (m XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (m *XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	if len(m.elements) == 0 {
 		return nil
 	}

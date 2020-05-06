@@ -172,8 +172,10 @@ func (g *Generator) Generate() error {
 			// saving translations
 			for lang, translation := range translations {
 				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
-				if err := mfd.MarshalJSONToFile(output, translation.Entity(ns.Name, entity.Name)); err != nil {
-					return fmt.Errorf("save translation lang %s error: %w", lang, err)
+				if tre := translation.Entity(ns.Name, entity.Name); tre != nil {
+					if err := mfd.MarshalJSONToFile(output, tre); err != nil {
+						return fmt.Errorf("save translation lang %s error: %w", lang, err)
+					}
 				}
 			}
 		}

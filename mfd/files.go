@@ -52,8 +52,13 @@ func LoadProject(filename string, create bool) (*Project, error) {
 			return nil, fmt.Errorf("read vt vtns error: %w", err)
 		}
 
-		project.Namespaces = append(project.Namespaces, ns)
-		project.VTNamespaces = append(project.VTNamespaces, vtns)
+		if len(ns.Entities) != 0 {
+			project.Namespaces = append(project.Namespaces, ns)
+		}
+
+		if len(vtns.Entities) != 0 {
+			project.VTNamespaces = append(project.VTNamespaces, vtns)
+		}
 	}
 
 	// backward compatibility

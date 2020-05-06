@@ -76,7 +76,8 @@ func (g *Generator) Generate() error {
 		if err != nil {
 			return fmt.Errorf("read translation lang %s error: %w", lang, err)
 		}
-		translation.Merge(Translate(project, lang))
+		Translate(project, &translation, lang)
+
 		if err := mfd.SaveTranslation(translation, g.options.MFDPath, lang); err != nil {
 			return fmt.Errorf("save translation lang %s error: %w", lang, err)
 		}

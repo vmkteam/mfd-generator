@@ -33,17 +33,18 @@ func (t *Translation) Entity(namespace, entity string) *TranslationEntity {
 		}
 	}
 
-	return &TranslationEntity{}
+	return nil
 }
 
-func (t *Translation) Merge(translation *Translation) {
-	for _, ns := range translation.Namespaces {
-		if existing := t.Namespace(ns.Name); existing != nil {
-			existing.Merge(ns)
-		} else {
-			t.Namespaces = append(t.Namespaces, ns)
+func (t *Translation) AddNamespace(namespace *TranslationNamespace) {
+	for i, n := range t.Namespaces {
+		if n.Name == namespace.Name {
+			t.Namespaces[i] = namespace
+			return
 		}
 	}
+
+	t.Namespaces = append(t.Namespaces, namespace)
 }
 
 type TranslationNamespace struct {
@@ -62,12 +63,22 @@ func (n TranslationNamespace) Entity(entity string) *TranslationEntity {
 	return nil
 }
 
-func (n *TranslationNamespace) Merge(namespace *TranslationNamespace) {
-	for _, e := range namespace.Entities {
-		if existing := n.Entity(e.Name); existing != nil {
-			existing.Merge(e)
-		} else {
-			n.Entities = append(n.Entities, e)
+func (n *TranslationNamespace) AddEntity(entity *TranslationEntity) {
+	for i, e := range n.Entities {
+		if e.Name == entity.Name {
+			n.Entities[i] = entity
+			return
+		}
+	}
+
+	n.Entities = append(n.Entities, entity)
+}
+
+func (n *TranslationNamespace) DeleteEntity(entity string) {
+	for i, e := range n.Entities {
+		if e.Name == entity {
+			n.Entities = append(n.Entities[:i], n.Entities[i+1:]...)
+			return
 		}
 	}
 }
@@ -93,38 +104,8 @@ func (e TranslationEntity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(jsM)
 }
 
-func (e *TranslationEntity) Merge(entity *TranslationEntity) {
-	if e.List.Title == "" {
-		e.List.Title = entity.List.Title
-	}
-
-	e.Crumbs = mergeMap(e.Crumbs, entity.Crumbs)
-	e.Form = mergeMap(e.Form, entity.Form)
-	e.List.Filter = mergeMap(e.List.Filter, entity.List.Filter)
-	e.List.Headers = mergeMap(e.List.Headers, entity.List.Headers)
-}
-
 type TranslationList struct {
 	Title   string  `xml:"Title" json:"title"`
 	Filter  *XMLMap `xml:"Filter" json:"filter"`
 	Headers *XMLMap `xml:"Headers" json:"headers"`
-}
-
-func mergeMap(base, new *XMLMap) *XMLMap {
-	if base == nil {
-		return new
-	}
-
-	existing := map[string]struct{}{}
-	for _, element := range base.elements {
-		existing[element.XMLName.Local] = struct{}{}
-	}
-
-	for _, element := range new.elements {
-		if _, ok := existing[element.XMLName.Local]; !ok {
-			base.Append(element.XMLName.Local, element.Value)
-		}
-	}
-
-	return base
 }
