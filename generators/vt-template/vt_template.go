@@ -65,6 +65,9 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 	for i, filter := range tmpl.FilterColumns {
 		if i < MaxShortFilters {
 			tmpl.FilterColumns[i].IsShortFilter = true
+
+			// only for last short filter
+			tmpl.FilterColumns[i].ShowShortFilterLabel = i+1 == MaxShortFilters
 		}
 
 		// status will override last short filter
