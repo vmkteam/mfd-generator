@@ -157,8 +157,13 @@ func check(attribute mfd.Attribute) string {
 	}
 
 	// if pk & int - validate for 0
-	if attribute.PrimaryKey && attribute.IsInteger() {
-		return Zero
+	if attribute.PrimaryKey {
+		if attribute.IsInteger() {
+			return Zero
+		}
+		if attribute.IsString() {
+			return Len
+		}
 	}
 
 	// if fk & int - validate for 0
