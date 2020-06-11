@@ -445,6 +445,8 @@ func (a *Attribute) Merge(with *Attribute) {
 	a.IsArray = with.IsArray
 	a.ForeignKey = with.ForeignKey
 	a.ForeignEntity = with.ForeignEntity
+	a.Max = with.Max
+	a.Min = with.Min
 
 	if a.Addable == nil {
 		addable := true

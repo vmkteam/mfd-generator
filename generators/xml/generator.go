@@ -156,6 +156,11 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	set := mfd.NewSet()
+	// filling set
+	for _, namespace := range project.Namespaces {
+		set.Append(namespace.Name)
+	}
+
 	for _, entity := range entities {
 		exiting := project.Entity(entity.GoName)
 		if exiting != nil {
