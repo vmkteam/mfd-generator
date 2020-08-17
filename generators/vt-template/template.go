@@ -420,6 +420,7 @@ const formTemplate = `<template>
                     </v-btn>
 
                     <v-btn
+                      v-if="$route.params.id"
                       :disabled="!store.isChanged || store.isLoading"
                       :loading="store.isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
