@@ -526,7 +526,7 @@ func (s *Search) ForeignAttribute() (entity, attribute string) {
 }
 
 func IsStatus(name string) bool {
-	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status"
+	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status" || strings.ToLower(name) == "status_id"
 }
 
 func IsArraySearch(search string) bool {
