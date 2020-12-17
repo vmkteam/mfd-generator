@@ -156,7 +156,7 @@ SEARCHTYPE_LIKE           -  f like '%v%'
 SEARCHTYPE_ILIKE          -  f ilike '%v%'         
 SEARCHTYPE_ARRAY          -  f in (v, v1, v2)         
 SEARCHTYPE_NOT_INARRAY    -  f not in (v1, v2)               
-SEARCHTYPE_ARRAY_CONTAIN  -  v any (f)                 
+SEARCHTYPE_ARRAY_CONTAINS -  v any (f)                 
 ``` 
 f - имя поля, v - значение
  
