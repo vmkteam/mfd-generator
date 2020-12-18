@@ -15,6 +15,10 @@ func MakeSearchType(typ, searchType string) string {
 		return "*" + model.TypeBool
 	case SearchNotNull:
 		return "*" + model.TypeBool
+	case SearchTypeArrayContained:
+		return "[]" + typ
+	case SearchTypeArrayIntersect:
+		return "[]" + typ
 	}
 
 	return typ
