@@ -140,23 +140,26 @@ Flags:
 
 Ниже приведены значения для поля SearchType и соответствующие им sql условия.  
 ```
-SEARCHTYPE_EQUALS         -  f = v          
-SEARCHTYPE_NOT_EQUALS     -  f != v             
-SEARCHTYPE_NULL           -  f is null       
-SEARCHTYPE_NOT_NULL       -  f is not null            
-SEARCHTYPE_GE             -  f >= v     
-SEARCHTYPE_LE             -  f <= v      
-SEARCHTYPE_G              -  f > v     
-SEARCHTYPE_L              -  f < v     
-SEARCHTYPE_LEFT_LIKE      -  f like '%v'             
-SEARCHTYPE_LEFT_ILIKE     -  f ilike '%v'              
-SEARCHTYPE_RIGHT_LIKE     -  f like 'v%'              
-SEARCHTYPE_RIGHT_ILIKE    -  f ilike 'v%'               
-SEARCHTYPE_LIKE           -  f like '%v%'        
-SEARCHTYPE_ILIKE          -  f ilike '%v%'         
-SEARCHTYPE_ARRAY          -  f in (v, v1, v2)         
-SEARCHTYPE_NOT_INARRAY    -  f not in (v1, v2)               
-SEARCHTYPE_ARRAY_CONTAIN  -  v any (f)                 
+SEARCHTYPE_EQUALS             -  f = v
+SEARCHTYPE_NOT_EQUALS         -  f != v
+SEARCHTYPE_NULL               -  f is null
+SEARCHTYPE_NOT_NULL           -  f is not null
+SEARCHTYPE_GE                 -  f >= v
+SEARCHTYPE_LE                 -  f <= v
+SEARCHTYPE_G                  -  f > v
+SEARCHTYPE_L                  -  f < v
+SEARCHTYPE_LEFT_LIKE          -  f like '%v'
+SEARCHTYPE_LEFT_ILIKE         -  f ilike '%v'
+SEARCHTYPE_RIGHT_LIKE         -  f like 'v%'
+SEARCHTYPE_RIGHT_ILIKE        -  f ilike 'v%'
+SEARCHTYPE_LIKE               -  f like '%v%'
+SEARCHTYPE_ILIKE              -  f ilike '%v%'
+SEARCHTYPE_ARRAY              -  f in (v, v1, v2)
+SEARCHTYPE_NOT_INARRAY        -  f not in (v1, v2)
+SEARCHTYPE_ARRAY_CONTAINS     -  v = any (f)
+SEARCHTYPE_ARRAY_NOT_CONTAINS -  v != all (f)
+SEARCHTYPE_ARRAY_CONTAINED    -  ARRAY[v] <@ f
+SEARCHTYPE_ARRAY_INTERSECT    -  ARRAY[v] && f
 ``` 
 f - имя поля, v - значение
  
@@ -203,4 +206,3 @@ cidr                       -> net.IPNet
   - Если поменять тип колонки в таблице, то она будет добавлена в сущность как новая
 - Если атрибут уже существует в xml, для него не будут сгенерированы новые поиски, даже если должны.
   - Если удалить поиск из секции `<Searches>` от при повторной генерации он не будет добавлен.
-    

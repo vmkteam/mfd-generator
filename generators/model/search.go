@@ -197,6 +197,15 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	case mfd.SearchTypeArrayContains:
 		filterType, exclude = "SearchTypeArrayContains", "false"
 		templateColumn.IsArray = false
+	case mfd.SearchTypeArrayNotContains:
+		filterType, exclude = "SearchTypeArrayContains", "true"
+		templateColumn.IsArray = false
+	case mfd.SearchTypeArrayContained:
+		filterType, exclude = "SearchTypeArrayContained", "false"
+		templateColumn.IsArray = true
+	case mfd.SearchTypeArrayIntersect:
+		filterType, exclude = "SearchTypeArrayIntersect", "false"
+		templateColumn.IsArray = true
 	}
 
 	// rendering custom template
