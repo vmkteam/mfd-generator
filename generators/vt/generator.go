@@ -17,6 +17,11 @@ const (
 	pkgFlag      = "package"
 	modelPkgFlag = "model"
 	nsFlag       = "namespaces"
+
+	modelTemplateFlag     = "model-tmpl"
+	converterTemplateFlag = "converter-tmpl"
+	serviceTemplateFlag   = "service-tmpl"
+	serverTemplateFlag    = "server-tmpl"
 )
 
 // CreateCommand creates generator command
@@ -56,7 +61,12 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma")
+	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
+
+	flags.String(modelTemplateFlag, "", "path to model custom template")
+	flags.String(converterTemplateFlag, "", "path to converter custom template")
+	flags.String(serviceTemplateFlag, "", "path to service custom template")
+	flags.String(serverTemplateFlag, "", "path to server custom template\n")
 }
 
 // ReadFlags read flags from command
@@ -89,6 +99,19 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		g.options.Package = path.Base(g.options.Output)
 	}
 
+	if g.options.ModelTemplatePath, err = flags.GetString(modelTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.ConverterTemplatePath, err = flags.GetString(converterDefaultTemplate); err != nil {
+		return err
+	}
+	if g.options.ServiceTemplatePath, err = flags.GetString(serviceDefaultTemplate); err != nil {
+		return err
+	}
+	if g.options.ServerTemplatePath, err = flags.GetString(serverDefaultTemplate); err != nil {
+		return err
+	}
+
 	g.options.Def()
 
 	return nil
@@ -100,6 +123,26 @@ func (g *Generator) Generate() error {
 	project, err := mfd.LoadProject(g.options.MFDPath, false)
 	if err != nil {
 		return err
+	}
+
+	modelTemplate, err := mfd.LoadTemplate(g.options.ModelTemplatePath, modelDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load model template error: %w", err)
+	}
+
+	converterTemplate, err := mfd.LoadTemplate(g.options.ConverterTemplatePath, converterDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load converter template error: %w", err)
+	}
+
+	serviceTemplate, err := mfd.LoadTemplate(g.options.ServiceTemplatePath, serviceDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load service template error: %w", err)
+	}
+
+	serverTemplate, err := mfd.LoadTemplate(g.options.ServerTemplatePath, serverDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load server template error: %w", err)
 	}
 
 	g.options.GoPGVer = project.GoPGVer

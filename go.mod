@@ -7,5 +7,5 @@ require (
 	github.com/fatih/camelcase v1.0.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/manifoldco/promptui v0.8.0
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v1.1.3
 )

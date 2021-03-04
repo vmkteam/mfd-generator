@@ -14,6 +14,8 @@ const (
 	mfdFlag = "mfd"
 	pkgFlag = "package"
 	nsFlag  = "namespaces"
+
+	repoTemplateFlag = "repo-tmpl"
 )
 
 // CreateCommand creates generator command
@@ -48,7 +50,10 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma")
+	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
+
+	flags.String(repoTemplateFlag, "", "path to repo custom template\n")
+
 }
 
 // ReadFlags read flags from command
@@ -77,6 +82,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		g.options.Package = path.Base(g.options.Output)
 	}
 
+	if g.options.RepoTemplatePath, err = flags.GetString(repoTemplateFlag); err != nil {
+		return err
+	}
+
 	g.options.Def()
 
 	return nil
@@ -90,7 +99,13 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load repo template error: %w", err)
+	}
+
 	g.options.GoPGVer = project.GoPGVer
+
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
 	}

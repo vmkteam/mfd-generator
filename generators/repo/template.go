@@ -1,6 +1,6 @@
 package repo
 
-const repoTemplate = `
+const repoDefaultTemplate = `
 package {{.Package}}
 
 import (

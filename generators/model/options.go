@@ -19,6 +19,11 @@ type Options struct {
 
 	// go-pg version
 	GoPGVer int
+
+	// custom templates
+	ModelTemplatePath    string
+	SearchTemplatePath   string
+	ValidateTemplatePath string
 }
 
 // Def fills default values of an options

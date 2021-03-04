@@ -1,6 +1,6 @@
 package vt
 
-const modelTemplate = `//nolint:dupl
+const modelDefaultTemplate = `//nolint:dupl
 package {{.Package}}
 
 import ({{if .HasImports}}{{range .Imports}}
@@ -72,7 +72,7 @@ func ({{.ShortVarName}} *{{.Name}}) ToDB() *db.{{.FieldName}} {
 {{end}}{{end}}
 {{end}}`
 
-const converterTemplate = `package {{.Package}}
+const converterDefaultTemplate = `package {{.Package}}
 
 import (
 	"{{.ModelPackage}}"
@@ -121,7 +121,7 @@ func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
 {{end}}{{end}}
 {{end}}`
 
-const serviceTemplate = `package {{.Package}}
+const serviceDefaultTemplate = `package {{.Package}}
 
 import (
 	"context"
@@ -340,7 +340,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} *{{.Name}}, 
 
 {{end}}{{end}}`
 
-const serverTemplate = `
+const serverDefaultTemplate = `
 	Put this into your server code:
 
 	const (

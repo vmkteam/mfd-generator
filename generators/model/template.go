@@ -2,7 +2,7 @@ package model
 
 const filters = `Filter{ {{.Column}}, {{if not .NoPointer}}*{{end}}{{.ShortVarName}}s.{{.Value}}, {{.SearchType}}, {{.Exclude}}}.Apply(query)`
 
-const modelTemplate = `//nolint
+const modelDefaultTemplate = `//nolint
 //lint:file-ignore U1000 ignore unused code, it's generated
 package {{.Package}}{{if .HasImports}}
 
@@ -51,7 +51,7 @@ type {{.Name}} struct {
 {{end}}
 `
 
-const searchTemplate = `//nolint
+const searchDefaultTemplate = `//nolint
 //lint:file-ignore U1000 ignore unused code, it's generated
 package {{.Package}}
 
@@ -130,7 +130,7 @@ func ({{$model.ShortVarName}}s *{{.Name}}Search) Q() applier {
 {{end}}
 `
 
-const validateTemplate = `//nolint
+const validateDefaultTemplate = `//nolint
 //lint:file-ignore U1000 ignore unused code, it's generated
 package {{.Package}}{{if .HasImports}}
 

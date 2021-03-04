@@ -238,3 +238,16 @@ func MarshalJSONToFile(filename string, v *TranslationEntity) error {
 	}
 	return nil
 }
+
+func LoadTemplate(path, def string) (string, error) {
+	if strings.Trim(path, " ") == "" {
+		return def, nil
+	}
+
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	return string(contents), nil
+}

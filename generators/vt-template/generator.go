@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"path"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -14,11 +13,13 @@ import (
 )
 
 const (
-	mfdFlag         = "mfd"
-	nsFlag          = "namespaces"
-	listTmplFlag    = "list-tmpl"
-	filtersTmplFlag = "filter-tmpl"
-	formTmplFlag    = "form-tmpl"
+	mfdFlag = "mfd"
+	nsFlag  = "namespaces"
+
+	routesTemplateFlag = "routes-tmpl"
+	listTemplateFlag   = "list-tmpl"
+	filterTemplateFlag = "filter-tmpl"
+	formTemplateFlag   = "form-tmpl"
 )
 
 // CreateCommand creates generator command
@@ -51,11 +52,12 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma")
+	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
 
-	//flags.StringP(listTmplFlag, "l", "", "path to file with list template")
-	//flags.StringP(filtersTmplFlag, "f", "", "path to file with filters template")
-	//flags.StringP(formTmplFlag, "d", "", "path to file with form template")
+	flags.String(routesTemplateFlag, "", "path to routes custom template")
+	flags.String(listTemplateFlag, "", "path to list custom template")
+	flags.String(filterTemplateFlag, "", "path to filter custom template")
+	flags.String(formTemplateFlag, "", "path to form custom template\n")
 }
 
 // ReadFlags read flags from command
@@ -76,17 +78,18 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
-	//if g.options.ListTemplate, err = flags.GetString(listTmplFlag); err != nil {
-	//	return err
-	//}
-	//
-	//if g.options.FiltersTemplate, err = flags.GetString(formTmplFlag); err != nil {
-	//	return err
-	//}
-	//
-	//if g.options.FormTemplate, err = flags.GetString(formTmplFlag); err != nil {
-	//	return err
-	//}
+	if g.options.RoutesTemplatePath, err = flags.GetString(routesTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.ListTemplatePath, err = flags.GetString(listTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.FiltersTemplatePath, err = flags.GetString(filterTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.FiltersTemplatePath, err = flags.GetString(formTemplateFlag); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -98,40 +101,35 @@ func (g *Generator) Generate() error {
 	if err != nil {
 		return err
 	}
-
-	// generating routes for all namespaces
-	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
-	if _, err := SaveRoutes(project.VTNamespaces, output); err != nil {
-		return fmt.Errorf("generate routes error: %w", err)
-	}
-
 	// loading templates
-	listTmpl := listTemplate
-	if g.options.ListTemplate != "" {
-		listTmpl, err = loadTemplate(g.options.ListTemplate)
-		if err != nil {
-			return fmt.Errorf("load list template error: %w", err)
-		}
+	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, routesDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load routes template error: %w", err)
 	}
 
-	filtersTmpl := filterTemplate
-	if g.options.FiltersTemplate != "" {
-		filtersTmpl, err = loadTemplate(g.options.FiltersTemplate)
-		if err != nil {
-			return fmt.Errorf("load filters template error: %w", err)
-		}
+	listTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, listDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load list template error: %w", err)
 	}
 
-	formTmpl := formTemplate
-	if g.options.FormTemplate != "" {
-		listTmpl, err = loadTemplate(g.options.FormTemplate)
-		if err != nil {
-			return fmt.Errorf("load form template error: %w", err)
-		}
+	filterTemplate, err := mfd.LoadTemplate(g.options.FiltersTemplatePath, filterDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load filter template error: %w", err)
+	}
+
+	formTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, formDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load form template error: %w", err)
 	}
 
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
+	}
+
+	// generating routes for all namespaces
+	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
+	if _, err := SaveRoutes(project.VTNamespaces, output, routesTemplate); err != nil {
+		return fmt.Errorf("generate routes error: %w", err)
 	}
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, project.Languages)
@@ -152,19 +150,19 @@ func (g *Generator) Generate() error {
 			}
 
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
-			if err := SaveEntity(*entity, output, listTmpl); err != nil {
+			if err := SaveEntity(*entity, output, listTemplate); err != nil {
 				return fmt.Errorf("generate entity %s list error: %w", entity.Name, err)
 			}
 
 			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "components/ListFilters.vue")
-			if err := SaveEntity(*entity, output, filtersTmpl); err != nil {
+			if err := SaveEntity(*entity, output, filterTemplate); err != nil {
 				return fmt.Errorf("generate entity %s filters  error: %w", entity.Name, err)
 			}
 
 			// do not generate form on
 			if entity.Mode != mfd.ModeReadOnlyWithTemplates {
 				output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "Form.vue")
-				if err := SaveEntity(*entity, output, formTmpl); err != nil {
+				if err := SaveEntity(*entity, output, formTemplate); err != nil {
 					return fmt.Errorf("generate entity %s form  error: %w", entity.Name, err)
 				}
 			}
@@ -206,8 +204,8 @@ func SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 }
 
 // SaveRoutes saves all vt namespaces to routes file
-func SaveRoutes(namespaces []*mfd.VTNamespace, output string) (bool, error) {
-	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(routesTemplate)
+func SaveRoutes(namespaces []*mfd.VTNamespace, output, tmpl string) (bool, error) {
+	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
 	if err != nil {
 		return false, fmt.Errorf("parsing template error: %w", err)
 	}
@@ -223,12 +221,4 @@ func SaveRoutes(namespaces []*mfd.VTNamespace, output string) (bool, error) {
 	}
 
 	return mfd.Save(buffer.Bytes(), output)
-}
-
-func loadTemplate(path string) (string, error) {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return string(content), nil
 }

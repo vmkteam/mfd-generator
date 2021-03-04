@@ -11,7 +11,9 @@ type Options struct {
 	// Namespaces to generate
 	Namespaces []string
 
-	ListTemplate    string
-	FiltersTemplate string
-	FormTemplate    string
+	// custom templates
+	RoutesTemplatePath  string
+	ListTemplatePath    string
+	FiltersTemplatePath string
+	FormTemplatePath    string
 }

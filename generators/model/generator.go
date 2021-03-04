@@ -13,6 +13,10 @@ import (
 const (
 	mfdFlag = "mfd"
 	pkgFlag = "package"
+
+	modelTemplateFlag    = "model-tmpl"
+	validateTemplateFlag = "validate-tmpl"
+	searchTemplateFlag   = "search-tmpl"
 )
 
 // CreateCommand creates generator command
@@ -45,7 +49,11 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
+	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used\n")
+
+	flags.String(modelTemplateFlag, "", "path to model custom template")
+	flags.String(searchTemplateFlag, "", "path to search custom template")
+	flags.String(validateTemplateFlag, "", "path to validate custom template\n")
 }
 
 // ReadFlags read flags from command
@@ -70,6 +78,16 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		g.options.Package = path.Base(g.options.Output)
 	}
 
+	if g.options.ModelTemplatePath, err = flags.GetString(modelTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.SearchTemplatePath, err = flags.GetString(searchTemplateFlag); err != nil {
+		return err
+	}
+	if g.options.ValidateTemplatePath, err = flags.GetString(validateTemplateFlag); err != nil {
+		return err
+	}
+
 	g.options.Def()
 
 	return nil
@@ -88,6 +106,11 @@ func (g *Generator) Generate() error {
 	// basic generator
 	output := path.Join(g.options.Output, "model.go")
 	modelData := PackNamespace(project.Namespaces, g.options)
+	modelTemplate, err := mfd.LoadTemplate(g.options.ModelTemplatePath, modelDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load model template error: %w", err)
+	}
+
 	if _, err := mfd.FormatAndSave(modelData, output, modelTemplate, true); err != nil {
 		return fmt.Errorf("generate project model error: %w", err)
 	}
@@ -95,6 +118,11 @@ func (g *Generator) Generate() error {
 	// generating search
 	output = path.Join(g.options.Output, "model_search.go")
 	searchData := PackSearchNamespace(project.Namespaces, g.options)
+	searchTemplate, err := mfd.LoadTemplate(g.options.SearchTemplatePath, searchDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load model template error: %w", err)
+	}
+
 	if _, err := mfd.FormatAndSave(searchData, output, searchTemplate, true); err != nil {
 		return fmt.Errorf("generate project search error: %w", err)
 	}
@@ -102,6 +130,11 @@ func (g *Generator) Generate() error {
 	// generating validate
 	output = path.Join(g.options.Output, "model_validate.go")
 	validateDate := PackValidateNamespace(project.Namespaces, g.options)
+	validateTemplate, err := mfd.LoadTemplate(g.options.ValidateTemplatePath, validateDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load model template error: %w", err)
+	}
+
 	if _, err := mfd.FormatAndSave(validateDate, output, validateTemplate, true); err != nil {
 		return fmt.Errorf("generate project validate error: %w", err)
 	}

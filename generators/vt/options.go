@@ -25,6 +25,12 @@ type Options struct {
 
 	// go-pg version
 	GoPGVer int
+
+	// custom templates
+	ModelTemplatePath     string
+	ConverterTemplatePath string
+	ServiceTemplatePath   string
+	ServerTemplatePath    string
 }
 
 // Def fills default values of an options

@@ -1,6 +1,6 @@
 package vttmpl
 
-const routesTemplate = `/* eslint-disable */
+const routesDefaultTemplate = `/* eslint-disable */
 export default [{{range $model := .Entities}}
   /* {{.Name}} */
   {
@@ -34,7 +34,7 @@ export default [{{range $model := .Entities}}
 `
 
 // fuck backtick js
-const listTemplate = `<template>
+const listDefaultTemplate = `<template>
   <vt-entity-view>
     <v-layout align-start justify-center>
       <v-flex column>
@@ -253,7 +253,7 @@ export default class List extends EntityList {
 <style lang="scss"></style>
 `
 
-const filterTemplate = `<template>
+const filterDefaultTemplate = `<template>
   <v-layout mb-2>
     <v-flex>
       <v-card>
@@ -326,7 +326,7 @@ export default class Filters extends EntityListFilters {}
 <style scoped></style>
 `
 
-const formTemplate = `<template>
+const formDefaultTemplate = `<template>
   <vt-entity-view>
     <v-layout align-start justify-center>
       <v-flex xs12 md8 mb-2>
