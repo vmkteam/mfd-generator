@@ -182,6 +182,45 @@ func (p *Project) IsConsistent() error {
 	return nil
 }
 
+func (p *Project) ValidateNames() error {
+	var errors []string
+
+	for _, namespace := range p.Namespaces {
+		if IsReserved(namespace.Name) || IsReservedByMFD(namespace.Name) {
+			errors = append(errors, fmt.Sprintf(`namspace name: "%s" is reserved`, namespace.Name))
+		}
+
+		for _, entity := range namespace.Entities {
+			if IsReserved(entity.Name) || IsReservedByMFD(entity.Name) {
+				errors = append(errors, fmt.Sprintf(`entity name: "%s" is reserved`, entity.Name))
+			}
+		}
+	}
+
+	for _, namespace := range p.VTNamespaces {
+		if IsReserved(namespace.Name) || IsReservedByMFD(namespace.Name) {
+			errors = append(errors, fmt.Sprintf(`namspace name: "%s" is reserved`, namespace.Name))
+		}
+
+		for _, entity := range namespace.Entities {
+			// skip if read only or none
+			if entity.Mode == ModeReadOnly || entity.Mode == ModeNone {
+				continue
+			}
+
+			if IsReserved(entity.Name) || IsReservedByMFD(entity.Name) {
+				errors = append(errors, fmt.Sprintf(`vt entity name: "%s" is reserved`, entity.Name))
+			}
+		}
+	}
+
+	if len(errors) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("invalid names detected (%d):\n%s", len(errors), strings.Join(errors, "\n"))
+}
+
 func (p *Project) SuggestArrayLinks() {
 	for _, namespace := range p.Namespaces {
 		for _, entity := range namespace.Entities {

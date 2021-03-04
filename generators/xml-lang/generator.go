@@ -69,6 +69,11 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
 	langs := mergeLangs(project.Languages, g.options.Languages)
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, langs)

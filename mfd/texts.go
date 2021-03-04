@@ -2,12 +2,24 @@ package mfd
 
 import (
 	"fmt"
+	"go/token"
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
 
 	"github.com/jinzhu/inflection"
 )
+
+var mfdReserved = map[string]struct{}{
+	"Columns":       {},
+	"Tables":        {},
+	"Searcher":      {},
+	"ErrEmptyValue": {},
+	"ErrMaxLength":  {},
+	"ErrWrongValue": {},
+	"Status":        {},
+	"OpFunc":        {},
+}
 
 func MakeSearchName(name, searchType string) string {
 	switch searchType {
@@ -95,4 +107,13 @@ func UrlName(name string) string {
 
 func FKName(name string) string {
 	return util.ReplaceSuffix(util.ColumnName(name), util.ID, "")
+}
+
+func IsReserved(name string) bool {
+	return token.Lookup(strings.ToLower(name)).IsKeyword()
+}
+
+func IsReservedByMFD(name string) bool {
+	_, ok := mfdReserved[name]
+	return ok
 }

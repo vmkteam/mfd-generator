@@ -99,15 +99,20 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoDefaultTemplate)
-	if err != nil {
-		return fmt.Errorf("load repo template error: %w", err)
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
 	}
 
 	g.options.GoPGVer = project.GoPGVer
 
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
+	}
+
+	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoDefaultTemplate)
+	if err != nil {
+		return fmt.Errorf("load repo template error: %w", err)
 	}
 
 	for _, namespace := range g.options.Namespaces {

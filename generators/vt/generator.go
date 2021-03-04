@@ -125,6 +125,17 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
+	g.options.GoPGVer = project.GoPGVer
+
+	if len(g.options.Namespaces) == 0 {
+		g.options.Namespaces = project.NamespaceNames
+	}
+
 	modelTemplate, err := mfd.LoadTemplate(g.options.ModelTemplatePath, modelDefaultTemplate)
 	if err != nil {
 		return fmt.Errorf("load model template error: %w", err)
@@ -143,12 +154,6 @@ func (g *Generator) Generate() error {
 	serverTemplate, err := mfd.LoadTemplate(g.options.ServerTemplatePath, serverDefaultTemplate)
 	if err != nil {
 		return fmt.Errorf("load server template error: %w", err)
-	}
-
-	g.options.GoPGVer = project.GoPGVer
-
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
 	}
 
 	for _, namespace := range g.options.Namespaces {

@@ -101,6 +101,16 @@ func (g *Generator) Generate() error {
 	if err != nil {
 		return err
 	}
+
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
+	if len(g.options.Namespaces) == 0 {
+		g.options.Namespaces = project.NamespaceNames
+	}
+
 	// loading templates
 	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, routesDefaultTemplate)
 	if err != nil {
@@ -120,10 +130,6 @@ func (g *Generator) Generate() error {
 	formTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, formDefaultTemplate)
 	if err != nil {
 		return fmt.Errorf("load form template error: %w", err)
-	}
-
-	if len(g.options.Namespaces) == 0 {
-		g.options.Namespaces = project.NamespaceNames
 	}
 
 	// generating routes for all namespaces

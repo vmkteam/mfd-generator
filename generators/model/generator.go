@@ -103,6 +103,11 @@ func (g *Generator) Generate() error {
 
 	g.options.GoPGVer = project.GoPGVer
 
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
 	// basic generator
 	output := path.Join(g.options.Output, "model.go")
 	modelData := PackNamespace(project.Namespaces, g.options)

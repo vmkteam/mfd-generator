@@ -197,6 +197,11 @@ func (g *Generator) Generate() (err error) {
 	// suggesting searches
 	project.SuggestArrayLinks()
 
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
 	// saving mfd file
 	if err = mfd.SaveMFD(g.options.Output, project); err != nil {
 		return err

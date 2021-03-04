@@ -69,6 +69,11 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	// validate names
+	if err := project.ValidateNames(); err != nil {
+		return err
+	}
+
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
 	}
