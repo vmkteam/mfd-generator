@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"path"
+	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -17,6 +18,7 @@ const (
 	pkgFlag      = "package"
 	modelPkgFlag = "model"
 	nsFlag       = "namespaces"
+	embedLogFlag = "embedlog-pkg"
 
 	modelTemplateFlag     = "model-tmpl"
 	converterTemplateFlag = "converter-tmpl"
@@ -59,6 +61,8 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
+	flags.StringP(embedLogFlag, "l", "", "package containing embedlog. if not set - it wil be detected from model path")
+
 	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
@@ -87,6 +91,14 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
+	if g.options.EmbedLogPackage, err = flags.GetString(embedLogFlag); err != nil {
+		return err
+	}
+
+	if g.options.EmbedLogPackage == "" {
+		g.options.EmbedLogPackage = strings.TrimSuffix(g.options.ModelPackage, path.Base(g.options.ModelPackage)) + "embedlog"
+	}
+
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {
 		return err
 	}
@@ -102,13 +114,13 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	if g.options.ModelTemplatePath, err = flags.GetString(modelTemplateFlag); err != nil {
 		return err
 	}
-	if g.options.ConverterTemplatePath, err = flags.GetString(converterDefaultTemplate); err != nil {
+	if g.options.ConverterTemplatePath, err = flags.GetString(converterTemplateFlag); err != nil {
 		return err
 	}
-	if g.options.ServiceTemplatePath, err = flags.GetString(serviceDefaultTemplate); err != nil {
+	if g.options.ServiceTemplatePath, err = flags.GetString(serviceTemplateFlag); err != nil {
 		return err
 	}
-	if g.options.ServerTemplatePath, err = flags.GetString(serverDefaultTemplate); err != nil {
+	if g.options.ServerTemplatePath, err = flags.GetString(serverTemplateFlag); err != nil {
 		return err
 	}
 

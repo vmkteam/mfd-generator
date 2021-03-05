@@ -20,6 +20,9 @@ type Options struct {
 	// ModelPackage sets package for model files
 	ModelPackage string
 
+	// ModelPackage sets package for embedlog
+	EmbedLogPackage string
+
 	// Namespaces to generate
 	Namespaces []string
 

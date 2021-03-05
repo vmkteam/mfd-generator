@@ -126,7 +126,7 @@ const serviceDefaultTemplate = `package {{.Package}}
 import (
 	"context"
 
-	"apisrv/pkg/embedlog"
+	"{{.EmbedLogPackage}}"
 	"{{.ModelPackage}}"
 
 	"github.com/semrush/zenrpc"

@@ -3,16 +3,18 @@ package vt
 import (
 	"html/template"
 
-	"github.com/dizzyfool/genna/util"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	base "github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/mfd"
+
+	"github.com/dizzyfool/genna/util"
 )
 
 // ServiceNamespaceData stores namespace info
 type ServiceNamespaceData struct {
-	Package      string
-	ModelPackage string
+	Package         string
+	ModelPackage    string
+	EmbedLogPackage string
 
 	Name    string
 	VarName string
@@ -35,8 +37,9 @@ func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNa
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 
 	return ServiceNamespaceData{
-		Package:      options.Package,
-		ModelPackage: options.ModelPackage,
+		Package:         options.Package,
+		ModelPackage:    options.ModelPackage,
+		EmbedLogPackage: options.EmbedLogPackage,
 
 		Name:    name,
 		VarName: mfd.VarName(name),
