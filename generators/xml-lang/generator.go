@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	mfdFlag   = "mfd"
-	langsFlag = "langs"
+	mfdFlag      = "mfd"
+	langsFlag    = "langs"
+	nssFlag      = "namespaces"
+	entitiesFlag = "entities"
 )
 
 // CreateCommand creates generator command
@@ -42,6 +44,9 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	}
 
 	flags.StringSliceP(langsFlag, "l", []string{}, "languages to generate, use two letters code, eg. ru,en,de. separate by comma")
+
+	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces to generate, must be in mfd file. separate by comma")
+	flags.StringSliceP(entitiesFlag, "e", []string{}, "entities to generate, must be in vt.xml file. separate by comma")
 }
 
 // ReadFlags reads basic flags from command
@@ -55,6 +60,14 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.Languages, err = flags.GetStringSlice(langsFlag); err != nil {
+		return err
+	}
+
+	if g.options.Namespaces, err = flags.GetStringSlice(nssFlag); err != nil {
+		return err
+	}
+
+	if g.options.Entities, err = flags.GetStringSlice(entitiesFlag); err != nil {
 		return err
 	}
 
@@ -74,17 +87,34 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	if len(g.options.Namespaces) == 0 {
+		g.options.Namespaces = project.VTNamespaceNames()
+	}
+
 	langs := mergeLangs(project.Languages, g.options.Languages)
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, langs)
-	for lang, translation := range translations {
-		if err != nil {
-			return fmt.Errorf("read translation lang %s error: %w", lang, err)
-		}
-		Translate(project, &translation, lang)
+	if err != nil {
+		return fmt.Errorf("read translations error: %w", err)
+	}
 
-		if err := mfd.SaveTranslation(translation, g.options.MFDPath, lang); err != nil {
-			return fmt.Errorf("save translation lang %s error: %w", lang, err)
+	for lang, translation := range translations {
+		for _, namespace := range g.options.Namespaces {
+			ns := project.VTNamespace(namespace)
+			if ns == nil {
+				return fmt.Errorf("namespace %s not found", namespace)
+			}
+
+			entities := g.options.Entities
+			if len(entities) == 0 {
+				entities = ns.VTEntityNames()
+			}
+
+			translation = Translate(ns, translation, entities, lang)
+
+			if err := mfd.SaveTranslation(translation, g.options.MFDPath, lang); err != nil {
+				return fmt.Errorf("save translation lang %s error: %w", lang, err)
+			}
 		}
 	}
 

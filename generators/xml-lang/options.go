@@ -6,4 +6,10 @@ type Options struct {
 
 	// Languages to generate
 	Languages []string
+
+	// Namespaces to generate
+	Namespaces []string
+
+	// Entities to generate
+	Entities []string
 }

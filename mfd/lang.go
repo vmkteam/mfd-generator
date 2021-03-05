@@ -84,12 +84,12 @@ func (n *TranslationNamespace) DeleteEntity(entity string) {
 }
 
 type TranslationEntity struct {
-	XMLName xml.Name        `xml:"Entity"`
-	Name    string          `xml:"Name,attr"`
-	Key     string          `xml:"Key,attr"`
-	Crumbs  *XMLMap         `xml:"Crumbs"`
-	Form    *XMLMap         `xml:"Form"`
-	List    TranslationList `xml:"List"`
+	XMLName xml.Name         `xml:"Entity"`
+	Name    string           `xml:"Name,attr"`
+	Key     string           `xml:"Key,attr"`
+	Crumbs  *XMLMap          `xml:"Crumbs"`
+	Form    *XMLMap          `xml:"Form"`
+	List    *TranslationList `xml:"List"`
 }
 
 func (e TranslationEntity) MarshalJSON() ([]byte, error) {
@@ -105,7 +105,7 @@ func (e TranslationEntity) MarshalJSON() ([]byte, error) {
 }
 
 type TranslationList struct {
-	Title   string  `xml:"Title" json:"title"`
+	Title   string  `xml:"Title,omitempty" json:"title"`
 	Filter  *XMLMap `xml:"Filter" json:"filter"`
 	Headers *XMLMap `xml:"Headers" json:"headers"`
 }

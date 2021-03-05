@@ -58,6 +58,16 @@ func (p *Project) AddVTEntity(namespace string, entity *VTEntity) *VTEntity {
 	return ns.AddVTEntity(entity)
 }
 
+// EntityNames returns every entity in project
+func (p *Project) VTNamespaceNames() []string {
+	var result []string
+	for _, ns := range p.VTNamespaces {
+		result = append(result, ns.Name)
+	}
+
+	return result
+}
+
 // VTNamespace is xml element
 type VTNamespace struct {
 	XMLName xml.Name `xml:"VTNamespace" json:"-"`
@@ -110,6 +120,16 @@ func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
 
 	n.Entities = append(n.Entities, entity)
 	return entity
+}
+
+// EntityNames returns every entity in project
+func (n *VTNamespace) VTEntityNames() []string {
+	var result []string
+	for _, entity := range n.Entities {
+		result = append(result, entity.Name)
+	}
+
+	return result
 }
 
 // VTEntity is xml element
