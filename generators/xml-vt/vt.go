@@ -173,7 +173,12 @@ func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) 
 		}
 	}
 
-	return reorderList(tmplAttributes)
+	// sorting only if new
+	if existing == nil {
+		reorderList(tmplAttributes)
+	}
+
+	return tmplAttributes
 }
 
 func reorderList(attrs mfd.TmplAttributes) mfd.TmplAttributes {
