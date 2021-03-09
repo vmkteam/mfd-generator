@@ -194,12 +194,17 @@ func (g *Generator) Generate() (err error) {
 		project.AddEntity(namespace, PackEntity(namespace, entity, exiting))
 	}
 
-	// suggesting searches
+	// suggesting searches && fk links
 	project.SuggestArrayLinks()
+	project.UpdateLinks()
 
 	// validate names
 	if err := project.ValidateNames(); err != nil {
 		return err
+	}
+
+	if err := project.IsConsistent(); err != nil {
+		return fmt.Errorf("%w. fk table should be either be in project or selected for generatation", err)
 	}
 
 	// saving mfd file
