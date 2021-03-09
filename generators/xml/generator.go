@@ -57,7 +57,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSliceP(base.Tables, "t", []string{"public.*"}, "table names for model generation separated by comma\nuse 'schema_name.*' to generate model for every table in model")
+	flags.StringSliceP(base.Tables, "t", []string{}, "table names for model generation separated by comma\nuse 'schema_name.*' to generate model for every table in model")
 
 	flags.StringP(nssFlag, "n", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
 
@@ -82,13 +82,14 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 		return
 	}
 
-	// tables to process
-	if g.options.Tables, err = flags.GetStringSlice(base.Tables); err != nil {
-		return
-	}
-
+	// print namespaces
 	if g.printNamespaces, err = flags.GetBool(printFlag); err != nil {
 		return err
+	}
+
+	// table to process
+	if g.options.Tables, err = flags.GetStringSlice(base.Tables); err != nil {
+		return
 	}
 
 	// preset packages
@@ -99,6 +100,17 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 
 	if nss != "" {
 		g.options.Packages = parseNamespacesFlag(nss)
+	}
+
+	if len(g.options.Tables) == 0 {
+		// fill tables from namespaces if not set
+		if len(g.options.Packages) != 0 {
+			for table := range g.options.Packages {
+				g.options.Tables = append(g.options.Tables, table)
+			}
+		} else {
+			g.options.Tables = []string{"public.*"}
+		}
 	}
 
 	return
