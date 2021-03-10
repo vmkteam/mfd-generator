@@ -127,9 +127,9 @@ func PackValidateAttribute(entity mfd.Entity, attribute mfd.Attribute, options O
 
 // isValidatable checks if field can be validated
 func isValidatable(attribute mfd.Attribute) bool {
-	// validate FK
+	// do not validate PK
 	if attribute.PrimaryKey {
-		return true
+		return false
 	}
 
 	// validate complex types
@@ -154,16 +154,6 @@ func check(attribute mfd.Attribute) string {
 	// if array/hstore - validate for nil
 	if attribute.IsArray || attribute.IsMap() {
 		return Nil
-	}
-
-	// if pk & int - validate for 0
-	if attribute.PrimaryKey {
-		if attribute.IsInteger() {
-			return Zero
-		}
-		if attribute.IsString() {
-			return Len
-		}
 	}
 
 	// if fk & int - validate for 0
