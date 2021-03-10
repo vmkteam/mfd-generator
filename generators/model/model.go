@@ -253,7 +253,7 @@ func fixPointer(attribute mfd.Attribute) string {
 	}
 
 	// type opts
-	if attribute.IsMap() || attribute.IsArray {
+	if attribute.IsMap() || attribute.IsArray /*|| attribute.IsJSON()*/ {
 		return attribute.GoType
 	}
 

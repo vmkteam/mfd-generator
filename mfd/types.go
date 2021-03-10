@@ -2,26 +2,42 @@ package mfd
 
 import (
 	"fmt"
+
 	"github.com/dizzyfool/genna/model"
 )
 
 func MakeSearchType(typ, searchType string) string {
-	switch searchType {
-	case SearchArray:
-		return "[]" + typ
-	case SearchNotArray:
-		return "[]" + typ
-	case SearchNull:
-		return "*" + model.TypeBool
-	case SearchNotNull:
-		return "*" + model.TypeBool
-	case SearchTypeArrayContained:
-		return "[]" + typ
-	case SearchTypeArrayIntersect:
-		return "[]" + typ
+	if typ[0] == '*' {
+		typ = typ[1:]
 	}
 
-	return typ
+	switch searchType {
+	case SearchArray, SearchNotArray, SearchTypeArrayContained, SearchTypeArrayIntersect:
+		if _, ok := IsArray(typ); ok {
+			return typ
+		}
+		return "[]" + typ
+	case SearchTypeArrayContains, SearchTypeArrayNotContains:
+		if el, ok := IsArray(typ); ok {
+			return "*" + el
+		}
+		return "*" + typ
+	case SearchNull, SearchNotNull:
+		return "*" + model.TypeBool
+	}
+
+	if _, ok := IsArray(typ); ok {
+		return typ
+	}
+	return "*" + typ
+}
+
+func IsArray(typ string) (string, bool) {
+	if typ != "" && typ[0] == '[' {
+		return typ[2:], true
+	}
+
+	return typ, false
 }
 
 func MakeZeroValue(typ string) string {

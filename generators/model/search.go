@@ -137,8 +137,7 @@ type SearchAttributeData struct {
 func PackSearchAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) SearchAttributeData {
 	column := PackAttribute(entity, attribute, options)
 
-	// making pointer for search types
-	column.GoType = fmt.Sprintf("*%s", column.Type)
+	column.GoType = mfd.MakeSearchType(column.GoType, mfd.SearchEquals)
 
 	return SearchAttributeData{
 		// base template entity
@@ -151,11 +150,7 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	// use default templateColumn as base
 	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
 	templateColumn.Name = search.Name
-
-	// if need to change type (array searches)
-	if typ := mfd.MakeSearchType(templateColumn.Type, search.SearchType); typ != templateColumn.Type {
-		templateColumn.GoType = typ
-	}
+	templateColumn.GoType = mfd.MakeSearchType(templateColumn.GoType, search.SearchType)
 
 	// TODO Refactor
 	var filterType, exclude string
