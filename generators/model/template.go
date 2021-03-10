@@ -111,7 +111,10 @@ type {{.Name}}Search struct {
 	{{.Name}} {{.GoType}}{{end}}
 }
 
-func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Query { {{range .Columns}}
+func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Query {
+	if {{$model.ShortVarName}}s == nil {
+		return query
+	} {{range .Columns}}
 	{{if .IsArray}} if len({{$model.ShortVarName}}s.{{.Name}}) > 0 { {{else}}if {{$model.ShortVarName}}s.{{.Name}} != nil { {{end}}{{if .UseCustomRender}}
 		{{.CustomRender}}{{else}} 
 		{{$model.ShortVarName}}s.where(query, Tables.{{$model.Name}}.Alias, Columns.{{$model.Name}}.{{.Name}}, {{$model.ShortVarName}}s.{{.Name}}){{end}}
@@ -124,6 +127,9 @@ func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Qu
 
 func ({{$model.ShortVarName}}s *{{.Name}}Search) Q() applier {
 	return func(query *orm.Query) (*orm.Query, error) {
+		if {{$model.ShortVarName}}s == nil {
+			return query, nil
+		} 
 		return {{$model.ShortVarName}}s.Apply(query), nil
 	}
 }
