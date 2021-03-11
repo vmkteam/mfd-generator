@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	mfdFlag = "mfd"
-	nsFlag  = "namespaces"
+	mfdFlag      = "mfd"
+	nsFlag       = "namespaces"
+	entitiesFlag = "entities"
 
 	routesTemplateFlag = "routes-tmpl"
 	listTemplateFlag   = "list-tmpl"
@@ -53,6 +54,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	}
 
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
+	flags.StringSliceP(entitiesFlag, "e", []string{}, "entities to generate, must be in vt.xml file. separate by comma")
 
 	flags.String(routesTemplateFlag, "", "path to routes custom template")
 	flags.String(listTemplateFlag, "", "path to list custom template")
@@ -75,6 +77,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.Namespaces, err = flags.GetStringSlice(nsFlag); err != nil {
+		return err
+	}
+
+	if g.options.Entities, err = flags.GetStringSlice(entitiesFlag); err != nil {
 		return err
 	}
 
@@ -149,7 +155,17 @@ func (g *Generator) Generate() error {
 			return fmt.Errorf("namespace %s not found in project", namespace)
 		}
 
-		for _, entity := range ns.Entities {
+		entityNames := ns.VTEntityNames()
+		if len(g.options.Entities) != 0 {
+			entityNames = g.options.Entities
+		}
+
+		for _, name := range entityNames {
+			entity := ns.VTEntity(name)
+			if entity == nil {
+				return fmt.Errorf("vt entity %s not found in project", name)
+			}
+
 			// skip if read only or none
 			if entity.Mode == mfd.ModeReadOnly || entity.Mode == mfd.ModeNone {
 				continue

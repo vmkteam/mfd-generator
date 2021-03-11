@@ -338,7 +338,7 @@ func (n *Namespace) Entity(entity string) *Entity {
 	return nil
 }
 
-// Entity returns mfd.Entity index by its name
+// EntityIndex returns mfd.Entity index by its name
 func (n *Namespace) EntityIndex(entity string) int {
 	for i, e := range n.Entities {
 		if strings.ToLower(e.Name) == strings.ToLower(entity) {
@@ -347,6 +347,16 @@ func (n *Namespace) EntityIndex(entity string) int {
 	}
 
 	return -1
+}
+
+// EntityNames returns all entity names
+func (n *Namespace) EntityNames() []string {
+	result := make([]string, len(n.Entities))
+	for i, e := range n.Entities {
+		result[i] = e.Name
+	}
+
+	return result
 }
 
 // AddEntity adds entity to namespace

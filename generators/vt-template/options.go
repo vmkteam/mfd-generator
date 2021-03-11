@@ -11,6 +11,9 @@ type Options struct {
 	// Namespaces to generate
 	Namespaces []string
 
+	// Entities to generate
+	Entities []string
+
 	// custom templates
 	RoutesTemplatePath  string
 	ListTemplatePath    string

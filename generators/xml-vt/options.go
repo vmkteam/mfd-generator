@@ -6,4 +6,7 @@ type Options struct {
 
 	// Namespaces to generate
 	Namespaces []string
+
+	// Entities to generate
+	Entities []string
 }

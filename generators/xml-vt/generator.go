@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	mfdFlag = "mfd"
-	nssFlag = "namespaces"
+	mfdFlag      = "mfd"
+	nssFlag      = "namespaces"
+	entitiesFlag = "entities"
 )
 
 // CreateCommand creates generator command
@@ -42,6 +43,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	}
 
 	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces to generate, must be in mfd file. separate by comma")
+	flags.StringSliceP(entitiesFlag, "e", []string{}, "entities to generate, must be in vt.xml file. separate by comma")
 }
 
 // ReadFlags reads basic flags from command
@@ -55,6 +57,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.Namespaces, err = flags.GetStringSlice(nssFlag); err != nil {
+		return err
+	}
+
+	if g.options.Entities, err = flags.GetStringSlice(entitiesFlag); err != nil {
 		return err
 	}
 
@@ -84,8 +90,19 @@ func (g *Generator) Generate() error {
 		if ns == nil {
 			return fmt.Errorf("namespace %s not found", namespace)
 		}
-		for _, entity := range ns.Entities {
-			exitsting := project.VTEntity(entity.Name)
+
+		entityNames := ns.EntityNames()
+		if len(g.options.Entities) != 0 {
+			entityNames = g.options.Entities
+		}
+
+		for _, name := range entityNames {
+			entity := ns.Entity(name)
+			if entity == nil {
+				return fmt.Errorf("entity %s to generate from not found in project", name)
+			}
+
+			exitsting := project.VTEntity(name)
 
 			project.AddVTEntity(namespace, PackVTEntity(entity, exitsting))
 		}
