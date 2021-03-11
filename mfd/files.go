@@ -27,9 +27,9 @@ var TemplateFunctions = template.FuncMap{
 type Packer func(*Namespace) (interface{}, error)
 
 // Load MFD Project from File
-func LoadProject(filename string, create bool) (*Project, error) {
+func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 	if _, err := os.Stat(filename); create && os.IsNotExist(err) {
-		return NewProject(filepath.Base(filename)), nil
+		return NewProject(filepath.Base(filename), goPGVer), nil
 	}
 
 	project := &Project{}
@@ -66,7 +66,7 @@ func LoadProject(filename string, create bool) (*Project, error) {
 		project.Languages = []string{EnLang}
 	}
 	if project.GoPGVer == 0 {
-		project.GoPGVer = GoPG8
+		project.GoPGVer = goPGVer
 	}
 
 	project.UpdateLinks()

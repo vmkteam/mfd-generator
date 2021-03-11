@@ -18,6 +18,7 @@ const (
 	mfdFlag     = "mfd"
 	nssFlag     = "namespaces"
 	printFlag   = "print"
+	goPGVerFlag = "gopgver"
 	verboseFlag = "verbose"
 )
 
@@ -61,6 +62,8 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringP(nssFlag, "n", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
 
+	flags.IntP(goPGVerFlag, "g", 9, "go-pg version")
+
 	flags.BoolP(printFlag, "p", false, "print namespace - tables association")
 }
 
@@ -90,6 +93,15 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	// table to process
 	if g.options.Tables, err = flags.GetStringSlice(base.Tables); err != nil {
 		return
+	}
+
+	// go-pg version
+	if g.options.GoPgVer, err = flags.GetInt(goPGVerFlag); err != nil {
+		return
+	}
+
+	if g.options.GoPgVer != mfd.GoPG8 && g.options.GoPgVer != mfd.GoPG9 {
+		return fmt.Errorf("unsupported go-pg version: %d", g.options.GoPgVer)
 	}
 
 	// preset packages
@@ -150,7 +162,7 @@ func (g *Generator) Generate() (err error) {
 	genna := genna.New(g.options.URL, logger)
 
 	// loading project from file
-	project, err := mfd.LoadProject(g.options.Output, true)
+	project, err := mfd.LoadProject(g.options.Output, true, g.options.GoPgVer)
 	if err != nil {
 		return err
 	}

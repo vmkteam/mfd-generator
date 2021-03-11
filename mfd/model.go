@@ -66,12 +66,12 @@ type Project struct {
 	VTNamespaces []*VTNamespace `xml:"-"`
 }
 
-func NewProject(name string) *Project {
+func NewProject(name string, goPGVer int) *Project {
 	return &Project{
 		Name:           name,
 		NamespaceNames: []string{},
 
-		GoPGVer: GoPG8,
+		GoPGVer: goPGVer,
 
 		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
 		XMLxsd: "http://www.w3.org/2001/XMLSchema",

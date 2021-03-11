@@ -70,7 +70,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 // Generate runs generator
 func (g *Generator) Generate() error {
 	// loading project from file
-	project, err := mfd.LoadProject(g.options.MFDPath, true)
+	project, err := mfd.LoadProject(g.options.MFDPath, false, 0)
 	if err != nil {
 		return err
 	}
