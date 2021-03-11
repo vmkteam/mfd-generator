@@ -20,6 +20,10 @@ const (
 	printFlag   = "print"
 	goPGVerFlag = "gopgver"
 	verboseFlag = "verbose"
+	quietFlag   = "quiet"
+
+	quietAll = "all"
+	quietNew = "new"
 )
 
 // CreateCommand creates generator command
@@ -64,6 +68,8 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.IntP(goPGVerFlag, "g", 9, "go-pg version")
 
+	flags.StringP(quietFlag, "q", "", "quiet mode. ignored when --namespaces (-n) flag is set. possible values:\n- all - will use namespace entity mapping from mfd, entities not present in mfd file will be ignored\n- new - generator will prompt namespace for entities not present in mfd file")
+
 	flags.BoolP(printFlag, "p", false, "print namespace - tables association")
 }
 
@@ -102,6 +108,15 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 
 	if g.options.GoPgVer != mfd.GoPG8 && g.options.GoPgVer != mfd.GoPG9 {
 		return fmt.Errorf("unsupported go-pg version: %d", g.options.GoPgVer)
+	}
+
+	// table to process
+	if g.options.Quiet, err = flags.GetString(quietFlag); err != nil {
+		return
+	}
+
+	if g.options.Quiet != quietAll && g.options.Quiet != quietNew && g.options.Quiet != "" {
+		return fmt.Errorf(`unsupported quiet mode: %s, use "all" or "new"`, g.options.Quiet)
 	}
 
 	// preset packages
@@ -200,15 +215,31 @@ func (g *Generator) Generate() (err error) {
 				continue
 			}
 		} else {
-			// asking namespace from prompt
-			if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
-				// may happen only in ctrl+c
-				return nil
+			switch g.options.Quiet {
+			case quietAll:
+				if exiting != nil {
+					namespace = exiting.Namespace
+					break //case
+				}
+				continue //loop
+			case quietNew:
+				if exiting != nil {
+					namespace = exiting.Namespace
+					break //case
+				}
+				fallthrough //to default
+			default:
+				// asking namespace from prompt
+				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
+					// may happen only in ctrl+c
+					return nil
+				}
+				// if user choose to skip
+				if namespace == "skip" {
+					continue //loop
+				}
 			}
-			// if user choose to skip
-			if namespace == "skip" {
-				continue
-			}
+
 		}
 
 		// adding to set

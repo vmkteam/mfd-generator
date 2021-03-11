@@ -7,6 +7,9 @@ import (
 type Options struct {
 	base.Options
 
+	// quiet mode
+	Quiet string
+
 	// Namespaces stores table=namespace preset
 	Packages map[string]string
 }
