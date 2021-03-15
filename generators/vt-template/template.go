@@ -188,18 +188,18 @@ const listDefaultTemplate = `<template>
                     >
                       <v-icon>edit</v-icon>
                     </v-btn>
-				<!-- Uncomment to show Delete icon-->
-                <!--<v-hover #default="{ hover }">-->
-                <!--  <v-btn-->
-                <!--    text-->
-                <!--    dark-->
-                <!--    icon-->
-                <!--    :color="hover ? 'red' : 'grey'"-->
-                <!--    @click="deleteItem(item, '[[.TitleField]]')"-->
-                <!--  >-->
-                <!--    <v-icon small>delete</v-icon>-->
-                <!--  </v-btn>-->
-                <!--</v-hover>-->
+          [raw "<!-- Uncomment to show Delete icon-->"]
+          [raw "<!--<v-hover #default="{ hover }">-->"]
+          [raw "<!--  <v-btn-->"]
+          [raw "<!--    text-->"]
+          [raw "<!--    dark-->"]
+          [raw "<!--    icon-->"]
+          [raw "<!--    :color="hover ? 'red' : 'grey'"-->"]
+          [raw "<!--    @click="deleteItem(item, '[[.TitleField]]')"-->"]
+          [raw "<!--  >-->"]
+          [raw "<!--    <v-icon small>delete</v-icon>-->"]
+          [raw "<!--  </v-btn>-->"]
+          [raw "<!--</v-hover>-->"]
                   </span>
                 </template>[[end]]
               </v-data-table>
