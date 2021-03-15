@@ -59,21 +59,23 @@ const listDefaultTemplate = `<template>
                 <v-btn
                   @click.stop="filtersIsOpen = !filtersIsOpen"
                   :color="
-` + "                    `${store.activeFiltersCount ? 'teal' : 'grey'} lighten-1`" + `
+` + "                    `${store.activeFiltersCount ? 'teal' : 'grey'}`" + `
                   "
                   class="mr-2"
                   text
-                  small
                 >
-                  <v-icon>mdi-filter</v-icon>
+                  {{ $t("common.list.filter.title") }}
                   {{
                     store.activeFiltersCount
 ` + "                      ? `(${store.activeFiltersCount})`" + `
                       : ""
                   }}
+                  <v-icon right>
+                    mdi-filter
+                  </v-icon>
                 </v-btn>
-				[[if not .ReadOnly]]<v-btn small dark color="success" :to="{ name: '[[.JSName]]Add' }">
-                  <v-icon>add</v-icon>
+				[[if not .ReadOnly]]<v-btn dark color="success" :to="{ name: '[[.JSName]]Add' }">
+                  <v-icon left>add</v-icon>
                   {{ $t("common.list.addNewLabel") }}
                 </v-btn>
 				[[end]]
@@ -182,22 +184,22 @@ const listDefaultTemplate = `<template>
                       text
                       dark
                       :to="{ name: '[[.JSName]]Edit', params: { [[range .PKs]]id: item.[[.JSName]][[end]] } }"
-                      icon
                       color="primary"
                     >
-                      <v-icon small>edit</v-icon>
+                      <v-icon>edit</v-icon>
                     </v-btn>
-                    <v-hover #default="{ hover }">
-                      <v-btn
-                        text
-                        dark
-                        icon
-                        :color="hover ? 'red' : 'grey'"
-                        @click="deleteItem(item, '[[.TitleField]]')"
-                      >
-                        <v-icon small>delete</v-icon>
-                      </v-btn>
-                    </v-hover>
+				<!-- Uncomment to show Delete icon-->
+                <!--<v-hover #default="{ hover }">-->
+                <!--  <v-btn-->
+                <!--    text-->
+                <!--    dark-->
+                <!--    icon-->
+                <!--    :color="hover ? 'red' : 'grey'"-->
+                <!--    @click="deleteItem(item, '[[.TitleField]]')"-->
+                <!--  >-->
+                <!--    <v-icon small>delete</v-icon>-->
+                <!--  </v-btn>-->
+                <!--</v-hover>-->
                   </span>
                 </template>[[end]]
               </v-data-table>
@@ -344,7 +346,14 @@ const formDefaultTemplate = `<template>
               :disabled="store.isLoading"
               @click.stop="navigateBack"
             >
-              {{ $t("common.form.cancelButtonLabel") }}
+              <v-icon
+                :left="!$vuetify.breakpoint.xsOnly"
+              >
+                arrow_back
+              </v-icon>
+              <template v-if="!$vuetify.breakpoint.xsOnly">
+                {{ $t("common.form.cancelButtonLabel") }}
+              </template>
             </v-btn>
             <v-hover v-if="$route.params.id" #default="{ hover }">
               <v-btn
@@ -357,17 +366,16 @@ const formDefaultTemplate = `<template>
             </v-hover>
           </v-flex>
         </v-layout>
+        <v-tabs v-model="tab" mobile-break-point="0">
+          <v-tab
+            :class="{
+              'error--text': tabsHasError.includes(0)
+            }"
+          >
+            Основные
+          </v-tab>
+        </v-tabs>
         <v-card v-if="store.model">
-          <v-tabs v-model="tab" mobile-break-point="0">
-            <v-tab
-              :class="{
-                'error--text': tabsHasError.includes(0)
-              }"
-            >
-              Основные
-            </v-tab>
-          </v-tabs>
-
           <v-form @submit.prevent="onSaveAndBack" ref="form">
             <v-card-text>
               <v-tabs-items v-model="tab">
@@ -414,8 +422,11 @@ const formDefaultTemplate = `<template>
                       :disabled="!store.isChanged || store.isLoading"
                       :loading="store.isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
+                      :class="!$vuetify.breakpoint.xsOnly && 'mx-2'"
                     >
-                      <v-icon>done</v-icon>
+                      <v-icon left>
+                        done
+                      </v-icon>
                       {{ $t("common.form.saveAndCloseButtonLabel") }}
                     </v-btn>
 
@@ -424,9 +435,15 @@ const formDefaultTemplate = `<template>
                       :disabled="!store.isChanged || store.isLoading"
                       :loading="store.isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
-                      :class="$vuetify.breakpoint.xsOnly && ['ml-0', 'mt-2']"
+                      :class="[
+                        $vuetify.breakpoint.xsOnly && 'ml-0 mt-2',
+                        $vuetify.breakpoint.smAndUp && 'ml-2'
+                      ]"
                       @click.stop="onSave"
                     >
+                      <v-icon left>
+                        save
+                      </v-icon>
                       {{ $t("common.form.saveButtonLabel") }}
                     </v-btn>
                     <v-spacer />
