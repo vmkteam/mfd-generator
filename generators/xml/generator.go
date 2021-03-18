@@ -10,6 +10,7 @@ import (
 
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/dizzyfool/genna/lib"
+	"github.com/dizzyfool/genna/model"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -189,7 +190,7 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	// reading tables from db
-	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer)
+	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer, model.CustomTypeMapping{})
 	if err != nil {
 		return fmt.Errorf("read database error: %w", err)
 	}

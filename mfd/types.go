@@ -42,9 +42,7 @@ func IsArray(typ string) (string, bool) {
 
 func MakeZeroValue(typ string) string {
 	switch typ {
-	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
-		return "0"
-	case model.TypeByte, model.TypeDuration:
+	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64, model.TypeDuration:
 		return "0"
 	case model.TypeString:
 		return `""`
