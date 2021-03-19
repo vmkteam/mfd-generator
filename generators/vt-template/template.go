@@ -439,11 +439,10 @@ const formDefaultTemplate = `<template>
                         $vuetify.breakpoint.xsOnly && 'ml-0 mt-2',
                         $vuetify.breakpoint.smAndUp && 'ml-2'
                       ]"
+                      outlined
+                      color="accent"
                       @click.stop="onSave"
                     >
-                      <v-icon left>
-                        save
-                      </v-icon>
                       {{ $t("common.form.saveButtonLabel") }}
                     </v-btn>
                     <v-spacer />
