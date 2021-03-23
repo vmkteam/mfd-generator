@@ -1,6 +1,7 @@
 package vt
 
 import (
+	"github.com/vmkteam/mfd-generator/mfd"
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
@@ -34,11 +35,18 @@ type Options struct {
 	ConverterTemplatePath string
 	ServiceTemplatePath   string
 	ServerTemplatePath    string
+
+	// custom types
+	CustomTypes mfd.CustomTypes
 }
 
 // Def fills default values of an options
 func (o *Options) Def() {
 	if strings.Trim(o.Package, " ") == "" {
 		o.Package = util.DefaultPackage
+	}
+
+	if o.CustomTypes == nil {
+		o.CustomTypes = mfd.CustomTypes{}
 	}
 }

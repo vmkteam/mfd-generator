@@ -102,6 +102,7 @@ func (g *Generator) Generate() error {
 	}
 
 	g.options.GoPGVer = project.GoPGVer
+	g.options.CustomTypes = project.CustomTypes
 
 	// validate names
 	if err := project.ValidateNames(); err != nil {

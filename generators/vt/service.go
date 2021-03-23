@@ -19,19 +19,26 @@ type ServiceNamespaceData struct {
 	Name    string
 	VarName string
 
+	HasImports bool
+	Imports    []string
+
 	Entities []ServiceEntityData
 }
 
 // PackServiceNamespace packs mfd vt namespace to template data
 func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNamespaceData {
+	imports := mfd.NewSet()
 	var entities []ServiceEntityData
 	for _, entity := range namespace.Entities {
 		if entity.Mode == mfd.ModeNone {
 			continue
 		}
 
-		entities = append(entities, PackServiceEntity(*entity))
-
+		packed := PackServiceEntity(*entity, options)
+		entities = append(entities, packed)
+		for _, imp := range packed.Imports {
+			imports.Append(imp)
+		}
 	}
 
 	name := util.CamelCased(util.Sanitize(namespace.Name))
@@ -43,6 +50,9 @@ func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNa
 
 		Name:    name,
 		VarName: mfd.VarName(name),
+
+		HasImports: imports.Len() > 0,
+		Imports:    imports.Elements(),
 
 		Entities: entities,
 	}
@@ -59,6 +69,8 @@ type ServiceEntityData struct {
 	VarName       string
 	VarNamePlural string
 	ShortVarName  string
+
+	Imports []string
 
 	HasSortColumns bool
 	SortColumns    []string
@@ -77,8 +89,12 @@ type ServiceEntityData struct {
 }
 
 // PackServiceEntity packs mfd vt entity to template data
-func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
-	baseEntity := base.PackEntity(*vtEntity.Entity)
+func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData {
+	baseEntity := base.PackEntity(*vtEntity.Entity, base.Options{
+		Package:     options.Package,
+		GoPGVer:     options.GoPGVer,
+		CustomTypes: options.CustomTypes,
+	})
 
 	var relations []ServiceRelationData
 	var sortColumns []string
@@ -131,7 +147,8 @@ func PackServiceEntity(vtEntity mfd.VTEntity) ServiceEntityData {
 		HasSortColumns: len(sortColumns) > 0,
 		SortColumns:    sortColumns,
 
-		PKs: baseEntity.PKs,
+		PKs:     baseEntity.PKs,
+		Imports: baseEntity.Imports,
 
 		HasAlias:   aliasField != "",
 		PKSearches: pkSearches,

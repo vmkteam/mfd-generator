@@ -124,7 +124,9 @@ func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
 const serviceDefaultTemplate = `package {{.Package}}
 
 import (
-	"context"
+	"context"{{if .HasImports}}{{range .Imports}}
+    "{{.}}"{{end}}
+{{end}}
 
 	"{{.EmbedLogPackage}}"
 	"{{.ModelPackage}}"

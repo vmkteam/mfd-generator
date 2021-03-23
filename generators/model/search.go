@@ -65,8 +65,8 @@ func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) SearchNam
 	}
 
 	goPGVer := ""
-	if options.GoPGVer == mfd.GoPG9 {
-		goPGVer = "/v9"
+	if options.GoPGVer != mfd.GoPG8 {
+		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
 
 	return SearchNamespaceData{

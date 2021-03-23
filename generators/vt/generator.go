@@ -143,6 +143,7 @@ func (g *Generator) Generate() error {
 	}
 
 	g.options.GoPGVer = project.GoPGVer
+	g.options.CustomTypes = project.CustomTypes
 
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames

@@ -32,6 +32,21 @@ func MakeSearchType(typ, searchType string) string {
 	return "*" + typ
 }
 
+func Element(typ string) (el string) {
+	el, _ = IsArray(typ)
+	el, _ = IsPointer(el)
+
+	return
+}
+
+func IsPointer(typ string) (string, bool) {
+	if typ != "" && typ[0] == '*' {
+		return typ[1:], true
+	}
+
+	return typ, false
+}
+
 func IsArray(typ string) (string, bool) {
 	if typ != "" && typ[0] == '[' {
 		return typ[2:], true
@@ -101,4 +116,15 @@ func MakeJSZero(typ string, isArray bool) string {
 	}
 
 	return jsZero
+}
+
+// Import gets import string for template
+func Import(attribute *Attribute, goPGVer int, customTypes CustomTypes) string {
+	if customTypes != nil {
+		if imp, ok := customTypes.GoImport(Element(attribute.GoType), attribute.DBType); ok {
+			return imp
+		}
+	}
+
+	return model.GoImport(attribute.DBType, attribute.Nullable(), false, goPGVer)
 }

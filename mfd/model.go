@@ -11,8 +11,9 @@ import (
 
 // go-pg versions
 const (
-	GoPG8 = 8
-	GoPG9 = 9
+	GoPG8  = 8
+	GoPG9  = 9
+	GoPG10 = 10
 )
 
 // nullable options
@@ -52,15 +53,34 @@ const (
 	SearchTypeArrayIntersect   = "SEARCHTYPE_ARRAY_INTERSECT"
 )
 
+type CustomType struct {
+	DBType   string `xml:"DBType,attr,omitempty"`
+	GoType   string `xml:"GoType,attr,omitempty"`
+	GoImport string `xml:"GoImport,attr,omitempty"`
+}
+
+type CustomTypes []CustomType
+
+func (c CustomTypes) GoImport(goType, dbType string) (string, bool) {
+	for _, customType := range c {
+		if Element(customType.GoType) == Element(goType) && (customType.DBType == dbType || customType.DBType == "*") {
+			return customType.GoImport, true
+		}
+	}
+
+	return "", false
+}
+
 // Project is xml element
 type Project struct {
 	XMLName        xml.Name `xml:"Project" json:"-"`
 	XMLxsi         string   `xml:"xmlns:xsi,attr"`
 	XMLxsd         string   `xml:"xmlns:xsd,attr"`
 	Name           string
-	NamespaceNames []string `xml:"PackageNames>string" json:"-"`
-	Languages      []string `xml:"Languages>string" json:"-"`
-	GoPGVer        int      `xml:"GoPGVer"`
+	NamespaceNames []string    `xml:"PackageNames>string" json:"-"`
+	Languages      []string    `xml:"Languages>string" json:"-"`
+	GoPGVer        int         `xml:"GoPGVer"`
+	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty"`
 
 	Namespaces   []*Namespace   `xml:"-"`
 	VTNamespaces []*VTNamespace `xml:"-"`
@@ -130,7 +150,7 @@ func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 }
 
 func (p *Project) IsConsistent() error {
-	if p.GoPGVer != GoPG9 && p.GoPGVer != GoPG8 {
+	if p.GoPGVer < GoPG8 && p.GoPGVer > GoPG10 {
 		return fmt.Errorf("unsupported go-pg version: %d", p.GoPGVer)
 	}
 
@@ -305,6 +325,52 @@ func (p *Project) UpdateLinks() {
 			}
 		}
 	}
+}
+
+func (p *Project) AddCustomTypes(mapping model.CustomTypeMapping) (new CustomTypes) {
+	for _, customType := range mapping {
+		if customType.GoType == "" {
+			continue
+		}
+
+		existed := false
+		for i, existing := range p.CustomTypes {
+			if existing.DBType != "" && existing.DBType == customType.PGType {
+				p.CustomTypes[i] = CustomType{
+					DBType:   customType.PGType,
+					GoType:   customType.GoType,
+					GoImport: customType.GoImport,
+				}
+
+				existed = true
+				break
+			}
+		}
+
+		if !existed {
+			ct := CustomType{
+				DBType:   customType.PGType,
+				GoType:   customType.GoType,
+				GoImport: customType.GoImport,
+			}
+
+			p.CustomTypes = append(p.CustomTypes, ct)
+			new = append(new, ct)
+		}
+	}
+
+	return new
+}
+
+func (p *Project) CustomTypeMapping() model.CustomTypeMapping {
+	ctm := model.CustomTypeMapping{}
+	for _, customType := range p.CustomTypes {
+		if customType.DBType != "" {
+			ctm.Add(customType.DBType, customType.GoType, customType.GoImport)
+		}
+	}
+
+	return ctm
 }
 
 // Namespace is xml element
@@ -490,7 +556,7 @@ type Attribute struct {
 }
 
 // Merge fills attribute (from file) values from db
-func (a *Attribute) Merge(with *Attribute) {
+func (a *Attribute) Merge(with *Attribute, overwriteGoType bool) {
 	// a.Name = with.Name
 	a.DBName = with.DBName
 	a.DBType = with.DBType
@@ -508,6 +574,10 @@ func (a *Attribute) Merge(with *Attribute) {
 	if a.Updatable == nil {
 		updatable := true
 		a.Updatable = &updatable
+	}
+
+	if overwriteGoType {
+		a.GoType = with.GoType
 	}
 }
 
@@ -601,10 +671,10 @@ func (s Searches) Append(search *Search) Searches {
 type Attributes []*Attribute
 
 // Merge adds new attribute, update if exists
-func (a Attributes) Merge(attr *Attribute) (Attributes, *Attribute) {
+func (a Attributes) Merge(attr *Attribute, overwriteGoType bool) (Attributes, *Attribute) {
 	for i, existing := range a {
 		if existing.DBName == attr.DBName && existing.DBType == attr.DBType {
-			existing.Merge(attr)
+			existing.Merge(attr, overwriteGoType)
 			a[i] = existing
 			return a, existing
 		}

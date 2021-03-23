@@ -10,7 +10,7 @@ import (
 // this code used to convert entities from database to namespace in mfd project file
 
 // PackEntity packs entity from db to mfd.Entity
-func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity) *mfd.Entity {
+func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity, newCustomTypes mfd.CustomTypes) *mfd.Entity {
 	var attribute *mfd.Attribute
 
 	// processing all columns
@@ -29,7 +29,9 @@ func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity) *mf
 	}
 
 	for _, column := range entity.Columns {
-		attributes, attribute = attributes.Merge(newAttribute(entity, column))
+		_, ok := newCustomTypes.GoImport(mfd.Element(column.GoType), column.PGType)
+
+		attributes, attribute = attributes.Merge(newAttribute(entity, column), ok)
 
 		// do not add searches for existing columns
 		if existing != nil && existing.AttributeByDBName(attribute.DBName, attribute.DBType) != nil {

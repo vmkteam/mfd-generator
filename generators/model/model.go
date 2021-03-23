@@ -43,8 +43,8 @@ func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 	}
 
 	goPGVer := ""
-	if options.GoPGVer == mfd.GoPG9 {
-		goPGVer = "/v9"
+	if options.GoPGVer != mfd.GoPG8 {
+		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
 
 	return NamespaceData{
@@ -129,8 +129,8 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 type AttributeData struct {
 	mfd.Attribute
 
-	Name   string
-	Type   string
+	Name string
+	//Type   string
 	Import string
 
 	Tag     template.HTML
@@ -161,21 +161,15 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 
 	// nullable tag
 	if !attribute.Nullable() && !attribute.PrimaryKey {
-		if options.GoPGVer == mfd.GoPG9 {
-			tags.AddTag(tagName, "use_zero")
-		} else {
+		if options.GoPGVer == mfd.GoPG8 {
 			tags.AddTag(tagName, "notnull")
+		} else {
+			tags.AddTag(tagName, "use_zero")
 		}
 	}
 
-	// go type
-	goType, err := model.GoType(attribute.DBType)
-	if err != nil {
-		goType = model.TypeInterface
-	}
-
 	// mark unknown types as interface & unsupported
-	if goType == model.TypeInterface {
+	if attribute.GoType == model.TypeInterface {
 		comment = "// unsupported"
 		tags = util.NewAnnotation().AddTag(tagName, "-")
 	}
@@ -186,9 +180,9 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 	return AttributeData{
 		Attribute: attribute,
 
-		Type:   goType,
+		//Type:   goType,
 		Name:   util.ColumnName(attribute.Name),
-		Import: model.GoImport(attribute.DBType, attribute.Nullable(), false, options.GoPGVer),
+		Import: mfd.Import(&attribute, options.GoPGVer, options.CustomTypes),
 
 		Tag:     template.HTML(fmt.Sprintf("`%s`", tags.String())),
 		Comment: template.HTML(comment),
@@ -240,10 +234,10 @@ func PackRelation(relation mfd.Attribute, options Options) RelationData {
 }
 
 func tagName(options Options) string {
-	if options.GoPGVer == mfd.GoPG9 {
-		return "pg"
+	if options.GoPGVer == mfd.GoPG8 {
+		return "sql"
 	}
-	return "sql"
+	return "pg"
 }
 
 func fixPointer(attribute mfd.Attribute) string {

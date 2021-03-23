@@ -30,6 +30,9 @@ type NamespaceData struct {
 	Name         string
 	ShortVarName string
 
+	HasImports bool
+	Imports    []string
+
 	GoPGVer string
 
 	Entities []EntityData
@@ -37,20 +40,29 @@ type NamespaceData struct {
 
 // PackNamespace packs mfd namespace to template data
 func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
+	imports := mfd.NewSet()
 	entities := make([]EntityData, len(namespace.Entities))
 	for i, entity := range namespace.Entities {
-		entities[i] = PackEntity(*entity)
+		packed := PackEntity(*entity, options)
+		entities[i] = packed
+
+		for _, imp := range packed.Imports {
+			imports.Append(imp)
+		}
 	}
 
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 
 	goPGVer := ""
-	if options.GoPGVer == mfd.GoPG9 {
-		goPGVer = "/v9"
+	if options.GoPGVer != mfd.GoPG8 {
+		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
 
 	return NamespaceData{
 		Package: options.Package,
+
+		HasImports: imports.Len() > 0,
+		Imports:    imports.Elements(),
 
 		Name:         name,
 		ShortVarName: mfd.ShortVarName(name),
@@ -65,6 +77,8 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 type EntityData struct {
 	Name       string
 	NamePlural string
+
+	Imports []string
 
 	VarName       string
 	VarNamePlural string
@@ -85,7 +99,7 @@ type EntityData struct {
 }
 
 // PackEntity packs mfd entity to template data
-func PackEntity(entity mfd.Entity) EntityData {
+func PackEntity(entity mfd.Entity, options Options) EntityData {
 	// base template entity - repo depends on int
 	te := model.PackEntity(entity, model.Options{})
 
@@ -94,6 +108,7 @@ func PackEntity(entity mfd.Entity) EntityData {
 	hasNotUpdatable := false
 	var pks []PKPair
 
+	imports := mfd.NewSet()
 	var relations []string
 	var columns []AttributeData
 
@@ -109,6 +124,10 @@ func PackEntity(entity mfd.Entity) EntityData {
 			if column.Name == util.ID {
 				arg = "id"
 			}
+			if imp := mfd.Import(&column.Attribute, options.GoPGVer, options.CustomTypes); imp != "" {
+				imports.Append(imp)
+			}
+
 			pks = append(pks, PKPair{
 				Field: column.Name,
 				Arg:   arg,
@@ -157,6 +176,8 @@ func PackEntity(entity mfd.Entity) EntityData {
 	return EntityData{
 		Name:       te.Name,
 		NamePlural: goNamePlural,
+
+		Imports: imports.Elements(),
 
 		VarName:       varName,
 		VarNamePlural: varNamePlural,

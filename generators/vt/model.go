@@ -131,7 +131,7 @@ func PackEntity(vtEntity mfd.VTEntity, options Options) (EntityData, error) {
 			}
 
 			// adding imports
-			if imp := Import(attr, options.GoPGVer); imp != "" {
+			if imp := mfd.Import(attr, options.GoPGVer, options.CustomTypes); imp != "" {
 				imports.Add(imp)
 			}
 
@@ -391,11 +391,6 @@ func PackParams(vtAttr *mfd.VTAttribute) ParamsData {
 		ShortVarName: mfd.ShortVarName(name),
 		FieldName:    name,
 	}
-}
-
-// Import gets import string for template
-func Import(attribute *mfd.Attribute, goPGVer int) string {
-	return model.GoImport(attribute.DBType, attribute.Nullable(), false, goPGVer)
 }
 
 func customToIPConverter(name, entityShortName string, nullable bool) (template.HTML, template.HTML) {

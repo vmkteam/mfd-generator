@@ -3,6 +3,8 @@ package model
 import (
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/mfd"
+
 	"github.com/dizzyfool/genna/util"
 )
 
@@ -24,11 +26,18 @@ type Options struct {
 	ModelTemplatePath    string
 	SearchTemplatePath   string
 	ValidateTemplatePath string
+
+	// custom types
+	CustomTypes mfd.CustomTypes
 }
 
 // Def fills default values of an options
 func (o *Options) Def() {
 	if strings.Trim(o.Package, " ") == "" {
 		o.Package = util.DefaultPackage
+	}
+
+	if o.CustomTypes == nil {
+		o.CustomTypes = mfd.CustomTypes{}
 	}
 }

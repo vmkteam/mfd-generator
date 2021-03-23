@@ -16,12 +16,13 @@ import (
 )
 
 const (
-	mfdFlag     = "mfd"
-	nssFlag     = "namespaces"
-	printFlag   = "print"
-	goPGVerFlag = "gopgver"
-	verboseFlag = "verbose"
-	quietFlag   = "quiet"
+	mfdFlag         = "mfd"
+	nssFlag         = "namespaces"
+	printFlag       = "print"
+	goPGVerFlag     = "gopgver"
+	verboseFlag     = "verbose"
+	quietFlag       = "quiet"
+	customTypesFlag = "custom-types"
 
 	quietAll = "all"
 	quietNew = "new"
@@ -71,6 +72,8 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringP(quietFlag, "q", "", "quiet mode. ignored when --namespaces (-n) flag is set. possible values:\n- all - will use namespace entity mapping from mfd, entities not present in mfd file will be ignored\n- new - generator will prompt namespace for entities not present in mfd file")
 
+	flags.StringSlice(customTypesFlag, []string{}, "set custom types separated by comma\nformat: <postgresql_type>:<go_import>.<go_type>\nexamples: uuid:github.com/google/uuid.UUID,point:src/model.Point,bytea:string\n")
+
 	flags.BoolP(printFlag, "p", false, "print namespace - tables association")
 }
 
@@ -107,8 +110,18 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 		return
 	}
 
-	if g.options.GoPgVer != mfd.GoPG8 && g.options.GoPgVer != mfd.GoPG9 {
+	if g.options.GoPgVer < mfd.GoPG8 && g.options.GoPgVer > mfd.GoPG10 {
 		return fmt.Errorf("unsupported go-pg version: %d", g.options.GoPgVer)
+	}
+
+	// custom types
+	var customTypesStrings []string
+	if customTypesStrings, err = flags.GetStringSlice(customTypesFlag); err != nil {
+		return err
+	}
+
+	if g.options.CustomTypes, err = model.ParseCustomTypes(customTypesStrings); err != nil {
+		return err
 	}
 
 	// table to process
@@ -189,8 +202,10 @@ func (g *Generator) Generate() (err error) {
 		return nil
 	}
 
+	addedCustomTypes := project.AddCustomTypes(g.options.CustomTypes)
+
 	// reading tables from db
-	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer, model.CustomTypeMapping{})
+	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer, project.CustomTypeMapping())
 	if err != nil {
 		return fmt.Errorf("read database error: %w", err)
 	}
@@ -247,7 +262,7 @@ func (g *Generator) Generate() (err error) {
 		set.Prepend(namespace)
 
 		// adding to project
-		project.AddEntity(namespace, PackEntity(namespace, entity, exiting))
+		project.AddEntity(namespace, PackEntity(namespace, entity, exiting, addedCustomTypes))
 	}
 
 	// suggesting searches && fk links
