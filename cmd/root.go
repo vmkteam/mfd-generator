@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"flag"
-	xmllang "github.com/vmkteam/mfd-generator/generators/xml-lang"
 	"log"
 	"os"
 
+	"github.com/vmkteam/mfd-generator/api"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/generators/vt"
 	"github.com/vmkteam/mfd-generator/generators/vt-template"
 	"github.com/vmkteam/mfd-generator/generators/xml"
+	"github.com/vmkteam/mfd-generator/generators/xml-lang"
 	"github.com/vmkteam/mfd-generator/generators/xml-vt"
 
 	"github.com/spf13/cobra"
@@ -58,6 +59,7 @@ func init() {
 		repo.CreateCommand(),
 		vt.CreateCommand(),
 		vttmpl.CreateCommand(),
+		api.CreateCommand(),
 	)
 }
 
