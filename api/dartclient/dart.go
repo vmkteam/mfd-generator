@@ -76,7 +76,7 @@ func (c *Client) Run() ([]byte, error) {
 		`// Code generated from zenrpc smd. DO NOT EDIT.
 
 // To update this file:
-// 1. Pull fresh version and start apisvc locally on 8080 port.
+// 1. Start mfd-generator locally on 8080 port: ` + "`mfd-generator server -a=:8080`" + `.
 // 2. Navigate in terminal to root directory of this flutter project.
 // 3. ` + "`curl http://localhost:8080/doc/api_client.dart --output ./lib/services/api/api_client.dart`" + `
 // 4. ` + "`dart format --fix -l 150 ./lib/services/api/api_client.dart`" + `
