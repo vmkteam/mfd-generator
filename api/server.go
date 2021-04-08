@@ -7,6 +7,8 @@ import (
 
 	"github.com/semrush/zenrpc/v2"
 	"github.com/spf13/cobra"
+
+	"github.com/vmkteam/mfd-generator/api/dartclient"
 )
 
 const (
@@ -72,8 +74,26 @@ func (s *Server) Serve() error {
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
+	router.Handle(path.Join(docroot, "/api_client.dart"), s.handleDart(rpc))
 
 	log.Printf("starting server on %s\n", s.addr)
 
 	return http.ListenAndServe(s.addr, router)
+}
+
+// handleDart is a handler for dart schema.
+func (s *Server) handleDart(srv zenrpc.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		bb, err := dartclient.NewClient(srv.SMD()).Run()
+		if err != nil {
+			log.Printf("failed to convert dart err=%q", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		_, err = w.Write(bb)
+		if err != nil {
+			log.Printf("failed to write dart err=%q", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
 }
