@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/semrush/zenrpc/v2"
 	"github.com/spf13/cobra"
-	"github.com/vmkteam/zenrpc"
 )
 
 const (
@@ -58,17 +58,22 @@ func (s *Server) ReadFlags(command *cobra.Command) (err error) {
 }
 
 func (s *Server) Serve() error {
-	p := path.Join(pathFlag, "/")
+	apiroot := path.Join(s.path, "/")
+	docroot := path.Join(s.path, "/doc") + "/"
 
 	rpc := zenrpc.NewServer(zenrpc.Options{
 		ExposeSMD: true,
 		AllowCORS: s.cors,
-		TargetURL: p,
+		TargetURL: apiroot,
 	})
 
-	http.Handle(p, rpc)
+	rpc.Register("xml", NewXMLService())
+
+	router := http.NewServeMux()
+	router.Handle(apiroot, rpc)
+	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
 
 	log.Printf("starting server on %s\n", s.addr)
 
-	return http.ListenAndServe(s.addr, nil)
+	return http.ListenAndServe(s.addr, router)
 }
