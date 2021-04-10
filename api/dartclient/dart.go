@@ -385,7 +385,7 @@ func (s dartService) AsType() string {
 	case listType:
 		return "as List?"
 	case objectType:
-		return "as Map<String, dynamic>?"
+		return "as Map<String, dynamic>"
 	case "":
 		return ""
 	default:

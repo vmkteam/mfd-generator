@@ -11,6 +11,8 @@ import (
 	"github.com/vmkteam/mfd-generator/api/dartclient"
 )
 
+//go:generate zenrpc
+
 const (
 	addrFlag = "port"
 	pathFlag = "path"
@@ -70,6 +72,7 @@ func (s *Server) Serve() error {
 	})
 
 	rpc.Register("xml", NewXMLService())
+	rpc.Register("api", NewMockService())
 
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)

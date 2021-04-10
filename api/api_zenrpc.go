@@ -11,8 +11,14 @@ import (
 )
 
 var RPC = struct {
-	XMLService struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }
+	MockService struct{ Ping, LoadProject, Project string }
+	XMLService  struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }
 }{
+	MockService: struct{ Ping, LoadProject, Project string }{
+		Ping:        "ping",
+		LoadProject: "loadproject",
+		Project:     "project",
+	},
 	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }{
 		Tables:         "tables",
 		LoadProject:    "loadproject",
@@ -22,6 +28,451 @@ var RPC = struct {
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
 	},
+}
+
+func (MockService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"Ping": {
+				Description: ``,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: ``,
+					Optional:    false,
+					Type:        smd.String,
+				},
+			},
+			"LoadProject": {
+				Description: ``,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filepath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: `Project`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"languages": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"goPgVer": {
+							Description: ``,
+							Type:        smd.Integer,
+						},
+						"customTypes": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/CustomType",
+							},
+						},
+						"namespaces": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/Namespace",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"CustomType": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"dbType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goImport": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+						"Namespace": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"entities": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Entity",
+									},
+								},
+							},
+						},
+						"Entity": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"namespace": {
+									Description: `wtf is it here??`,
+									Type:        smd.String,
+								},
+								"table": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"attributes": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Attribute",
+									},
+								},
+								"searches": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Search",
+									},
+								},
+							},
+						},
+						"Attribute": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: `names`,
+									Type:        smd.String,
+								},
+								"dbName": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"isArray": {
+									Description: `types`,
+									Type:        smd.Boolean,
+								},
+								"dbType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"primaryKey": {
+									Description: `Keys`,
+									Type:        smd.Boolean,
+								},
+								"foreignKey": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"nullable": {
+									Description: `data params`,
+									Type:        smd.Boolean,
+								},
+								"addable": {
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"updatable": {
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"min": {
+									Description: ``,
+									Type:        smd.Integer,
+								},
+								"max": {
+									Description: ``,
+									Type:        smd.Integer,
+								},
+								"defaultValue": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+						"Search": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"attrName": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"searchType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
+			"Project": {
+				Description: ``,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "name",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: `Project`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"languages": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"goPgVer": {
+							Description: ``,
+							Type:        smd.Integer,
+						},
+						"customTypes": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/CustomType",
+							},
+						},
+						"namespaces": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/Namespace",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"CustomType": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"dbType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goImport": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+						"Namespace": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"entities": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Entity",
+									},
+								},
+							},
+						},
+						"Entity": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"namespace": {
+									Description: `wtf is it here??`,
+									Type:        smd.String,
+								},
+								"table": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"attributes": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Attribute",
+									},
+								},
+								"searches": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/Search",
+									},
+								},
+							},
+						},
+						"Attribute": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: `names`,
+									Type:        smd.String,
+								},
+								"dbName": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"isArray": {
+									Description: `types`,
+									Type:        smd.Boolean,
+								},
+								"dbType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"primaryKey": {
+									Description: `Keys`,
+									Type:        smd.Boolean,
+								},
+								"foreignKey": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"nullable": {
+									Description: `data params`,
+									Type:        smd.Boolean,
+								},
+								"addable": {
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"updatable": {
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"min": {
+									Description: ``,
+									Type:        smd.Integer,
+								},
+								"max": {
+									Description: ``,
+									Type:        smd.Integer,
+								},
+								"defaultValue": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+						"Search": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"attrName": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"searchType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s MockService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.MockService.Ping:
+		resp.Set(s.Ping(ctx))
+
+	case RPC.MockService.LoadProject:
+		var args = struct {
+			Filepath string `json:"filepath"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filepath"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.LoadProject(ctx, args.Filepath))
+
+	case RPC.MockService.Project:
+		var args = struct {
+			Name string `json:"name"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"name"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Project(ctx, args.Name))
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
 }
 
 func (XMLService) SMD() smd.ServiceInfo {
@@ -35,7 +486,7 @@ zenrps:return	list of tables`,
 					{
 						Name:        "url",
 						Optional:    false,
-						Description: ``,
+						Description: `the connection string to pg database`,
 						Type:        smd.String,
 					},
 				},
@@ -55,7 +506,7 @@ zenrps:return		xml contents of mfd file`,
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 				},
@@ -82,7 +533,7 @@ zenrps:return		xml contents of mfd file`,
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 				},
@@ -104,18 +555,18 @@ zenrps:return		xml contents of mfd file`,
 			},
 			"SaveProject": {
 				Description: `Saves project at filepath location
-zenrps:return		xml contents of mfd file`,
+zenrps:return		saved xml contents of mfd file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "contents",
 						Optional:    false,
-						Description: ``,
+						Description: `the xml contents`,
 						Type:        smd.String,
 					},
 				},
@@ -142,25 +593,25 @@ zenrps:return		xml contents of mfd file`,
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "url",
 						Optional:    false,
-						Description: ``,
+						Description: `the connection string to postgresql database`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "table",
 						Optional:    false,
-						Description: ``,
+						Description: `selected table name`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "namespace",
 						Optional:    false,
-						Description: ``,
+						Description: `namespace of the created entity`,
 						Type:        smd.String,
 					},
 				},
@@ -187,13 +638,13 @@ zenrps:return		xml contents of mfd file`,
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "namespace",
 						Optional:    false,
-						Description: ``,
+						Description: `namespace of the entity`,
 						Type:        smd.String,
 					},
 					{
@@ -221,18 +672,18 @@ zenrps:return		xml contents of mfd file`,
 			},
 			"SaveEntity": {
 				Description: `Gets xml for selected entity in project file
-zenrps:return		xml contents of mfd file`,
+zenrps:return		saved xml contents of the entity`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
 						Optional:    false,
-						Description: ``,
+						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "contents",
 						Optional:    false,
-						Description: ``,
+						Description: `xml contents of the entity`,
 						Type:        smd.String,
 					},
 				},

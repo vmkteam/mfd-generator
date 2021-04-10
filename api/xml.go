@@ -9,7 +9,7 @@ import (
 	xmlGen "github.com/vmkteam/mfd-generator/generators/xml"
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/dizzyfool/genna/lib"
+	genna "github.com/dizzyfool/genna/lib"
 	"github.com/vmkteam/zenrpc"
 )
 
