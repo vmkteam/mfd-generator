@@ -163,7 +163,7 @@ func (s {{.Name}}Service) dbSort(ops *ViewOps) db.OpFunc {
 	return v
 }
 
-// Count {{.NamePlural}} according to conditions in search params
+// Count returns count {{.NamePlural}} according to conditions in search params.
 //zenrpc:search {{.Name}}Search
 //zenrpc:return int
 //zenrpc:500 Internal Error
@@ -175,7 +175,7 @@ func (s {{.Name}}Service) Count(ctx context.Context, search *{{.Name}}Search) (i
 	return count, nil
 }
 
-// Get а list of {{.NamePlural}} according to conditions in search params
+// Get returns а list of {{.NamePlural}} according to conditions in search params.
 //zenrpc:search {{.Name}}Search
 //zenrpc:viewOps ViewOps
 //zenrpc:return []{{.Name}}Summary
@@ -194,7 +194,7 @@ func (s {{.Name}}Service) Get(ctx context.Context, search *{{.Name}}Search, view
 	return {{.VarNamePlural}}, nil
 }
 
-// Returns a {{.Name}} by its ID{{range .PKs}}
+// GetByID returns a {{.Name}} by its ID.{{range .PKs}}
 //zenrpc:{{.Arg}} {{.Type}}{{end}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
@@ -217,7 +217,7 @@ func (s {{.Name}}Service) byID(ctx context.Context{{range .PKs}}, {{.Arg}} {{.Ty
 	return db, nil
 }{{if not .ReadOnly}}
 
-// Add a {{.Name}} from from the query
+// Add adds a {{.Name}} from from the query.
 //zenrpc:{{.VarName}} {{.Name}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
@@ -234,13 +234,17 @@ func (s {{.Name}}Service) Add(ctx context.Context, {{.VarName}} *{{.Name}}) (*{{
 	return New{{.Name}}(db), nil
 }
 
-// Updates the {{.Name}} data identified by id from the query
+// Update updates the {{.Name}} data identified by id from the query.
 //zenrpc:{{.VarNamePlural}} {{.Name}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
 //zenrpc:400 Validation Error
 //zenrpc:404 Not Found
 func (s {{.Name}}Service) Update(ctx context.Context, {{.VarName}} *{{.Name}}) (bool, error) {
+	if {{.VarName}} == nil {
+		return false, ErrInternal
+	}
+
 	if _, err := s.byID(ctx{{range .PKs}}, {{$model.VarName}}.{{.Field}}{{end}}); err != nil {
 		return false, err
 	}
@@ -256,7 +260,7 @@ func (s {{.Name}}Service) Update(ctx context.Context, {{.VarName}} *{{.Name}}) (
 	return ok, nil
 }
 
-// Delete the {{.Name}} by its ID{{range .PKs}}
+// Delete deletes the {{.Name}} by its ID.{{range .PKs}}
 //zenrpc:{{.Arg}} {{.Type}}{{end}}
 //zenrpc:return isDeleted
 //zenrpc:500 Internal Error
@@ -274,13 +278,16 @@ func (s {{.Name}}Service) Delete(ctx context.Context{{range .PKs}}, {{.Arg}} {{.
 	return ok, err
 }
 
-// Verifies that {{.Name}} data is valid
+// Validate verifies that {{.Name}} data is valid.
 //zenrpc:{{.VarName}} {{.Name}}
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
 func (s {{.Name}}Service) Validate(ctx context.Context, {{.VarName}} *{{.Name}}) ([]FieldError, error) {
-	isUpdate := {{range $i, $e := .PKs}}{{if $i}} && {{end}} {{$model.VarName}}.{{.Field}} != {{.Zero}} {{end}}
+	if {{.VarName}} == nil {
+		return nil, ErrInternal
+	}
 
+	isUpdate := {{range $i, $e := .PKs}}{{if $i}} && {{end}} {{$model.VarName}}.{{.Field}} != {{.Zero}} {{end}}
 	if isUpdate {
 		_, err := s.byID(ctx{{range .PKs}}, {{$model.VarName}}.{{.Field}}{{end}})
 		if err != nil {
@@ -298,6 +305,11 @@ func (s {{.Name}}Service) Validate(ctx context.Context, {{.VarName}} *{{.Name}})
 
 func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} *{{.Name}}, isUpdate bool) Validator {
 	var v Validator
+
+	if {{.VarName}} == nil {
+		v.SetInternalError(ErrInternal)
+		return v
+	}
 
 	if v.CheckBasic(ctx, *{{.VarName}}); v.HasInternalError() {
 		return v
