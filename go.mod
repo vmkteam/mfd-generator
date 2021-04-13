@@ -3,7 +3,7 @@ module github.com/vmkteam/mfd-generator
 go 1.13
 
 require (
-	github.com/dizzyfool/genna v1.1.2
+	github.com/dizzyfool/genna v1.1.3
 	github.com/fatih/camelcase v1.0.0
 	github.com/go-pg/pg/v9 v9.2.0
 	github.com/jinzhu/inflection v1.0.0

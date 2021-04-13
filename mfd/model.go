@@ -56,9 +56,9 @@ const (
 )
 
 type CustomType struct {
-	DBType   string `xml:"DBType,attr,omitempty"`
-	GoType   string `xml:"GoType,attr,omitempty"`
-	GoImport string `xml:"GoImport,attr,omitempty"`
+	DBType   string `xml:"DBType,attr,omitempty" json:"dbType"`
+	GoType   string `xml:"GoType,attr,omitempty" json:"goType"`
+	GoImport string `xml:"GoImport,attr,omitempty" json:"goImport"`
 }
 
 type CustomTypes []CustomType
@@ -75,17 +75,17 @@ func (c CustomTypes) GoImport(goType, dbType string) (string, bool) {
 
 // Project is xml element
 type Project struct {
-	XMLName        xml.Name `xml:"Project" json:"-"`
-	XMLxsi         string   `xml:"xmlns:xsi,attr"`
-	XMLxsd         string   `xml:"xmlns:xsd,attr"`
-	Name           string
-	NamespaceNames []string    `xml:"PackageNames>string" json:"-"`
-	Languages      []string    `xml:"Languages>string" json:"-"`
-	GoPGVer        int         `xml:"GoPGVer"`
-	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty"`
+	XMLName        xml.Name    `xml:"Project" json:"-"`
+	XMLxsi         string      `xml:"xmlns:xsi,attr" json:"-"`
+	XMLxsd         string      `xml:"xmlns:xsd,attr" json:"-"`
+	Name           string      `json:"name"`
+	NamespaceNames []string    `xml:"PackageNames>string" json:"namespaces"`
+	Languages      []string    `xml:"Languages>string" json:"languages"`
+	GoPGVer        int         `xml:"GoPGVer" json:"goPGVer"`
+	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
 
-	Namespaces   []*Namespace   `xml:"-"`
-	VTNamespaces []*VTNamespace `xml:"-"`
+	Namespaces   []*Namespace   `xml:"-" json:"-"`
+	VTNamespaces []*VTNamespace `xml:"-" json:"-"`
 }
 
 func NewProject(name string, goPGVer int) *Project {
@@ -442,12 +442,12 @@ func (n *Namespace) AddEntity(entity *Entity) *Entity {
 type Entity struct {
 	XMLName xml.Name `xml:"Entity" json:"-"`
 
-	Name      string `xml:"Name,attr"`
-	Namespace string `xml:"Namespace,attr"`
-	Table     string `xml:"Table,attr"`
+	Name      string `xml:"Name,attr" json:"name"`
+	Namespace string `xml:"Namespace,attr" json:"namespace"`
+	Table     string `xml:"Table,attr" json:"table"`
 
-	Attributes Attributes `xml:"Attributes>Attribute,omitempty"`
-	Searches   Searches   `xml:"Searches>Search,omitempty"`
+	Attributes Attributes `xml:"Attributes>Attribute,omitempty" json:"attributes"`
+	Searches   Searches   `xml:"Searches>Search,omitempty" json:"searches"`
 }
 
 // AttributeByName gets mfd.Attribute by its name
@@ -539,27 +539,27 @@ func (e *Entity) TitleAttribute() *Attribute {
 type Attribute struct {
 	XMLName xml.Name `xml:"Attribute" json:"-"`
 	// names
-	Name   string `xml:"Name,attr"`
-	DBName string `xml:"DBName,attr"`
+	Name   string `xml:"Name,attr" json:"name"`
+	DBName string `xml:"DBName,attr" json:"dbName"`
 
 	// types
-	IsArray        bool   `xml:"IsArray,attr,omitempty"`
+	IsArray        bool   `xml:"IsArray,attr,omitempty" json:"isArray"`
 	DisablePointer bool   `xml:"DisablePointer,attr,omitempty"`
-	DBType         string `xml:"DBType,attr,omitempty"`
-	GoType         string `xml:"GoType,attr,omitempty"`
+	DBType         string `xml:"DBType,attr,omitempty" json:"dbType"`
+	GoType         string `xml:"GoType,attr,omitempty" json:"goType"`
 
 	// Keys
-	PrimaryKey    bool    `xml:"PK,attr"`
-	ForeignKey    string  `xml:"FK,attr,omitempty"`
-	ForeignEntity *Entity `xml:"-"`
+	PrimaryKey    bool    `xml:"PK,attr" json:"pk"`
+	ForeignKey    string  `xml:"FK,attr,omitempty" json:"fk"`
+	ForeignEntity *Entity `xml:"-" json:"-"`
 
 	// data params
-	Null      string `xml:"Nullable,attr"`
-	Addable   *bool  `xml:"Addable,attr"`
-	Updatable *bool  `xml:"Updatable,attr"`
-	Min       int    `xml:"Min,attr"`
-	Max       int    `xml:"Max,attr"`
-	Default   string `xml:"Default,attr,omitempty"`
+	Null      string `xml:"Nullable,attr" json:"nullable"`
+	Addable   *bool  `xml:"Addable,attr" json:"addable"`
+	Updatable *bool  `xml:"Updatable,attr" json:"updatable"`
+	Min       int    `xml:"Min,attr" json:"min"`
+	Max       int    `xml:"Max,attr" json:"max"`
+	Default   string `xml:"Default,attr,omitempty" json:"default"`
 }
 
 // Merge fills attribute (from file) values from db
@@ -637,13 +637,13 @@ func (a *Attribute) IsIDsArray() bool {
 type Search struct {
 	XMLName xml.Name `xml:"Search" json:"-"`
 	// names
-	Name       string `xml:"Name,attr"`
-	AttrName   string `xml:"AttrName,attr"`
-	SearchType string `xml:"SearchType,attr"`
+	Name       string `xml:"Name,attr" json:"name"`
+	AttrName   string `xml:"AttrName,attr" json:"attrName"`
+	SearchType string `xml:"SearchType,attr" json:"searchType"`
 	GoType     string `xml:"GoType,attr,omitempty"`
 
-	Attribute *Attribute `xml:"-"`
-	Entity    *Entity    `xml:"-"`
+	Attribute *Attribute `xml:"-" json:"-"`
+	Entity    *Entity    `xml:"-" json:"-"`
 }
 
 func (s *Search) IsForeignSearch() bool {

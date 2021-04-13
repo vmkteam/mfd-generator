@@ -8,16 +8,19 @@ import (
 
 	"github.com/semrush/zenrpc/v2"
 	"github.com/semrush/zenrpc/v2/smd"
+
+	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 var RPC = struct {
-	XMLService struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLService struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
 }{
-	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }{
+	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
 		Tables:         "tables",
 		LoadProject:    "loadproject",
 		CreateProject:  "createproject",
 		SaveProject:    "saveproject",
+		NSMapping:      "nsmapping",
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
@@ -50,7 +53,7 @@ zenrps:return	list of tables`,
 			},
 			"LoadProject": {
 				Description: `Loads project from file
-zenrps:return		xml contents of mfd file`,
+zenrps:return		project information`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -64,20 +67,45 @@ zenrps:return		xml contents of mfd file`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
-						"filename": {
+						"name": {
 							Description: ``,
 							Type:        smd.String,
 						},
-						"xml": {
+						"namespaces": {
 							Description: ``,
-							Type:        smd.String,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"languages": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"goPGVer": {
+							Description: ``,
+							Type:        smd.Integer,
+						},
+						"customTypes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.CustomTypes",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.CustomTypes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
 						},
 					},
 				},
 			},
 			"CreateProject": {
 				Description: `Creates project at filepath location
-zenrps:return		xml contents of mfd file`,
+zenrps:return		project information`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -91,20 +119,44 @@ zenrps:return		xml contents of mfd file`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
-						"filename": {
+						"name": {
 							Description: ``,
 							Type:        smd.String,
 						},
-						"xml": {
+						"namespaces": {
 							Description: ``,
-							Type:        smd.String,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"languages": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"goPGVer": {
+							Description: ``,
+							Type:        smd.Integer,
+						},
+						"customTypes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.CustomTypes",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.CustomTypes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
 						},
 					},
 				},
 			},
 			"SaveProject": {
-				Description: `Saves project at filepath location
-zenrps:return		xml contents of mfd file`,
+				Description: `Saves project at filepath location`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -113,7 +165,59 @@ zenrps:return		xml contents of mfd file`,
 						Type:        smd.String,
 					},
 					{
-						Name:        "contents",
+						Name:        "project",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.Object,
+						Properties: map[string]smd.Property{
+							"name": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"namespaces": {
+								Description: ``,
+								Type:        smd.Array,
+								Items: map[string]string{
+									"type": smd.String,
+								},
+							},
+							"languages": {
+								Description: ``,
+								Type:        smd.Array,
+								Items: map[string]string{
+									"type": smd.String,
+								},
+							},
+							"goPGVer": {
+								Description: ``,
+								Type:        smd.Integer,
+							},
+							"customTypes": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.CustomTypes",
+								Type:        smd.Object,
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.CustomTypes": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: ``,
+					Optional:    false,
+					Type:        smd.Boolean,
+				},
+			},
+			"NSMapping": {
+				Description: `Saves project at filepath location
+zenrps:return		table-namespace mapping`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
 						Optional:    false,
 						Description: ``,
 						Type:        smd.String,
@@ -121,23 +225,13 @@ zenrps:return		xml contents of mfd file`,
 				},
 				Returns: smd.JSONSchema{
 					Description: ``,
-					Optional:    true,
+					Optional:    false,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"filename": {
-							Description: ``,
-							Type:        smd.String,
-						},
-						"xml": {
-							Description: ``,
-							Type:        smd.String,
-						},
-					},
 				},
 			},
 			"GenerateEntity": {
 				Description: `Gets xml for selected table
-zenrps:return		xml contents of mfd file`,
+zenrps:return		entity information`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -169,20 +263,44 @@ zenrps:return		xml contents of mfd file`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
-						"filename": {
+						"name": {
 							Description: ``,
 							Type:        smd.String,
 						},
-						"xml": {
+						"namespace": {
 							Description: ``,
 							Type:        smd.String,
+						},
+						"table": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"attributes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.Attributes",
+							Type:        smd.Object,
+						},
+						"searches": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.Searches",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.Attributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.Searches": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
 						},
 					},
 				},
 			},
 			"LoadEntity": {
 				Description: `Gets xml for selected entity in project file
-zenrps:return		xml contents of mfd file`,
+zenrps:return		entity information`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -199,7 +317,7 @@ zenrps:return		xml contents of mfd file`,
 					{
 						Name:        "entity",
 						Optional:    false,
-						Description: `then name of the entity`,
+						Description: `the name of the entity`,
 						Type:        smd.String,
 					},
 				},
@@ -208,20 +326,43 @@ zenrps:return		xml contents of mfd file`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
-						"filename": {
+						"name": {
 							Description: ``,
 							Type:        smd.String,
 						},
-						"xml": {
+						"namespace": {
 							Description: ``,
 							Type:        smd.String,
+						},
+						"table": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"attributes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.Attributes",
+							Type:        smd.Object,
+						},
+						"searches": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.Searches",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.Attributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.Searches": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
 						},
 					},
 				},
 			},
 			"SaveEntity": {
-				Description: `Gets xml for selected entity in project file
-zenrps:return		xml contents of mfd file`,
+				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -230,26 +371,50 @@ zenrps:return		xml contents of mfd file`,
 						Type:        smd.String,
 					},
 					{
-						Name:        "contents",
-						Optional:    false,
+						Name:        "entity",
+						Optional:    true,
 						Description: ``,
-						Type:        smd.String,
+						Type:        smd.Object,
+						Properties: map[string]smd.Property{
+							"name": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"namespace": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"table": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"attributes": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.Attributes",
+								Type:        smd.Object,
+							},
+							"searches": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.Searches",
+								Type:        smd.Object,
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.Attributes": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+							"mfd.Searches": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+						},
 					},
 				},
 				Returns: smd.JSONSchema{
 					Description: ``,
-					Optional:    true,
-					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"filename": {
-							Description: ``,
-							Type:        smd.String,
-						},
-						"xml": {
-							Description: ``,
-							Type:        smd.String,
-						},
-					},
+					Optional:    false,
+					Type:        smd.Boolean,
 				},
 			},
 		},
@@ -321,12 +486,12 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 
 	case RPC.XMLService.SaveProject:
 		var args = struct {
-			FilePath string `json:"filePath"`
-			Contents string `json:"contents"`
+			FilePath string      `json:"filePath"`
+			Project  mfd.Project `json:"project"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "contents"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "project"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -337,7 +502,26 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.SaveProject(args.FilePath, args.Contents))
+		resp.Set(s.SaveProject(args.FilePath, args.Project))
+
+	case RPC.XMLService.NSMapping:
+		var args = struct {
+			FilePath string `json:"filePath"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.NSMapping(args.FilePath))
 
 	case RPC.XMLService.GenerateEntity:
 		var args = struct {
@@ -384,12 +568,12 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 
 	case RPC.XMLService.SaveEntity:
 		var args = struct {
-			FilePath string `json:"filePath"`
-			Contents string `json:"contents"`
+			FilePath string      `json:"filePath"`
+			Entity   *mfd.Entity `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "contents"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -400,7 +584,7 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.SaveEntity(args.FilePath, args.Contents))
+		resp.Set(s.SaveEntity(args.FilePath, args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
