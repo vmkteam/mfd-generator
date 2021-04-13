@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/vmkteam/zenrpc"
+
+	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 type MockService struct {
@@ -66,87 +68,13 @@ func (s *MockService) Ping(ctx context.Context) (string, error) {
 }
 
 //zenrpc:return Project
-func (s *MockService) LoadProject(ctx context.Context, filepath string) (*Project, error) {
-	// mfd.LoadProject(filepath)
-	name := ""
-	p, _ := s.cache[name]
+func (s *MockService) Project(ctx context.Context, filepath string) (*Project, error) {
+	project, err := mfd.LoadProject(filepath, false, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	p := newProject(project)
+
 	return p, nil
-}
-
-//zenrpc:return Project
-func (s *MockService) Project(ctx context.Context, name string) (*Project, error) {
-	p, _ := s.cache[name]
-	return p, nil
-}
-
-type Project struct {
-	Name        string       `json:"name"`
-	Languages   []string     `json:"languages"`
-	GoPGVer     int          `json:"goPgVer"`
-	CustomTypes []CustomType `json:"customTypes"`
-	Namespaces  []Namespace  `json:"namespaces"`
-	//VTNamespaces []VTNamespace `json:"vtNamespaces"`
-}
-
-type CustomType struct {
-	DBType   string `json:"dbType"`
-	GoImport string `json:"goImport"`
-	GoType   string `json:"goType"`
-}
-
-type Namespace struct {
-	Name string `json:"name"`
-
-	Entities []Entity `json:"entities"`
-}
-
-type Entity struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"` // wtf is it here??
-	Table     string `json:"table"`
-
-	Attributes []Attribute `json:"attributes"`
-	Searches   []Search    `json:"searches"`
-}
-
-// Attribute is xml element
-type Attribute struct {
-	// names
-	Name   string `json:"name"`
-	DBName string `json:"dbName"`
-
-	// types
-	IsArray bool   `json:"isArray"`
-	DBType  string `json:"dbType"`
-	GoType  string `json:"goType"`
-
-	// Keys
-	PrimaryKey bool   `json:"primaryKey"`
-	ForeignKey string `json:"foreignKey"`
-
-	// data params
-	Nullable  bool   `json:"nullable"`
-	Addable   bool   `json:"addable"`
-	Updatable bool   `json:"updatable"`
-	Min       *int   `json:"min,omitempty"`
-	Max       *int   `json:"max,omitempty"`
-	Default   string `json:"defaultValue,omitempty"`
-}
-
-type Search struct {
-	Name       string `json:"name"`
-	AttrName   string `json:"attrName"`
-	SearchType string `json:"searchType"`
-}
-
-type VTNamespace struct {
-	Name string `json:"name"`
-
-	Entities []VTEntity `json:"entities"`
-}
-
-type VTEntity struct {
-	Name string `json:"name"`
-
-	TerminalPath string `json:"terminalPath"`
 }

@@ -20,9 +20,9 @@ const (
 )
 
 type Server struct {
-	addr string
-	path string
-	cors bool
+	Addr string
+	Path string
+	Cors bool
 }
 
 func NewServer() *Server {
@@ -35,7 +35,7 @@ func (s *Server) AddFlags(command *cobra.Command) {
 
 	flags.StringP(addrFlag, "a", ":8080", "Set address to listen")
 
-	flags.String(pathFlag, "/", "Set path to handle")
+	flags.String(pathFlag, "/", "Set Path to handle")
 
 	flags.Bool(corsFlag, false, "Allow CORS")
 }
@@ -43,17 +43,17 @@ func (s *Server) AddFlags(command *cobra.Command) {
 func (s *Server) ReadFlags(command *cobra.Command) (err error) {
 	flags := command.Flags()
 
-	s.addr, err = flags.GetString(addrFlag)
+	s.Addr, err = flags.GetString(addrFlag)
 	if err != nil {
 		return err
 	}
 
-	s.path, err = flags.GetString(pathFlag)
+	s.Path, err = flags.GetString(pathFlag)
 	if err != nil {
 		return err
 	}
 
-	s.cors, err = flags.GetBool(corsFlag)
+	s.Cors, err = flags.GetBool(corsFlag)
 	if err != nil {
 		return err
 	}
@@ -62,12 +62,12 @@ func (s *Server) ReadFlags(command *cobra.Command) (err error) {
 }
 
 func (s *Server) Serve() error {
-	apiroot := path.Join(s.path, "/")
-	docroot := path.Join(s.path, "/doc") + "/"
+	apiroot := path.Join(s.Path, "/")
+	docroot := path.Join(s.Path, "/doc") + "/"
 
 	rpc := zenrpc.NewServer(zenrpc.Options{
 		ExposeSMD: true,
-		AllowCORS: s.cors,
+		AllowCORS: s.Cors,
 		TargetURL: apiroot,
 	})
 
@@ -79,9 +79,9 @@ func (s *Server) Serve() error {
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
 	router.Handle(path.Join(docroot, "/api_client.dart"), s.handleDart(rpc))
 
-	log.Printf("starting server on %s\n", s.addr)
+	log.Printf("starting server on %s\n", s.Addr)
 
-	return http.ListenAndServe(s.addr, router)
+	return http.ListenAndServe(s.Addr, router)
 }
 
 // handleDart is a handler for dart schema.

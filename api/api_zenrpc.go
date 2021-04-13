@@ -11,13 +11,12 @@ import (
 )
 
 var RPC = struct {
-	MockService struct{ Ping, LoadProject, Project string }
+	MockService struct{ Ping, Project string }
 	XMLService  struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }
 }{
-	MockService: struct{ Ping, LoadProject, Project string }{
-		Ping:        "ping",
-		LoadProject: "loadproject",
-		Project:     "project",
+	MockService: struct{ Ping, Project string }{
+		Ping:    "ping",
+		Project: "project",
 	},
 	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, GenerateEntity, LoadEntity, SaveEntity string }{
 		Tables:         "tables",
@@ -43,198 +42,11 @@ func (MockService) SMD() smd.ServiceInfo {
 					Type:        smd.String,
 				},
 			},
-			"LoadProject": {
-				Description: ``,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filepath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-				},
-				Returns: smd.JSONSchema{
-					Description: `Project`,
-					Optional:    true,
-					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
-						},
-						"languages": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
-						},
-						"goPgVer": {
-							Description: ``,
-							Type:        smd.Integer,
-						},
-						"customTypes": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"$ref": "#/definitions/CustomType",
-							},
-						},
-						"namespaces": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"$ref": "#/definitions/Namespace",
-							},
-						},
-					},
-					Definitions: map[string]smd.Definition{
-						"CustomType": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"dbType": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"goImport": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
-								},
-							},
-						},
-						"Namespace": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"entities": {
-									Description: ``,
-									Type:        smd.Array,
-									Items: map[string]string{
-										"$ref": "#/definitions/Entity",
-									},
-								},
-							},
-						},
-						"Entity": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"namespace": {
-									Description: `wtf is it here??`,
-									Type:        smd.String,
-								},
-								"table": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"attributes": {
-									Description: ``,
-									Type:        smd.Array,
-									Items: map[string]string{
-										"$ref": "#/definitions/Attribute",
-									},
-								},
-								"searches": {
-									Description: ``,
-									Type:        smd.Array,
-									Items: map[string]string{
-										"$ref": "#/definitions/Search",
-									},
-								},
-							},
-						},
-						"Attribute": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: `names`,
-									Type:        smd.String,
-								},
-								"dbName": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"isArray": {
-									Description: `types`,
-									Type:        smd.Boolean,
-								},
-								"dbType": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"primaryKey": {
-									Description: `Keys`,
-									Type:        smd.Boolean,
-								},
-								"foreignKey": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"nullable": {
-									Description: `data params`,
-									Type:        smd.Boolean,
-								},
-								"addable": {
-									Description: ``,
-									Type:        smd.Boolean,
-								},
-								"updatable": {
-									Description: ``,
-									Type:        smd.Boolean,
-								},
-								"min": {
-									Description: ``,
-									Type:        smd.Integer,
-								},
-								"max": {
-									Description: ``,
-									Type:        smd.Integer,
-								},
-								"defaultValue": {
-									Description: ``,
-									Type:        smd.String,
-								},
-							},
-						},
-						"Search": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"attrName": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"searchType": {
-									Description: ``,
-									Type:        smd.String,
-								},
-							},
-						},
-					},
-				},
-			},
 			"Project": {
 				Description: ``,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "name",
+						Name:        "filepath",
 						Optional:    false,
 						Description: ``,
 						Type:        smd.String,
@@ -430,7 +242,7 @@ func (s MockService) Invoke(ctx context.Context, method string, params json.RawM
 	case RPC.MockService.Ping:
 		resp.Set(s.Ping(ctx))
 
-	case RPC.MockService.LoadProject:
+	case RPC.MockService.Project:
 		var args = struct {
 			Filepath string `json:"filepath"`
 		}{}
@@ -447,26 +259,7 @@ func (s MockService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.LoadProject(ctx, args.Filepath))
-
-	case RPC.MockService.Project:
-		var args = struct {
-			Name string `json:"name"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"name"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.Project(ctx, args.Name))
+		resp.Set(s.Project(ctx, args.Filepath))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

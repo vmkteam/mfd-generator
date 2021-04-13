@@ -186,5 +186,3 @@ func (s *XMLService) SaveEntity(filePath, contents string) (*XMLResponse, error)
 
 	return NewXMLResponse(filePath, entity)
 }
-
-//go:generate zenrpc

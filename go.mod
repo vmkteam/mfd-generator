@@ -12,4 +12,5 @@ require (
 	github.com/semrush/zenrpc/v2 v2.1.0
 	github.com/spf13/cobra v1.1.3
 	github.com/vmkteam/zenrpc v1.1.1
+	golang.org/x/tools v0.0.0-20200729173947-1c30660f9f89
 )
