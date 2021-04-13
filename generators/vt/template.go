@@ -222,7 +222,7 @@ func (s {{.Name}}Service) byID(ctx context.Context{{range .PKs}}, {{.Arg}} {{.Ty
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
 //zenrpc:400 Validation Error
-func (s {{.Name}}Service) Add(ctx context.Context, {{.VarName}} *{{.Name}}) (*{{.Name}}, error) {
+func (s {{.Name}}Service) Add(ctx context.Context, {{.VarName}} {{.Name}}) (*{{.Name}}, error) {
 	if ve := s.isValid(ctx, {{.VarName}}, false); ve.HasErrors() {
 		return nil, ve.Error()
 	}
@@ -240,11 +240,7 @@ func (s {{.Name}}Service) Add(ctx context.Context, {{.VarName}} *{{.Name}}) (*{{
 //zenrpc:500 Internal Error
 //zenrpc:400 Validation Error
 //zenrpc:404 Not Found
-func (s {{.Name}}Service) Update(ctx context.Context, {{.VarName}} *{{.Name}}) (bool, error) {
-	if {{.VarName}} == nil {
-		return false, ErrInternal
-	}
-
+func (s {{.Name}}Service) Update(ctx context.Context, {{.VarName}} {{.Name}}) (bool, error) {
 	if _, err := s.byID(ctx{{range .PKs}}, {{$model.VarName}}.{{.Field}}{{end}}); err != nil {
 		return false, err
 	}
@@ -282,11 +278,7 @@ func (s {{.Name}}Service) Delete(ctx context.Context{{range .PKs}}, {{.Arg}} {{.
 //zenrpc:{{.VarName}} {{.Name}}
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
-func (s {{.Name}}Service) Validate(ctx context.Context, {{.VarName}} *{{.Name}}) ([]FieldError, error) {
-	if {{.VarName}} == nil {
-		return nil, ErrInternal
-	}
-
+func (s {{.Name}}Service) Validate(ctx context.Context, {{.VarName}} {{.Name}}) ([]FieldError, error) {
 	isUpdate := {{range $i, $e := .PKs}}{{if $i}} && {{end}} {{$model.VarName}}.{{.Field}} != {{.Zero}} {{end}}
 	if isUpdate {
 		_, err := s.byID(ctx{{range .PKs}}, {{$model.VarName}}.{{.Field}}{{end}})
@@ -303,15 +295,10 @@ func (s {{.Name}}Service) Validate(ctx context.Context, {{.VarName}} *{{.Name}})
 	return ve.Fields(), nil
 }
 
-func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} *{{.Name}}, isUpdate bool) Validator {
+func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} {{.Name}}, isUpdate bool) Validator {
 	var v Validator
 
-	if {{.VarName}} == nil {
-		v.SetInternalError(ErrInternal)
-		return v
-	}
-
-	if v.CheckBasic(ctx, *{{.VarName}}); v.HasInternalError() {
+	if v.CheckBasic(ctx, {{.VarName}}); v.HasInternalError() {
 		return v
 	}
 
