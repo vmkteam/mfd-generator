@@ -10,7 +10,7 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/lib"
-	"github.com/vmkteam/zenrpc"
+	"github.com/semrush/zenrpc/v2"
 )
 
 const DefaultGoPGVer = mfd.GoPG10
@@ -25,7 +25,7 @@ func NewXMLService() *XMLService {
 
 // Gets all tables from database
 //zenrpc:url	the connection string to pg database
-//zenrps:return	list of tables
+//zenrpc:return	list of tables
 func (s *XMLService) Tables(url string) ([]string, error) {
 	var logger *log.Logger
 
@@ -62,7 +62,7 @@ func (s *XMLService) Tables(url string) ([]string, error) {
 
 // Loads project from file
 //zenrpc:filePath	the path to mfd file
-//zenrps:return		project information
+//zenrpc:return 	Project
 func (s *XMLService) LoadProject(filePath string) (*mfd.Project, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *XMLService) LoadProject(filePath string) (*mfd.Project, error) {
 
 // Creates project at filepath location
 //zenrpc:filePath	the path to mfd file
-//zenrps:return		project information
+//zenrpc:return		Project
 func (s *XMLService) CreateProject(filePath string) (*mfd.Project, error) {
 	project := mfd.NewProject(filepath.Base(filePath), DefaultGoPGVer)
 
@@ -88,7 +88,7 @@ func (s *XMLService) CreateProject(filePath string) (*mfd.Project, error) {
 
 // Saves project at filepath location
 //zenrpc:filePath	the path to mfd file
-//zenrpc:project	project information
+//zenrpc:project	true on success
 func (s *XMLService) SaveProject(filePath string, project mfd.Project) (bool, error) {
 	original, err := mfd.LoadProject(filePath, true, project.GoPGVer)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *XMLService) SaveProject(filePath string, project mfd.Project) (bool, er
 
 // Saves project at filepath location
 //zenrpc:filePath	the path to mfd file
-//zenrps:return		table-namespace mapping
+//zenrpc:return		table-namespace mapping
 func (s *XMLService) NSMapping(filePath string) (map[string]string, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -131,7 +131,7 @@ func (s *XMLService) NSMapping(filePath string) (map[string]string, error) {
 //zenrpc:url		the connection string to postgresql database
 //zenrpc:table		selected table name
 //zenrpc:namespace	namespace of the new entity
-//zenrps:return		entity information
+//zenrpc:return		Entity
 func (s *XMLService) GenerateEntity(filePath, url, table, namespace string) (*mfd.Entity, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -161,7 +161,7 @@ func (s *XMLService) GenerateEntity(filePath, url, table, namespace string) (*mf
 //zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the entity
 //zenrpc:entity 	the name of the entity
-//zenrps:return		entity information
+//zenrpc:return		Entity
 func (s *XMLService) LoadEntity(filePath, namespace, entity string) (*mfd.Entity, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -184,6 +184,7 @@ func (s *XMLService) LoadEntity(filePath, namespace, entity string) (*mfd.Entity
 // Gets xml for selected entity in project file
 //zenrpc:filePath	the path to mfd file
 //zenrpc:contents	xml contents of the entity
+//zenrpc:return     true on success
 func (s *XMLService) SaveEntity(filePath string, entity *mfd.Entity) (bool, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {

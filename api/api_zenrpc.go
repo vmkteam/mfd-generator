@@ -38,8 +38,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 		Description: ``,
 		Methods: map[string]smd.Service{
 			"Tables": {
-				Description: `Gets all tables from database
-zenrps:return	list of tables`,
+				Description: `Gets all tables from database`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "url",
@@ -49,7 +48,7 @@ zenrps:return	list of tables`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `list of tables`,
 					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
@@ -58,8 +57,7 @@ zenrps:return	list of tables`,
 				},
 			},
 			"LoadProject": {
-				Description: `Loads project from file
-zenrps:return		project information`,
+				Description: `Loads project from file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -69,7 +67,7 @@ zenrps:return		project information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `Project`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -110,8 +108,7 @@ zenrps:return		project information`,
 				},
 			},
 			"CreateProject": {
-				Description: `Creates project at filepath location
-zenrps:return		project information`,
+				Description: `Creates project at filepath location`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -121,7 +118,7 @@ zenrps:return		project information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `Project`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -219,8 +216,7 @@ zenrps:return		project information`,
 				},
 			},
 			"NSMapping": {
-				Description: `Saves project at filepath location
-zenrps:return		table-namespace mapping`,
+				Description: `Saves project at filepath location`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -230,14 +226,13 @@ zenrps:return		table-namespace mapping`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `table-namespace mapping`,
 					Optional:    false,
 					Type:        smd.Object,
 				},
 			},
 			"GenerateEntity": {
-				Description: `Gets xml for selected table
-zenrps:return		entity information`,
+				Description: `Gets xml for selected table`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -265,7 +260,7 @@ zenrps:return		entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `Entity`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -305,8 +300,7 @@ zenrps:return		entity information`,
 				},
 			},
 			"LoadEntity": {
-				Description: `Gets xml for selected entity in project file
-zenrps:return		entity information`,
+				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -328,7 +322,7 @@ zenrps:return		entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `Entity`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -418,7 +412,7 @@ zenrps:return		entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `true on success`,
 					Optional:    false,
 					Type:        smd.Boolean,
 				},
@@ -604,8 +598,7 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 		Description: ``,
 		Methods: map[string]smd.Service{
 			"GenerateEntity": {
-				Description: `Gets xml for selected table
-zenrps:return		vt entity information`,
+				Description: `Gets xml for selected table`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -627,7 +620,7 @@ zenrps:return		vt entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `VTEntity`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -667,8 +660,7 @@ zenrps:return		vt entity information`,
 				},
 			},
 			"LoadEntity": {
-				Description: `Gets xml for selected entity in project file
-zenrps:return		vt entity information`,
+				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
@@ -690,7 +682,7 @@ zenrps:return		vt entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `VTEntity`,
 					Optional:    true,
 					Type:        smd.Object,
 					Properties: map[string]smd.Property{
@@ -786,7 +778,7 @@ zenrps:return		vt entity information`,
 					},
 				},
 				Returns: smd.JSONSchema{
-					Description: ``,
+					Description: `true on success`,
 					Optional:    false,
 					Type:        smd.Boolean,
 				},

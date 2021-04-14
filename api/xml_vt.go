@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+
 	xmlVtGen "github.com/vmkteam/mfd-generator/generators/xml-vt"
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -20,7 +21,7 @@ func NewXMLVTService() *XMLVTService {
 //zenrpc:filePath	the path to mfd file
 //zenrpc:entity		base entity from namespace.xml
 //zenrpc:namespace	namespace of the base entity
-//zenrps:return		vt entity information
+//zenrpc:return		VTEntity
 func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.VTEntity, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -47,7 +48,7 @@ func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.
 //zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity 	the name of the vt entity
-//zenrps:return		vt entity information
+//zenrpc:return		VTEntity
 func (s *XMLVTService) LoadEntity(filePath, namespace, entity string) (*mfd.VTEntity, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
@@ -71,6 +72,7 @@ func (s *XMLVTService) LoadEntity(filePath, namespace, entity string) (*mfd.VTEn
 //zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity		vt entity information
+//zenrpc:return		true on success
 func (s *XMLVTService) SaveEntity(filePath string, namespace string, entity *mfd.VTEntity) (bool, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
