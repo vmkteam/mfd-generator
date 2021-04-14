@@ -13,7 +13,8 @@ import (
 )
 
 var RPC = struct {
-	XMLService struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLService   struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLVTService struct{ GenerateEntity, LoadEntity, SaveEntity string }
 }{
 	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
 		Tables:         "tables",
@@ -21,6 +22,11 @@ var RPC = struct {
 		CreateProject:  "createproject",
 		SaveProject:    "saveproject",
 		NSMapping:      "nsmapping",
+		GenerateEntity: "generateentity",
+		LoadEntity:     "loadentity",
+		SaveEntity:     "saveentity",
+	},
+	XMLVTService: struct{ GenerateEntity, LoadEntity, SaveEntity string }{
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
@@ -585,6 +591,278 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 		}
 
 		resp.Set(s.SaveEntity(args.FilePath, args.Entity))
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
+}
+
+func (XMLVTService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"GenerateEntity": {
+				Description: `Gets xml for selected table
+zenrps:return		vt entity information`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "namespace",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "entity",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: ``,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"terminalPath": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"attributes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.VTAttributes",
+							Type:        smd.Object,
+						},
+						"template": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.TmplAttributes",
+							Type:        smd.Object,
+						},
+						"mode": {
+							Description: ``,
+							Type:        smd.String,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.VTAttributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.TmplAttributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+					},
+				},
+			},
+			"LoadEntity": {
+				Description: `Gets xml for selected entity in project file
+zenrps:return		vt entity information`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "namespace",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "entity",
+						Optional:    false,
+						Description: `the name of the vt entity`,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: ``,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"terminalPath": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"attributes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.VTAttributes",
+							Type:        smd.Object,
+						},
+						"template": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.TmplAttributes",
+							Type:        smd.Object,
+						},
+						"mode": {
+							Description: ``,
+							Type:        smd.String,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.VTAttributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.TmplAttributes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+					},
+				},
+			},
+			"SaveEntity": {
+				Description: `Gets xml for selected entity in project file`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "namespace",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "entity",
+						Optional:    true,
+						Description: ``,
+						Type:        smd.Object,
+						Properties: map[string]smd.Property{
+							"name": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"terminalPath": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"attributes": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.VTAttributes",
+								Type:        smd.Object,
+							},
+							"template": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.TmplAttributes",
+								Type:        smd.Object,
+							},
+							"mode": {
+								Description: ``,
+								Type:        smd.String,
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.VTAttributes": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+							"mfd.TmplAttributes": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: ``,
+					Optional:    false,
+					Type:        smd.Boolean,
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s XMLVTService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.XMLVTService.GenerateEntity:
+		var args = struct {
+			FilePath  string `json:"filePath"`
+			Namespace string `json:"namespace"`
+			Entity    string `json:"entity"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.GenerateEntity(args.FilePath, args.Namespace, args.Entity))
+
+	case RPC.XMLVTService.LoadEntity:
+		var args = struct {
+			FilePath  string `json:"filePath"`
+			Namespace string `json:"namespace"`
+			Entity    string `json:"entity"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.LoadEntity(args.FilePath, args.Namespace, args.Entity))
+
+	case RPC.XMLVTService.SaveEntity:
+		var args = struct {
+			FilePath  string        `json:"filePath"`
+			Namespace string        `json:"namespace"`
+			Entity    *mfd.VTEntity `json:"entity"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.SaveEntity(args.FilePath, args.Namespace, args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

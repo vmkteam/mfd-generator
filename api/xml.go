@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/xml"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -15,23 +14,6 @@ import (
 )
 
 const DefaultGoPGVer = mfd.GoPG10
-
-type XMLResponse struct {
-	Filename string `json:"filename"`
-	XML      string `json:"xml"`
-}
-
-func NewXMLResponse(filePath string, v interface{}) (*XMLResponse, error) {
-	bytes, err := xml.Marshal(v)
-	if err != nil {
-		return nil, fmt.Errorf("xml marshall error: %w", err)
-	}
-
-	return &XMLResponse{
-		Filename: filePath,
-		XML:      string(bytes),
-	}, nil
-}
 
 type XMLService struct {
 	zenrpc.Service
@@ -214,6 +196,16 @@ func (s *XMLService) SaveEntity(filePath string, entity *mfd.Entity) (bool, erro
 	}
 
 	project.AddEntity(ns.Name, entity)
+	project.UpdateLinks()
+
+	err = mfd.SaveMFD(filePath, project)
+	if err != nil {
+		return false, err
+	}
+
+	if err := mfd.SaveProjectXML(filePath, project); err != nil {
+		return false, err
+	}
 
 	return true, nil
 }

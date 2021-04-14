@@ -68,6 +68,7 @@ func (s *Server) Serve() error {
 	})
 
 	rpc.Register("xml", NewXMLService())
+	rpc.Register("xml-vt", NewXMLVTService())
 
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)
