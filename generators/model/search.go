@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"strconv"
 	"strings"
 
-	"github.com/vmkteam/mfd-generator/mfd"
-
+	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
+	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 var templates *template.Template
@@ -150,8 +151,14 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	// use default templateColumn as base
 	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
 	templateColumn.Name = search.Name
-	templateColumn.GoType = mfd.MakeSearchType(templateColumn.GoType, search.SearchType)
-
+	if search.Attribute.DBType == model.TypePGJSONB || search.Attribute.DBType == model.TypePGJSON {
+		if search.GoType == "" {
+			search.GoType = model.TypeInterface
+		}
+		templateColumn.GoType = mfd.MakeSearchType(search.GoType, search.SearchType)
+	} else {
+		templateColumn.GoType = mfd.MakeSearchType(templateColumn.GoType, search.SearchType)
+	}
 	// TODO Refactor
 	var filterType, exclude string
 	switch search.SearchType {
@@ -226,6 +233,11 @@ func columnRef(entity mfd.Entity, search mfd.Search) string {
 	if strings.Index(search.AttrName, ".") != -1 {
 		parts := strings.SplitN(search.AttrName, ".", 2)
 		return fmt.Sprintf(`"%s.%s"`, util.Underscore(parts[0]), search.Attribute.DBName)
+	}
+
+	if mfd.IsJson(search.AttrName) {
+		parts := strings.Split(search.AttrName, mfd.JsonFieldSep)
+		return strconv.Quote(search.Attribute.DBName + mfd.JsonFieldSep + strings.Join(parts[1:], mfd.JsonFieldSep))
 	}
 
 	return fmt.Sprintf("Columns.%s.%s", entity.Name, search.AttrName)

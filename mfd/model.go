@@ -25,7 +25,8 @@ const (
 
 // vfsFile entity name
 const (
-	VfsFile = "VfsFile"
+	VfsFile      = "VfsFile"
+	JsonFieldSep = "->"
 )
 
 // TODO Refactor
@@ -450,6 +451,10 @@ type Entity struct {
 
 // AttributeByName gets mfd.Attribute by its name
 func (e *Entity) AttributeByName(name string) *Attribute {
+	if IsJson(name) {
+		s := strings.Split(name, JsonFieldSep)
+		name = s[0]
+	}
 	for _, a := range e.Attributes {
 		if a.Name == name {
 			return a
@@ -633,6 +638,7 @@ type Search struct {
 	Name       string `xml:"Name,attr"`
 	AttrName   string `xml:"AttrName,attr"`
 	SearchType string `xml:"SearchType,attr"`
+	GoType     string `xml:"GoType,attr,omitempty"`
 
 	Attribute *Attribute `xml:"-"`
 	Entity    *Entity    `xml:"-"`
