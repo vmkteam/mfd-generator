@@ -25,6 +25,8 @@ func MakeSearchType(typ, searchType string) string {
 		return "*" + typ
 	case SearchNull, SearchNotNull:
 		return "*" + model.TypeBool
+	case SearchTypeJsonbPath:
+		return "*" + model.TypeString
 	}
 
 	if _, ok := IsArray(typ); ok {

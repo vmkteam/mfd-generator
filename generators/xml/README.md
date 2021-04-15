@@ -161,6 +161,7 @@ SEARCHTYPE_ARRAY_CONTAINS     -  v = any (f)
 SEARCHTYPE_ARRAY_NOT_CONTAINS -  v != all (f)
 SEARCHTYPE_ARRAY_CONTAINED    -  ARRAY[v] <@ f
 SEARCHTYPE_ARRAY_INTERSECT    -  ARRAY[v] && f
+SEARCHTYPE_JSONB_PATH         -  f @> v
 ``` 
 f - имя поля, v - значение
  
@@ -221,6 +222,7 @@ SEARCHTYPE_ARRAY              -  f->>'k' in (v, v1, v2)
 SEARCHTYPE_NOT_INARRAY        -  f->>'k' not in (v1, v2)
 SEARCHTYPE_ARRAY_CONTAINS     -  f @> '{"k": [v]}'
 SEARCHTYPE_ARRAY_NOT_CONTAINS -  not f @> '{"k": [v]}'
+SEARCHTYPE_JSONB_PATH         -  f @> v
 ```
 f - имя json-поля, k - имя ключа в json-поле, v - значение
 
@@ -262,4 +264,7 @@ f - имя json-поля, k - имя ключа в json-поле, v - значе
 
 <!-- поиск по нескольким значениям ключа addressHome в json поле Params, поле - []string -->
 <Search Name="AddressHomes" AttrName="Params->addressHome" SearchType="SEARCHTYPE_ARRAY" GoType="[]string"></Search>
+
+<!-- поиск по пути в json поле Params -->
+<Search Name="ParamsPath" AttrName="Params" SearchType="SEARCHTYPE_JSONB_PATH"></Search>
 ```

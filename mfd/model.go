@@ -52,6 +52,7 @@ const (
 	SearchTypeArrayNotContains = "SEARCHTYPE_ARRAY_NOT_CONTAINS"
 	SearchTypeArrayContained   = "SEARCHTYPE_ARRAY_CONTAINED"
 	SearchTypeArrayIntersect   = "SEARCHTYPE_ARRAY_INTERSECT"
+	SearchTypeJsonbPath        = "SEARCHTYPE_JSONB_PATH"
 )
 
 type CustomType struct {

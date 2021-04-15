@@ -208,6 +208,8 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	case mfd.SearchTypeArrayIntersect:
 		filterType, exclude = "SearchTypeArrayIntersect", "false"
 		templateColumn.IsArray = true
+	case mfd.SearchTypeJsonbPath:
+		filterType, exclude = "SearchTypeJsonbPath", "false"
 	}
 
 	// rendering custom template
