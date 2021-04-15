@@ -13,9 +13,17 @@ import (
 )
 
 var RPC = struct {
-	XMLService   struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
-	XMLVTService struct{ GenerateEntity, LoadEntity, SaveEntity string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
+	XMLService     struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLLangService struct{ LoadTranslation, TranslateEntity string }
+	XMLVTService   struct{ GenerateEntity, LoadEntity, SaveEntity string }
 }{
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
+		GoPGVersions: "gopgversions",
+		Modes:        "modes",
+		SearchTypes:  "searchtypes",
+		Types:        "types",
+	},
 	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
 		Tables:         "tables",
 		LoadProject:    "loadproject",
@@ -26,11 +34,95 @@ var RPC = struct {
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
 	},
+	XMLLangService: struct{ LoadTranslation, TranslateEntity string }{
+		LoadTranslation: "loadtranslation",
+		TranslateEntity: "translateentity",
+	},
 	XMLVTService: struct{ GenerateEntity, LoadEntity, SaveEntity string }{
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
 	},
+}
+
+func (PublicService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"GoPGVersions": {
+				Description: `Gets all supported go-pg versions`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of versions`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.Integer,
+					},
+				},
+			},
+			"Modes": {
+				Description: `Gets all available entity modes`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of modes`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+			"SearchTypes": {
+				Description: `Gets all available search types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of search types`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+			"Types": {
+				Description: `Gets std types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of types`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s PublicService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+
+	switch method {
+	case RPC.PublicService.GoPGVersions:
+		resp.Set(s.GoPGVersions())
+
+	case RPC.PublicService.Modes:
+		resp.Set(s.Modes())
+
+	case RPC.PublicService.SearchTypes:
+		resp.Set(s.SearchTypes())
+
+	case RPC.PublicService.Types:
+		resp.Set(s.Types())
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
 }
 
 func (XMLService) SMD() smd.ServiceInfo {
@@ -585,6 +677,257 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 		}
 
 		resp.Set(s.SaveEntity(args.FilePath, args.Entity))
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
+}
+
+func (XMLLangService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"LoadTranslation": {
+				Description: `Loads full translation of project`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "language",
+						Optional:    false,
+						Description: `language`,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: `Translation`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"language": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"namespaces": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.TranslationNamespace",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.TranslationNamespace": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"entities": {
+									Description: ``,
+									Type:        smd.Array,
+									Items: map[string]string{
+										"$ref": "#/definitions/mfd.TranslationEntity",
+									},
+								},
+							},
+						},
+						"mfd.TranslationEntity": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"name": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"key": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"crumbs": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+								"form": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+								"list": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.TranslationList",
+									Type:        smd.Object,
+								},
+							},
+						},
+						"mfd.XMLMap": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.TranslationList": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"title": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"filter": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+								"headers": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+							},
+						},
+					},
+				},
+			},
+			"TranslateEntity": {
+				Description: `Translates entity`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "namespace",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "entity",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "language",
+						Optional:    false,
+						Description: `language`,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: `TranslationEntity`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"key": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"crumbs": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.XMLMap",
+							Type:        smd.Object,
+						},
+						"form": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.XMLMap",
+							Type:        smd.Object,
+						},
+						"list": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.TranslationList",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.XMLMap": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+						"mfd.TranslationList": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"title": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"filter": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+								"headers": {
+									Description: ``,
+									Ref:         "#/definitions/mfd.XMLMap",
+									Type:        smd.Object,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s XMLLangService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.XMLLangService.LoadTranslation:
+		var args = struct {
+			FilePath string `json:"filePath"`
+			Language string `json:"language"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "language"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.LoadTranslation(args.FilePath, args.Language))
+
+	case RPC.XMLLangService.TranslateEntity:
+		var args = struct {
+			FilePath  string `json:"filePath"`
+			Namespace string `json:"namespace"`
+			Entity    string `json:"entity"`
+			Language  string `json:"language"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity", "language"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.TranslateEntity(args.FilePath, args.Namespace, args.Entity, args.Language))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

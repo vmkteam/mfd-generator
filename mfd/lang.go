@@ -1,17 +1,16 @@
 package mfd
 
 import (
-	"encoding/json"
 	"encoding/xml"
 )
 
 // Translations
 type Translation struct {
 	XMLName    xml.Name                `xml:"Translation" json:"-"`
-	XMLxsi     string                  `xml:"xmlns:xsi,attr"`
-	XMLxsd     string                  `xml:"xmlns:xsd,attr"`
-	Language   string                  `xml:"Language"`
-	Namespaces []*TranslationNamespace `xml:"Namespaces>Namespace" json:"-"`
+	XMLxsi     string                  `xml:"xmlns:xsi,attr" json:"-"`
+	XMLxsd     string                  `xml:"xmlns:xsd,attr" json:"-"`
+	Language   string                  `xml:"Language" json:"language"`
+	Namespaces []*TranslationNamespace `xml:"Namespaces>Namespace" json:"namespaces"`
 }
 
 func (t *Translation) Namespace(namespace string) *TranslationNamespace {
@@ -49,8 +48,8 @@ func (t *Translation) AddNamespace(namespace *TranslationNamespace) {
 
 type TranslationNamespace struct {
 	XMLName  xml.Name             `xml:"Namespace" json:"-"`
-	Name     string               `xml:"Name,attr"`
-	Entities []*TranslationEntity `xml:"Entities>Entity"`
+	Name     string               `xml:"Name,attr" json:"name"`
+	Entities []*TranslationEntity `xml:"Entities>Entity"  json:"entities"`
 }
 
 func (n TranslationNamespace) Entity(entity string) *TranslationEntity {
@@ -84,15 +83,15 @@ func (n *TranslationNamespace) DeleteEntity(entity string) {
 }
 
 type TranslationEntity struct {
-	XMLName xml.Name         `xml:"Entity"`
-	Name    string           `xml:"Name,attr"`
-	Key     string           `xml:"Key,attr"`
-	Crumbs  *XMLMap          `xml:"Crumbs"`
-	Form    *XMLMap          `xml:"Form"`
-	List    *TranslationList `xml:"List"`
+	XMLName xml.Name         `xml:"Entity" json:"-"`
+	Name    string           `xml:"Name,attr" json:"name"`
+	Key     string           `xml:"Key,attr" json:"key"`
+	Crumbs  *XMLMap          `xml:"Crumbs" json:"crumbs"`
+	Form    *XMLMap          `xml:"Form" json:"form"`
+	List    *TranslationList `xml:"List" json:"list"`
 }
 
-func (e TranslationEntity) MarshalJSON() ([]byte, error) {
+func (e TranslationEntity) ToJSONMap() map[string]interface{} {
 	jsM := map[string]interface{}{
 		"breadcrumbs": e.Crumbs,
 		e.Key: map[string]interface{}{
@@ -101,7 +100,7 @@ func (e TranslationEntity) MarshalJSON() ([]byte, error) {
 		},
 	}
 
-	return json.Marshal(jsM)
+	return jsM
 }
 
 type TranslationList struct {

@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	xmlVtGen "github.com/vmkteam/mfd-generator/generators/xml-vt"
+	"github.com/vmkteam/mfd-generator/generators/xml-vt"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/semrush/zenrpc/v2"
@@ -19,8 +19,8 @@ func NewXMLVTService() *XMLVTService {
 
 // Gets xml for selected table
 //zenrpc:filePath	the path to mfd file
-//zenrpc:entity		base entity from namespace.xml
 //zenrpc:namespace	namespace of the base entity
+//zenrpc:entity		base entity from namespace.xml
 //zenrpc:return		VTEntity
 func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.VTEntity, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
@@ -39,7 +39,7 @@ func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.
 	}
 
 	existing := project.VTEntity(entity)
-	vtEntity := xmlVtGen.PackVTEntity(base, existing)
+	vtEntity := xmlvt.PackVTEntity(base, existing)
 
 	return vtEntity, nil
 }

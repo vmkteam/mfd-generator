@@ -67,8 +67,10 @@ func (s *Server) Serve() error {
 		TargetURL: apiroot,
 	})
 
+	rpc.Register("public", NewPublicService())
 	rpc.Register("xml", NewXMLService())
 	rpc.Register("xml-vt", NewXMLVTService())
+	rpc.Register("xml-lang", NewXMLLangService())
 
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)
