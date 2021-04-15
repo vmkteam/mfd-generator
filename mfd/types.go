@@ -2,6 +2,7 @@ package mfd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dizzyfool/genna/model"
 )
@@ -53,6 +54,10 @@ func IsArray(typ string) (string, bool) {
 	}
 
 	return typ, false
+}
+
+func IsJson(typ string) bool {
+	return strings.Index(typ, JsonFieldSep) != -1
 }
 
 func MakeZeroValue(typ string) string {

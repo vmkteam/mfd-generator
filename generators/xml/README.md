@@ -206,3 +206,58 @@ cidr                       -> net.IPNet
   - Если поменять тип колонки в таблице, то она будет добавлена в сущность как новая
 - Если атрибут уже существует в xml, для него не будут сгенерированы новые поиски, даже если должны.
   - Если удалить поиск из секции `<Searches>` от при повторной генерации он не будет добавлен.
+
+### Особенности работы с JSON полями
+
+При работе с JSON/JSONB полями поддерживаются следующие типы поиска:
+```
+SEARCHTYPE_EQUALS             -  f->>'k' in (v)
+SEARCHTYPE_NOT_EQUALS         -  f->>'k' not in (v)
+SEARCHTYPE_NULL               -  f->>'k' is null
+SEARCHTYPE_NOT_NULL           -  f->>'k' is not null
+SEARCHTYPE_ARRAY              -  f->>'k' in (v, v1, v2)
+SEARCHTYPE_NOT_INARRAY        -  f->>'k' not in (v1, v2)
+SEARCHTYPE_ARRAY_CONTAINS     -  f @> '{"k": [v]}'
+SEARCHTYPE_ARRAY_NOT_CONTAINS -  not f @> '{"k": [v]}'
+```
+f - имя json-поля, k - имя ключа в json-поле, v - значение
+
+Для указания типа значения json поля необходимо заполнить атрибут `GoType` в XML-определении поиска. Если его не указывать, то будет использован тип `interface{}`
+
+Поиск типа `SEARCHTYPE_ARRAY_CONTAINS` и `SEARCHTYPE_ARRAY_NOT_CONTAINS` имеет следующие ограничения:
+- Поддерживается только JSONB-полям. С JSON-полями такой поиск не работает.
+- Ищет только по одному значению в массиве.
+- Для быстрой работы рекомендуется повесить GIN индекс с опцией `jsonb_path_ops`.
+
+### Примеры поиска в связанной сущности и в json полях 
+```xml
+<!-- поиск по значению IsMain из связанной сущности Rubric -->
+<Search Name="IsMain" AttrName="Rubric.IsMain" SearchType="SEARCHTYPE_EQUALS"></Search>
+
+<!-- поиск значения в ключе smsCount из json поля Params, поле - int -->
+<Search Name="SmsCount" AttrName="Params->smsCount" SearchType="SEARCHTYPE_EQUALS" GoType="int"></Search>
+
+<!-- поиск по ключу addressHome из json поля Params, поле - string -->
+<Search Name="NotAddressHome" AttrName="Params->addressHome" SearchType="SEARCHTYPE_NOT_EQUALS" GoType="string"></Search>
+
+<!-- поиск по ключу isPasswordSent из json поля Params, поле - bool -->
+<Search Name="IsPasswordSent" AttrName="Params->isPasswordSent" SearchType="SEARCHTYPE_EQUALS" GoType="bool"></Search>
+
+<!-- поиск по наличию ключа token / отсутствию в ключе значения null в json поле Params, поле - string -->
+<Search Name="TokenNotExists" AttrName="Params->token" SearchType="SEARCHTYPE_NULL" GoType="string"></Search>
+
+<!-- поиск по вложенному ключу parent->subValue в json поле Params, поле - int -->
+<Search Name="YandexSubValue" AttrName="Params->parent->subValue" SearchType="SEARCHTYPE_EQUALS" GoType="int"></Search>
+
+<!-- поиск по наличию значения в массиве у ключа favoriteProducts в json поле Params, поле - int -->
+<Search Name="FavoriteProduct" AttrName="Params->favoriteProducts" SearchType="SEARCHTYPE_ARRAY_CONTAINS" GoType="int"></Search>
+
+<!-- поиск по отсутствию значения в массиве у ключа favoriteProducts в json поле Params, поле - int -->
+<Search Name="NotFavoriteProduct" AttrName="Params->favoriteProducts" SearchType="SEARCHTYPE_ARRAY_NOT_CONTAINS" GoType="int"></Search>
+
+<!-- поиск по нескольким значениям ключа smsCount в json поле Params, поле - []int -->
+<Search Name="SmsCounts" AttrName="Params->smsCount" SearchType="SEARCHTYPE_ARRAY" GoType="[]int"></Search>
+
+<!-- поиск по нескольким значениям ключа addressHome в json поле Params, поле - []string -->
+<Search Name="AddressHomes" AttrName="Params->addressHome" SearchType="SEARCHTYPE_ARRAY" GoType="[]string"></Search>
+```
