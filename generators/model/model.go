@@ -255,7 +255,7 @@ func fixPointer(attribute mfd.Attribute) string {
 		return attribute.GoType
 	}
 
-	if attribute.IsCustomMap {
+	if attribute.DisablePointer {
 		return attribute.GoType
 	}
 
