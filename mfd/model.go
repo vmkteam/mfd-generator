@@ -543,10 +543,10 @@ type Attribute struct {
 	DBName string `xml:"DBName,attr"`
 
 	// types
-	IsArray     bool   `xml:"IsArray,attr,omitempty"`
-	IsCustomMap bool   `xml:"IsCustomMap,attr,omitempty"`
-	DBType      string `xml:"DBType,attr,omitempty"`
-	GoType      string `xml:"GoType,attr,omitempty"`
+	IsArray        bool   `xml:"IsArray,attr,omitempty"`
+	DisablePointer bool   `xml:"DisablePointer,attr,omitempty"`
+	DBType         string `xml:"DBType,attr,omitempty"`
+	GoType         string `xml:"GoType,attr,omitempty"`
 
 	// Keys
 	PrimaryKey    bool    `xml:"PK,attr"`
