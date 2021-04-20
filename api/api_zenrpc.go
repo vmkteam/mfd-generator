@@ -13,22 +13,25 @@ import (
 )
 
 var RPC = struct {
+	ProjectService struct{ Open, Update, Save, Tables string }
 	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
-	XMLService     struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLService     struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, SaveEntity string }
 }{
+	ProjectService: struct{ Open, Update, Save, Tables string }{
+		Open:   "open",
+		Update: "update",
+		Save:   "save",
+		Tables: "tables",
+	},
 	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
 		GoPGVersions: "gopgversions",
 		Modes:        "modes",
 		SearchTypes:  "searchtypes",
 		Types:        "types",
 	},
-	XMLService: struct{ Tables, LoadProject, CreateProject, SaveProject, NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
-		Tables:         "tables",
-		LoadProject:    "loadproject",
-		CreateProject:  "createproject",
-		SaveProject:    "saveproject",
+	XMLService: struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
 		NSMapping:      "nsmapping",
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
@@ -43,6 +46,191 @@ var RPC = struct {
 		LoadEntity:     "loadentity",
 		SaveEntity:     "saveentity",
 	},
+}
+
+func (ProjectService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"Open": {
+				Description: `Loads project from file`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "filePath",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.String,
+					},
+					{
+						Name:        "connection",
+						Optional:    false,
+						Description: `connection string`,
+						Type:        smd.String,
+					},
+				},
+				Returns: smd.JSONSchema{
+					Description: `Project`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: map[string]smd.Property{
+						"name": {
+							Description: ``,
+							Type:        smd.String,
+						},
+						"namespaces": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"languages": {
+							Description: ``,
+							Type:        smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						"goPGVer": {
+							Description: ``,
+							Type:        smd.Integer,
+						},
+						"customTypes": {
+							Description: ``,
+							Ref:         "#/definitions/mfd.CustomTypes",
+							Type:        smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.CustomTypes": {
+							Type:       "object",
+							Properties: map[string]smd.Property{},
+						},
+					},
+				},
+			},
+			"Update": {
+				Description: `Updates project in memory`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "project",
+						Optional:    false,
+						Description: ``,
+						Type:        smd.Object,
+						Properties: map[string]smd.Property{
+							"name": {
+								Description: ``,
+								Type:        smd.String,
+							},
+							"namespaces": {
+								Description: ``,
+								Type:        smd.Array,
+								Items: map[string]string{
+									"type": smd.String,
+								},
+							},
+							"languages": {
+								Description: ``,
+								Type:        smd.Array,
+								Items: map[string]string{
+									"type": smd.String,
+								},
+							},
+							"goPGVer": {
+								Description: ``,
+								Type:        smd.Integer,
+							},
+							"customTypes": {
+								Description: ``,
+								Ref:         "#/definitions/mfd.CustomTypes",
+								Type:        smd.Object,
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.CustomTypes": {
+								Type:       "object",
+								Properties: map[string]smd.Property{},
+							},
+						},
+					},
+				},
+			},
+			"Save": {
+				Description: `Saves project from memory to disk`,
+				Parameters:  []smd.JSONSchema{},
+			},
+			"Tables": {
+				Description: `Gets all tables from database`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of tables`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s ProjectService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.ProjectService.Open:
+		var args = struct {
+			FilePath   string `json:"filePath"`
+			Connection string `json:"connection"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"filePath", "connection"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Open(args.FilePath, args.Connection))
+
+	case RPC.ProjectService.Update:
+		var args = struct {
+			Project mfd.Project `json:"project"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"project"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Update(args.Project))
+
+	case RPC.ProjectService.Save:
+		resp.Set(s.Save())
+
+	case RPC.ProjectService.Tables:
+		resp.Set(s.Tables())
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
 }
 
 func (PublicService) SMD() smd.ServiceInfo {
@@ -129,194 +317,9 @@ func (XMLService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
 		Description: ``,
 		Methods: map[string]smd.Service{
-			"Tables": {
-				Description: `Gets all tables from database`,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "url",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-				},
-				Returns: smd.JSONSchema{
-					Description: `list of tables`,
-					Optional:    false,
-					Type:        smd.Array,
-					Items: map[string]string{
-						"type": smd.String,
-					},
-				},
-			},
-			"LoadProject": {
-				Description: `Loads project from file`,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-				},
-				Returns: smd.JSONSchema{
-					Description: `Project`,
-					Optional:    true,
-					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
-						},
-						"namespaces": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
-						},
-						"languages": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
-						},
-						"goPGVer": {
-							Description: ``,
-							Type:        smd.Integer,
-						},
-						"customTypes": {
-							Description: ``,
-							Ref:         "#/definitions/mfd.CustomTypes",
-							Type:        smd.Object,
-						},
-					},
-					Definitions: map[string]smd.Definition{
-						"mfd.CustomTypes": {
-							Type:       "object",
-							Properties: map[string]smd.Property{},
-						},
-					},
-				},
-			},
-			"CreateProject": {
-				Description: `Creates project at filepath location`,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-				},
-				Returns: smd.JSONSchema{
-					Description: `Project`,
-					Optional:    true,
-					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
-						},
-						"namespaces": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
-						},
-						"languages": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
-						},
-						"goPGVer": {
-							Description: ``,
-							Type:        smd.Integer,
-						},
-						"customTypes": {
-							Description: ``,
-							Ref:         "#/definitions/mfd.CustomTypes",
-							Type:        smd.Object,
-						},
-					},
-					Definitions: map[string]smd.Definition{
-						"mfd.CustomTypes": {
-							Type:       "object",
-							Properties: map[string]smd.Property{},
-						},
-					},
-				},
-			},
-			"SaveProject": {
-				Description: `Saves project at filepath location`,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
-						Name:        "project",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.Object,
-						Properties: map[string]smd.Property{
-							"name": {
-								Description: ``,
-								Type:        smd.String,
-							},
-							"namespaces": {
-								Description: ``,
-								Type:        smd.Array,
-								Items: map[string]string{
-									"type": smd.String,
-								},
-							},
-							"languages": {
-								Description: ``,
-								Type:        smd.Array,
-								Items: map[string]string{
-									"type": smd.String,
-								},
-							},
-							"goPGVer": {
-								Description: ``,
-								Type:        smd.Integer,
-							},
-							"customTypes": {
-								Description: ``,
-								Ref:         "#/definitions/mfd.CustomTypes",
-								Type:        smd.Object,
-							},
-						},
-						Definitions: map[string]smd.Definition{
-							"mfd.CustomTypes": {
-								Type:       "object",
-								Properties: map[string]smd.Property{},
-							},
-						},
-					},
-				},
-				Returns: smd.JSONSchema{
-					Description: ``,
-					Optional:    false,
-					Type:        smd.Boolean,
-				},
-			},
 			"NSMapping": {
 				Description: `Saves project at filepath location`,
-				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-				},
+				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `table-namespace mapping`,
 					Optional:    false,
@@ -326,18 +329,6 @@ func (XMLService) SMD() smd.ServiceInfo {
 			"GenerateEntity": {
 				Description: `Gets xml for selected table`,
 				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
-						Name:        "url",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
 					{
 						Name:        "table",
 						Optional:    false,
@@ -395,12 +386,6 @@ func (XMLService) SMD() smd.ServiceInfo {
 				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
 						Name:        "namespace",
 						Optional:    false,
 						Description: ``,
@@ -457,12 +442,6 @@ func (XMLService) SMD() smd.ServiceInfo {
 				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
 						Name:        "entity",
 						Optional:    true,
 						Description: ``,
@@ -503,11 +482,6 @@ func (XMLService) SMD() smd.ServiceInfo {
 						},
 					},
 				},
-				Returns: smd.JSONSchema{
-					Description: `true on success`,
-					Optional:    false,
-					Type:        smd.Boolean,
-				},
 			},
 		},
 	}
@@ -519,112 +493,17 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 	var err error
 
 	switch method {
-	case RPC.XMLService.Tables:
-		var args = struct {
-			Url string `json:"url"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"url"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.Tables(args.Url))
-
-	case RPC.XMLService.LoadProject:
-		var args = struct {
-			FilePath string `json:"filePath"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.LoadProject(args.FilePath))
-
-	case RPC.XMLService.CreateProject:
-		var args = struct {
-			FilePath string `json:"filePath"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.CreateProject(args.FilePath))
-
-	case RPC.XMLService.SaveProject:
-		var args = struct {
-			FilePath string      `json:"filePath"`
-			Project  mfd.Project `json:"project"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "project"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.SaveProject(args.FilePath, args.Project))
-
 	case RPC.XMLService.NSMapping:
-		var args = struct {
-			FilePath string `json:"filePath"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.NSMapping(args.FilePath))
+		resp.Set(s.NSMapping())
 
 	case RPC.XMLService.GenerateEntity:
 		var args = struct {
-			FilePath  string `json:"filePath"`
-			Url       string `json:"url"`
 			Table     string `json:"table"`
 			Namespace string `json:"namespace"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "url", "table", "namespace"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"table", "namespace"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -635,17 +514,16 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.GenerateEntity(args.FilePath, args.Url, args.Table, args.Namespace))
+		resp.Set(s.GenerateEntity(args.Table, args.Namespace))
 
 	case RPC.XMLService.LoadEntity:
 		var args = struct {
-			FilePath  string `json:"filePath"`
 			Namespace string `json:"namespace"`
 			Entity    string `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"namespace", "entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -656,16 +534,15 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.LoadEntity(args.FilePath, args.Namespace, args.Entity))
+		resp.Set(s.LoadEntity(args.Namespace, args.Entity))
 
 	case RPC.XMLService.SaveEntity:
 		var args = struct {
-			FilePath string      `json:"filePath"`
-			Entity   *mfd.Entity `json:"entity"`
+			Entity *mfd.Entity `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "entity"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -676,7 +553,7 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.SaveEntity(args.FilePath, args.Entity))
+		resp.Set(s.SaveEntity(args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -692,12 +569,6 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 			"LoadTranslation": {
 				Description: `Loads full translation of project`,
 				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
 					{
 						Name:        "language",
 						Optional:    false,
@@ -797,12 +668,6 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 				Description: `Translates entity`,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
 						Name:        "namespace",
 						Optional:    false,
 						Description: ``,
@@ -889,12 +754,11 @@ func (s XMLLangService) Invoke(ctx context.Context, method string, params json.R
 	switch method {
 	case RPC.XMLLangService.LoadTranslation:
 		var args = struct {
-			FilePath string `json:"filePath"`
 			Language string `json:"language"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "language"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"language"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -905,18 +769,17 @@ func (s XMLLangService) Invoke(ctx context.Context, method string, params json.R
 			}
 		}
 
-		resp.Set(s.LoadTranslation(args.FilePath, args.Language))
+		resp.Set(s.LoadTranslation(args.Language))
 
 	case RPC.XMLLangService.TranslateEntity:
 		var args = struct {
-			FilePath  string `json:"filePath"`
 			Namespace string `json:"namespace"`
 			Entity    string `json:"entity"`
 			Language  string `json:"language"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity", "language"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"namespace", "entity", "language"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -927,7 +790,7 @@ func (s XMLLangService) Invoke(ctx context.Context, method string, params json.R
 			}
 		}
 
-		resp.Set(s.TranslateEntity(args.FilePath, args.Namespace, args.Entity, args.Language))
+		resp.Set(s.TranslateEntity(args.Namespace, args.Entity, args.Language))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -943,12 +806,6 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 			"GenerateEntity": {
 				Description: `Gets xml for selected table`,
 				Parameters: []smd.JSONSchema{
-					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
 					{
 						Name:        "namespace",
 						Optional:    false,
@@ -1006,12 +863,6 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
 						Name:        "namespace",
 						Optional:    false,
 						Description: ``,
@@ -1068,12 +919,6 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 				Description: `Gets xml for selected entity in project file`,
 				Parameters: []smd.JSONSchema{
 					{
-						Name:        "filePath",
-						Optional:    false,
-						Description: ``,
-						Type:        smd.String,
-					},
-					{
 						Name:        "namespace",
 						Optional:    false,
 						Description: ``,
@@ -1120,11 +965,6 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 						},
 					},
 				},
-				Returns: smd.JSONSchema{
-					Description: `true on success`,
-					Optional:    false,
-					Type:        smd.Boolean,
-				},
 			},
 		},
 	}
@@ -1138,13 +978,12 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 	switch method {
 	case RPC.XMLVTService.GenerateEntity:
 		var args = struct {
-			FilePath  string `json:"filePath"`
 			Namespace string `json:"namespace"`
 			Entity    string `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"namespace", "entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -1155,17 +994,16 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 			}
 		}
 
-		resp.Set(s.GenerateEntity(args.FilePath, args.Namespace, args.Entity))
+		resp.Set(s.GenerateEntity(args.Namespace, args.Entity))
 
 	case RPC.XMLVTService.LoadEntity:
 		var args = struct {
-			FilePath  string `json:"filePath"`
 			Namespace string `json:"namespace"`
 			Entity    string `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"namespace", "entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -1176,17 +1014,16 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 			}
 		}
 
-		resp.Set(s.LoadEntity(args.FilePath, args.Namespace, args.Entity))
+		resp.Set(s.LoadEntity(args.Namespace, args.Entity))
 
 	case RPC.XMLVTService.SaveEntity:
 		var args = struct {
-			FilePath  string        `json:"filePath"`
 			Namespace string        `json:"namespace"`
 			Entity    *mfd.VTEntity `json:"entity"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"filePath", "namespace", "entity"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"namespace", "entity"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -1197,7 +1034,7 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 			}
 		}
 
-		resp.Set(s.SaveEntity(args.FilePath, args.Namespace, args.Entity))
+		resp.Set(s.SaveEntity(args.Namespace, args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

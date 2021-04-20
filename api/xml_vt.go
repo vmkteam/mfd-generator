@@ -10,25 +10,23 @@ import (
 )
 
 type XMLVTService struct {
+	*Store
+
 	zenrpc.Service
 }
 
-func NewXMLVTService() *XMLVTService {
-	return &XMLVTService{}
+func NewXMLVTService(store *Store) *XMLVTService {
+	return &XMLVTService{
+		Store: store,
+	}
 }
 
 // Gets xml for selected table
-//zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the base entity
 //zenrpc:entity		base entity from namespace.xml
 //zenrpc:return		VTEntity
-func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.VTEntity, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	ns := project.Namespace(namespace)
+func (s *XMLVTService) GenerateEntity(namespace, entity string) (*mfd.VTEntity, error) {
+	ns := s.CurrentProject.Namespace(namespace)
 	if ns == nil {
 		return nil, fmt.Errorf("namespace %s not found", namespace)
 	}
@@ -38,24 +36,18 @@ func (s *XMLVTService) GenerateEntity(filePath, namespace, entity string) (*mfd.
 		return nil, fmt.Errorf("table not found in database")
 	}
 
-	existing := project.VTEntity(entity)
+	existing := s.CurrentProject.VTEntity(entity)
 	vtEntity := xmlvt.PackVTEntity(base, existing)
 
 	return vtEntity, nil
 }
 
 // Gets xml for selected entity in project file
-//zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity 	the name of the vt entity
 //zenrpc:return		VTEntity
-func (s *XMLVTService) LoadEntity(filePath, namespace, entity string) (*mfd.VTEntity, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	ns := project.VTNamespace(namespace)
+func (s *XMLVTService) LoadEntity(namespace, entity string) (*mfd.VTEntity, error) {
+	ns := s.CurrentProject.VTNamespace(namespace)
 	if ns == nil {
 		return nil, fmt.Errorf("namespace %s not found", namespace)
 	}
@@ -69,34 +61,16 @@ func (s *XMLVTService) LoadEntity(filePath, namespace, entity string) (*mfd.VTEn
 }
 
 // Gets xml for selected entity in project file
-//zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity		vt entity information
-//zenrpc:return		true on success
-func (s *XMLVTService) SaveEntity(filePath string, namespace string, entity *mfd.VTEntity) (bool, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return false, err
-	}
-
-	ns := project.VTNamespace(namespace)
+func (s *XMLVTService) SaveEntity(namespace string, entity *mfd.VTEntity) error {
+	ns := s.CurrentProject.VTNamespace(namespace)
 	if ns == nil {
-		ns = project.AddVTNamespace(namespace)
+		ns = s.CurrentProject.AddVTNamespace(namespace)
 	}
 
-	project.AddVTEntity(ns.Name, entity)
-	project.UpdateLinks()
+	s.CurrentProject.AddVTEntity(ns.Name, entity)
+	s.CurrentProject.UpdateLinks()
 
-	err = mfd.SaveMFD(filePath, project)
-	if err != nil {
-		return false, err
-	}
-
-	if err := mfd.SaveProjectVT(filePath, project); err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
-
-//go:generate zenrpc

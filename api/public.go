@@ -84,3 +84,5 @@ func (s *PublicService) Types() []string {
 		model.TypeInterface,
 	}
 }
+
+//go:generate zenrpc

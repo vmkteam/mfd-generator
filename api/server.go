@@ -13,6 +13,12 @@ const (
 	addrFlag = "port"
 	pathFlag = "path"
 	corsFlag = "cors"
+
+	publicNS  = "public"
+	projectNS = "project"
+	xmlNS     = "xml"
+	xmlVtNS   = "xml-vt"
+	xmlLangNS = "xml-lang"
 )
 
 type Server struct {
@@ -67,10 +73,15 @@ func (s *Server) Serve() error {
 		TargetURL: apiroot,
 	})
 
-	rpc.Register("public", NewPublicService())
-	rpc.Register("xml", NewXMLService())
-	rpc.Register("xml-vt", NewXMLVTService())
-	rpc.Register("xml-lang", NewXMLLangService())
+	store := &Store{}
+
+	rpc.Register(publicNS, NewPublicService())
+	rpc.Register(projectNS, NewProjectService(store))
+	rpc.Register(xmlNS, NewXMLService(store))
+	rpc.Register(xmlVtNS, NewXMLVTService(store))
+	rpc.Register(xmlLangNS, NewXMLLangService(store))
+
+	rpc.Use(ProjectMiddleware(store))
 
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)

@@ -2,122 +2,32 @@ package api
 
 import (
 	"fmt"
-	"log"
-	"path/filepath"
-	"strings"
 
-	xmlGen "github.com/vmkteam/mfd-generator/generators/xml"
+	"github.com/vmkteam/mfd-generator/generators/xml"
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/dizzyfool/genna/lib"
 	"github.com/semrush/zenrpc/v2"
 )
 
 const DefaultGoPGVer = mfd.GoPG10
 
 type XMLService struct {
+	*Store
+
 	zenrpc.Service
 }
 
-func NewXMLService() *XMLService {
-	return &XMLService{}
-}
-
-// Gets all tables from database
-//zenrpc:url	the connection string to pg database
-//zenrpc:return	list of tables
-func (s *XMLService) Tables(url string) ([]string, error) {
-	var logger *log.Logger
-
-	genna := genna.New(url, logger)
-	if err := genna.Connect(); err != nil {
-		return nil, err
+func NewXMLService(store *Store) *XMLService {
+	return &XMLService{
+		Store: store,
 	}
-
-	schemas, err := genna.Store.Schemas()
-	if err != nil {
-		return nil, err
-	}
-
-	var filter []string
-	for _, schema := range schemas {
-		if strings.HasPrefix(schema, "pg_") || schema == "information_schema" {
-			continue
-		}
-		filter = append(filter, fmt.Sprintf("%s.*", schema))
-	}
-
-	entities, err := genna.Read(filter, false, false, DefaultGoPGVer, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]string, len(entities))
-	for i, entity := range entities {
-		result[i] = entity.PGFullName
-	}
-
-	return result, nil
-}
-
-// Loads project from file
-//zenrpc:filePath	the path to mfd file
-//zenrpc:return 	Project
-func (s *XMLService) LoadProject(filePath string) (*mfd.Project, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	return project, nil
-}
-
-// Creates project at filepath location
-//zenrpc:filePath	the path to mfd file
-//zenrpc:return		Project
-func (s *XMLService) CreateProject(filePath string) (*mfd.Project, error) {
-	project := mfd.NewProject(filepath.Base(filePath), DefaultGoPGVer)
-
-	err := mfd.SaveMFD(filePath, project)
-	if err != nil {
-		return nil, err
-	}
-
-	return project, nil
 }
 
 // Saves project at filepath location
-//zenrpc:filePath	the path to mfd file
-//zenrpc:project	true on success
-func (s *XMLService) SaveProject(filePath string, project mfd.Project) (bool, error) {
-	original, err := mfd.LoadProject(filePath, true, project.GoPGVer)
-	if err != nil {
-		return false, err
-	}
-
-	project.XMLName = original.XMLName
-	project.XMLxsd = original.XMLxsd
-	project.XMLxsi = original.XMLxsi
-
-	err = mfd.SaveMFD(filePath, &project)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-// Saves project at filepath location
-//zenrpc:filePath	the path to mfd file
 //zenrpc:return		table-namespace mapping
-func (s *XMLService) NSMapping(filePath string) (map[string]string, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *XMLService) NSMapping() (map[string]string, error) {
 	result := map[string]string{}
-	for _, ns := range project.Namespaces {
+	for _, ns := range s.CurrentProject.Namespaces {
 		for _, entity := range ns.Entities {
 			result[entity.Table] = ns.Name
 		}
@@ -127,29 +37,20 @@ func (s *XMLService) NSMapping(filePath string) (map[string]string, error) {
 }
 
 // Gets xml for selected table
-//zenrpc:filePath	the path to mfd file
-//zenrpc:url		the connection string to postgresql database
 //zenrpc:table		selected table name
 //zenrpc:namespace	namespace of the new entity
 //zenrpc:return		Entity
-func (s *XMLService) GenerateEntity(filePath, url, table, namespace string) (*mfd.Entity, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	genna := genna.New(url, nil)
-
-	entities, err := genna.Read([]string{table}, false, false, project.GoPGVer, project.CustomTypeMapping())
+func (s *XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error) {
+	entities, err := s.Genna.Read([]string{table}, false, false, s.CurrentProject.GoPGVer, s.CurrentProject.CustomTypeMapping())
 	if err != nil {
 		return nil, err
 	}
 
 	for _, entity := range entities {
-		exiting := project.Entity(entity.GoName)
+		exiting := s.CurrentProject.Entity(entity.GoName)
 
 		// adding to project
-		entity := xmlGen.PackEntity(namespace, entity, exiting, project.CustomTypes)
+		entity := xml.PackEntity(namespace, entity, exiting, s.CurrentProject.CustomTypes)
 
 		return entity, nil
 	}
@@ -158,17 +59,11 @@ func (s *XMLService) GenerateEntity(filePath, url, table, namespace string) (*mf
 }
 
 // Gets xml for selected entity in project file
-//zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the entity
 //zenrpc:entity 	the name of the entity
 //zenrpc:return		Entity
-func (s *XMLService) LoadEntity(filePath, namespace, entity string) (*mfd.Entity, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	ns := project.Namespace(namespace)
+func (s *XMLService) LoadEntity(namespace, entity string) (*mfd.Entity, error) {
+	ns := s.CurrentProject.Namespace(namespace)
 	if ns == nil {
 		return nil, fmt.Errorf("namespace %s not found", namespace)
 	}
@@ -182,33 +77,15 @@ func (s *XMLService) LoadEntity(filePath, namespace, entity string) (*mfd.Entity
 }
 
 // Gets xml for selected entity in project file
-//zenrpc:filePath	the path to mfd file
 //zenrpc:contents	xml contents of the entity
-//zenrpc:return     true on success
-func (s *XMLService) SaveEntity(filePath string, entity *mfd.Entity) (bool, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return false, err
-	}
-
-	ns := project.Namespace(entity.Namespace)
+func (s *XMLService) SaveEntity(entity *mfd.Entity) error {
+	ns := s.CurrentProject.Namespace(entity.Namespace)
 	if ns == nil {
-		ns = project.AddNamespace(entity.Namespace)
+		ns = s.CurrentProject.AddNamespace(entity.Namespace)
 	}
 
-	project.AddEntity(ns.Name, entity)
-	project.UpdateLinks()
+	s.CurrentProject.AddEntity(ns.Name, entity)
+	s.CurrentProject.UpdateLinks()
 
-	err = mfd.SaveMFD(filePath, project)
-	if err != nil {
-		return false, err
-	}
-
-	if err := mfd.SaveProjectXML(filePath, project); err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
-
-//go:generate zenrpc

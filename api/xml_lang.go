@@ -10,24 +10,22 @@ import (
 )
 
 type XMLLangService struct {
+	*Store
+
 	zenrpc.Service
 }
 
-func NewXMLLangService() *XMLLangService {
-	return &XMLLangService{}
+func NewXMLLangService(store *Store) *XMLLangService {
+	return &XMLLangService{
+		Store: store,
+	}
 }
 
 // Loads full translation of project
-//zenrpc:filePath	the path to mfd file
 //zenrpc:language   language
 //zenrpc:return		Translation
-func (s *XMLLangService) LoadTranslation(filePath, language string) (*mfd.Translation, error) {
-	_, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	translations, err := mfd.LoadTranslations(filePath, []string{language})
+func (s *XMLLangService) LoadTranslation(language string) (*mfd.Translation, error) {
+	translations, err := mfd.LoadTranslations(s.CurrentFile, []string{language})
 	if err != nil {
 		return nil, err
 	}
@@ -40,18 +38,12 @@ func (s *XMLLangService) LoadTranslation(filePath, language string) (*mfd.Transl
 }
 
 // Translates entity
-//zenrpc:filePath	the path to mfd file
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity		vt entity from vt.xml
 //zenrpc:language   language
 //zenrpc:return		TranslationEntity
-func (s *XMLLangService) TranslateEntity(filePath, namespace, entity, language string) (*mfd.TranslationEntity, error) {
-	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
-	if err != nil {
-		return nil, err
-	}
-
-	translations, err := mfd.LoadTranslations(filePath, []string{language})
+func (s *XMLLangService) TranslateEntity(namespace, entity, language string) (*mfd.TranslationEntity, error) {
+	translations, err := mfd.LoadTranslations(s.CurrentFile, []string{language})
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +53,7 @@ func (s *XMLLangService) TranslateEntity(filePath, namespace, entity, language s
 		translation = mfd.Translation{}
 	}
 
-	ns := project.VTNamespace(namespace)
+	ns := s.CurrentProject.VTNamespace(namespace)
 	if ns == nil {
 		return nil, fmt.Errorf("vt namespace %s is not found in project", namespace)
 	}
