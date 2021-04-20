@@ -151,7 +151,7 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	// use default templateColumn as base
 	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
 	templateColumn.Name = search.Name
-	if search.Attribute.DBType == model.TypePGJSONB || search.Attribute.DBType == model.TypePGJSON {
+	if search.Attribute.IsJSON() {
 		if search.GoType == "" {
 			search.GoType = model.TypeInterface
 		}
