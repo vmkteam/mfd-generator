@@ -14,6 +14,7 @@ import (
 
 var RPC = struct {
 	ProjectService struct{ Open, Update, Save, Tables string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
 	XMLService     struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, SaveEntity string }
@@ -23,6 +24,12 @@ var RPC = struct {
 		Update: "update",
 		Save:   "save",
 		Tables: "tables",
+	},
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
+		GoPGVersions: "gopgversions",
+		Modes:        "modes",
+		SearchTypes:  "searchtypes",
+		Types:        "types",
 	},
 	XMLService: struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
 		NSMapping:      "nsmapping",
@@ -248,6 +255,86 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 
 	case RPC.ProjectService.Tables:
 		resp.Set(s.Tables())
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
+}
+
+func (PublicService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Description: ``,
+		Methods: map[string]smd.Service{
+			"GoPGVersions": {
+				Description: `Gets all supported go-pg versions`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of versions`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.Integer,
+					},
+				},
+			},
+			"Modes": {
+				Description: `Gets all available entity modes`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of modes`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+			"SearchTypes": {
+				Description: `Gets all available search types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of search types`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+			"Types": {
+				Description: `Gets std types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of types`,
+					Optional:    false,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s PublicService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+
+	switch method {
+	case RPC.PublicService.GoPGVersions:
+		resp.Set(s.GoPGVersions())
+
+	case RPC.PublicService.Modes:
+		resp.Set(s.Modes())
+
+	case RPC.PublicService.SearchTypes:
+		resp.Set(s.SearchTypes())
+
+	case RPC.PublicService.Types:
+		resp.Set(s.Types())
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

@@ -1,13 +1,14 @@
 package api
 
 import (
+	"github.com/semrush/zenrpc/v2"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/model"
 )
 
 type PublicService struct {
-	//zenrpc.Service
+	zenrpc.Service
 }
 
 func NewPublicService() *PublicService {
