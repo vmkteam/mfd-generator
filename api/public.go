@@ -4,11 +4,10 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/model"
-	"github.com/semrush/zenrpc/v2"
 )
 
 type PublicService struct {
-	zenrpc.Service
+	//zenrpc.Service
 }
 
 func NewPublicService() *PublicService {

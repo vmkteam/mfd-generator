@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/dizzyfool/genna/lib"
-	"github.com/semrush/zenrpc/v2"
 	"github.com/vmkteam/mfd-generator/mfd"
+
+	"github.com/semrush/zenrpc/v2"
 )
 
 type ProjectService struct {
