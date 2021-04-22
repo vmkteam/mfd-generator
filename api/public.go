@@ -60,6 +60,7 @@ func (s *PublicService) SearchTypes() []string {
 		mfd.SearchTypeArrayNotContains,
 		mfd.SearchTypeArrayContained,
 		mfd.SearchTypeArrayIntersect,
+		mfd.SearchTypeJsonbPath,
 	}
 }
 

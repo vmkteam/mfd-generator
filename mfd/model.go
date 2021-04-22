@@ -544,7 +544,7 @@ type Attribute struct {
 
 	// types
 	IsArray        bool   `xml:"IsArray,attr,omitempty" json:"isArray"`
-	DisablePointer bool   `xml:"DisablePointer,attr,omitempty"`
+	DisablePointer bool   `xml:"DisablePointer,attr,omitempty" json:"disablePointer"`
 	DBType         string `xml:"DBType,attr,omitempty" json:"dbType"`
 	GoType         string `xml:"GoType,attr,omitempty" json:"goType"`
 
