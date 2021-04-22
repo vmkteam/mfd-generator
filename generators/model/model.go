@@ -103,7 +103,11 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	// adding annotations for go-pg to column
 	tagName := tagName(options)
 	tags := util.NewAnnotation()
-	tags.AddTag(tagName, util.Quoted(entity.Table, true))
+	if options.GoPGVer < mfd.GoPG10 {
+		tags.AddTag(tagName, util.Quoted(entity.Table, true))
+	} else {
+		tags.AddTag(tagName, entity.Table)
+	}
 	tags.AddTag(tagName, fmt.Sprintf("alias:%s", util.DefaultAlias))
 	if options.GoPGVer == mfd.GoPG8 {
 		// hack for `pg:",discard_unknown_columns"` for go-pg 8
