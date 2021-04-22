@@ -48,7 +48,7 @@ func (s *ProjectService) Open(filePath, connection string) (*mfd.Project, error)
 }
 
 // Updates project in memory
-//zenrpc:project	project information
+//zenrpc:project	Project
 func (s *ProjectService) Update(project mfd.Project) error {
 	s.CurrentProject = &project
 
@@ -56,7 +56,6 @@ func (s *ProjectService) Update(project mfd.Project) error {
 }
 
 // Saves project from memory to disk
-//zenrpc:project	project information
 func (s *ProjectService) Save() error {
 	if err := mfd.SaveMFD(s.CurrentFile, s.CurrentProject); err != nil {
 		return err

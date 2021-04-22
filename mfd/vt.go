@@ -185,16 +185,13 @@ func (e *VTEntity) TmplAttributeByNames(name, attrName string) *TmplAttribute {
 type VTAttribute struct {
 	XMLName xml.Name `xml:"Attribute" json:"-"`
 
-	// Names
 	Name       string `xml:"Name,attr" json:"name"`
 	AttrName   string `xml:"AttrName,attr,omitempty" json:"attrName"`
 	SearchName string `xml:"SearchName,attr,omitempty" json:"searchName"`
 
-	// model options
-	Summary bool `xml:"Summary,attr" json:"summary"` // show in list
-	Search  bool `xml:"Search,attr" json:"search"`   // show in search
+	Summary bool `xml:"Summary,attr" json:"summary"`
+	Search  bool `xml:"Search,attr" json:"search"`
 
-	// Validate options
 	MaxValue int    `xml:"Max,attr" json:"max"`
 	MinValue int    `xml:"Min,attr" json:"min"`
 	Required bool   `xml:"Required,attr" json:"required"`

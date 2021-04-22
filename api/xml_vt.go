@@ -62,7 +62,7 @@ func (s *XMLVTService) LoadEntity(namespace, entity string) (*mfd.VTEntity, erro
 
 // Gets xml for selected entity in project file
 //zenrpc:namespace	namespace of the vt entity
-//zenrpc:entity		vt entity information
+//zenrpc:entity		VTEntity
 func (s *XMLVTService) SaveEntity(namespace string, entity *mfd.VTEntity) error {
 	ns := s.CurrentProject.VTNamespace(namespace)
 	if ns == nil {

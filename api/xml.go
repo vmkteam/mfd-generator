@@ -17,6 +17,11 @@ type XMLService struct {
 	zenrpc.Service
 }
 
+type NSMapping struct {
+	Table     string `json:"table"`
+	Namespace string `json:"namespace"`
+}
+
 func NewXMLService(store *Store) *XMLService {
 	return &XMLService{
 		Store: store,
@@ -24,12 +29,17 @@ func NewXMLService(store *Store) *XMLService {
 }
 
 // Saves project at filepath location
-//zenrpc:return		table-namespace mapping
-func (s *XMLService) NSMapping() (map[string]string, error) {
-	result := map[string]string{}
+//zenrpc:return		NSMapping
+func (s *XMLService) NSMapping() ([]NSMapping, error) {
+	index := map[string]struct{}{}
+	var result []NSMapping
+
 	for _, ns := range s.CurrentProject.Namespaces {
 		for _, entity := range ns.Entities {
-			result[entity.Table] = ns.Name
+			if _, ok := index[entity.Table]; !ok {
+				index[entity.Table] = struct{}{}
+				result = append(result, NSMapping{Table: entity.Table, Namespace: ns.Name})
+			}
 		}
 	}
 
@@ -77,7 +87,7 @@ func (s *XMLService) LoadEntity(namespace, entity string) (*mfd.Entity, error) {
 }
 
 // Gets xml for selected entity in project file
-//zenrpc:contents	xml contents of the entity
+//zenrpc:entity	Entity
 func (s *XMLService) SaveEntity(entity *mfd.Entity) error {
 	ns := s.CurrentProject.Namespace(entity.Namespace)
 	if ns == nil {

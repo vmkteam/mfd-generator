@@ -130,7 +130,7 @@ func (ProjectService) SMD() smd.ServiceInfo {
 					{
 						Name:        "project",
 						Optional:    false,
-						Description: `project information`,
+						Description: `Project`,
 						Type:        smd.Object,
 						Properties: map[string]smd.Property{
 							"name": {
@@ -351,9 +351,27 @@ func (XMLService) SMD() smd.ServiceInfo {
 				Description: `Saves project at filepath location`,
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
-					Description: `table-namespace mapping`,
+					Description: `NSMapping`,
 					Optional:    false,
-					Type:        smd.Object,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"$ref": "#/definitions/NSMapping",
+					},
+					Definitions: map[string]smd.Definition{
+						"NSMapping": {
+							Type: "object",
+							Properties: map[string]smd.Property{
+								"table": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"namespace": {
+									Description: ``,
+									Type:        smd.String,
+								},
+							},
+						},
+					},
 				},
 			},
 			"GenerateEntity": {
@@ -409,7 +427,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"dbName": {
@@ -417,7 +435,11 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"isArray": {
-									Description: `types`,
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"disablePointer": {
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"dbType": {
@@ -429,7 +451,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"pk": {
-									Description: `Keys`,
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"fk": {
@@ -437,7 +459,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"nullable": {
-									Description: `data params`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"addable": {
@@ -456,7 +478,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Description: ``,
 									Type:        smd.Integer,
 								},
-								"default": {
+								"defaultVal": {
 									Description: ``,
 									Type:        smd.String,
 								},
@@ -466,7 +488,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"attrName": {
@@ -474,6 +496,10 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"searchType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
 									Description: ``,
 									Type:        smd.String,
 								},
@@ -535,7 +561,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"dbName": {
@@ -543,7 +569,11 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"isArray": {
-									Description: `types`,
+									Description: ``,
+									Type:        smd.Boolean,
+								},
+								"disablePointer": {
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"dbType": {
@@ -555,7 +585,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"pk": {
-									Description: `Keys`,
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"fk": {
@@ -563,7 +593,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"nullable": {
-									Description: `data params`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"addable": {
@@ -582,7 +612,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Description: ``,
 									Type:        smd.Integer,
 								},
-								"default": {
+								"defaultVal": {
 									Description: ``,
 									Type:        smd.String,
 								},
@@ -592,7 +622,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"attrName": {
@@ -600,6 +630,10 @@ func (XMLService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"searchType": {
+									Description: ``,
+									Type:        smd.String,
+								},
+								"goType": {
 									Description: ``,
 									Type:        smd.String,
 								},
@@ -614,7 +648,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 					{
 						Name:        "entity",
 						Optional:    true,
-						Description: ``,
+						Description: `Entity`,
 						Type:        smd.Object,
 						Properties: map[string]smd.Property{
 							"name": {
@@ -649,7 +683,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 								Type: "object",
 								Properties: map[string]smd.Property{
 									"name": {
-										Description: `names`,
+										Description: ``,
 										Type:        smd.String,
 									},
 									"dbName": {
@@ -657,7 +691,11 @@ func (XMLService) SMD() smd.ServiceInfo {
 										Type:        smd.String,
 									},
 									"isArray": {
-										Description: `types`,
+										Description: ``,
+										Type:        smd.Boolean,
+									},
+									"disablePointer": {
+										Description: ``,
 										Type:        smd.Boolean,
 									},
 									"dbType": {
@@ -669,7 +707,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 										Type:        smd.String,
 									},
 									"pk": {
-										Description: `Keys`,
+										Description: ``,
 										Type:        smd.Boolean,
 									},
 									"fk": {
@@ -677,7 +715,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 										Type:        smd.String,
 									},
 									"nullable": {
-										Description: `data params`,
+										Description: ``,
 										Type:        smd.String,
 									},
 									"addable": {
@@ -696,7 +734,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 										Description: ``,
 										Type:        smd.Integer,
 									},
-									"default": {
+									"defaultVal": {
 										Description: ``,
 										Type:        smd.String,
 									},
@@ -706,7 +744,7 @@ func (XMLService) SMD() smd.ServiceInfo {
 								Type: "object",
 								Properties: map[string]smd.Property{
 									"name": {
-										Description: `names`,
+										Description: ``,
 										Type:        smd.String,
 									},
 									"attrName": {
@@ -714,6 +752,10 @@ func (XMLService) SMD() smd.ServiceInfo {
 										Type:        smd.String,
 									},
 									"searchType": {
+										Description: ``,
+										Type:        smd.String,
+									},
+									"goType": {
 										Description: ``,
 										Type:        smd.String,
 									},
@@ -1073,7 +1115,7 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `Names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"attrName": {
@@ -1085,16 +1127,15 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 									Type:        smd.String,
 								},
 								"summary": {
-									Description: `model options
-show in list`,
-									Type: smd.Boolean,
+									Description: ``,
+									Type:        smd.Boolean,
 								},
 								"search": {
-									Description: `show in search`,
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"max": {
-									Description: `Validate options`,
+									Description: ``,
 									Type:        smd.Integer,
 								},
 								"min": {
@@ -1196,7 +1237,7 @@ show in list`,
 							Type: "object",
 							Properties: map[string]smd.Property{
 								"name": {
-									Description: `Names`,
+									Description: ``,
 									Type:        smd.String,
 								},
 								"attrName": {
@@ -1208,16 +1249,15 @@ show in list`,
 									Type:        smd.String,
 								},
 								"summary": {
-									Description: `model options
-show in list`,
-									Type: smd.Boolean,
+									Description: ``,
+									Type:        smd.Boolean,
 								},
 								"search": {
-									Description: `show in search`,
+									Description: ``,
 									Type:        smd.Boolean,
 								},
 								"max": {
-									Description: `Validate options`,
+									Description: ``,
 									Type:        smd.Integer,
 								},
 								"min": {
@@ -1278,7 +1318,7 @@ show in list`,
 					{
 						Name:        "entity",
 						Optional:    true,
-						Description: `vt entity information`,
+						Description: `VTEntity`,
 						Type:        smd.Object,
 						Properties: map[string]smd.Property{
 							"name": {
@@ -1313,7 +1353,7 @@ show in list`,
 								Type: "object",
 								Properties: map[string]smd.Property{
 									"name": {
-										Description: `Names`,
+										Description: ``,
 										Type:        smd.String,
 									},
 									"attrName": {
@@ -1325,16 +1365,15 @@ show in list`,
 										Type:        smd.String,
 									},
 									"summary": {
-										Description: `model options
-show in list`,
-										Type: smd.Boolean,
+										Description: ``,
+										Type:        smd.Boolean,
 									},
 									"search": {
-										Description: `show in search`,
+										Description: ``,
 										Type:        smd.Boolean,
 									},
 									"max": {
-										Description: `Validate options`,
+										Description: ``,
 										Type:        smd.Integer,
 									},
 									"min": {

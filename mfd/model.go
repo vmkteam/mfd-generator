@@ -538,28 +538,25 @@ func (e *Entity) TitleAttribute() *Attribute {
 // Attribute is xml element
 type Attribute struct {
 	XMLName xml.Name `xml:"Attribute" json:"-"`
-	// names
+
 	Name   string `xml:"Name,attr" json:"name"`
 	DBName string `xml:"DBName,attr" json:"dbName"`
 
-	// types
 	IsArray        bool   `xml:"IsArray,attr,omitempty" json:"isArray"`
 	DisablePointer bool   `xml:"DisablePointer,attr,omitempty" json:"disablePointer"`
 	DBType         string `xml:"DBType,attr,omitempty" json:"dbType"`
 	GoType         string `xml:"GoType,attr,omitempty" json:"goType"`
 
-	// Keys
 	PrimaryKey    bool    `xml:"PK,attr" json:"pk"`
 	ForeignKey    string  `xml:"FK,attr,omitempty" json:"fk"`
 	ForeignEntity *Entity `xml:"-" json:"-"`
 
-	// data params
 	Null      string `xml:"Nullable,attr" json:"nullable"`
 	Addable   *bool  `xml:"Addable,attr" json:"addable"`
 	Updatable *bool  `xml:"Updatable,attr" json:"updatable"`
 	Min       int    `xml:"Min,attr" json:"min"`
 	Max       int    `xml:"Max,attr" json:"max"`
-	Default   string `xml:"Default,attr,omitempty" json:"default"`
+	Default   string `xml:"Default,attr,omitempty" json:"defaultVal"`
 }
 
 // Merge fills attribute (from file) values from db
@@ -635,12 +632,11 @@ func (a *Attribute) IsIDsArray() bool {
 
 // Attribute is xml element
 type Search struct {
-	XMLName xml.Name `xml:"Search" json:"-"`
-	// names
-	Name       string `xml:"Name,attr" json:"name"`
-	AttrName   string `xml:"AttrName,attr" json:"attrName"`
-	SearchType string `xml:"SearchType,attr" json:"searchType"`
-	GoType     string `xml:"GoType,attr,omitempty"`
+	XMLName    xml.Name `xml:"Search" json:"-"`
+	Name       string   `xml:"Name,attr" json:"name"`
+	AttrName   string   `xml:"AttrName,attr" json:"attrName"`
+	SearchType string   `xml:"SearchType,attr" json:"searchType"`
+	GoType     string   `xml:"GoType,attr,omitempty" json:"goType"`
 
 	Attribute *Attribute `xml:"-" json:"-"`
 	Entity    *Entity    `xml:"-" json:"-"`
