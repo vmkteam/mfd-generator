@@ -212,6 +212,9 @@ type RelationData struct {
 func PackRelation(relation mfd.Attribute, options Options) RelationData {
 	// adding go-pg's fk annotation
 	tags := util.NewAnnotation().AddTag("pg", "fk:"+relation.DBName)
+	if options.GoPGVer >= mfd.GoPG10 {
+		tags.AddTag("pg", "rel:has-one")
+	}
 	comment := ""
 
 	// getting pk in foreign table
