@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/dizzyfool/genna/lib"
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/semrush/zenrpc/v2"
+	"github.com/dizzyfool/genna/lib"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 type ProjectService struct {
@@ -51,6 +51,7 @@ func (s *ProjectService) Open(filePath, connection string) (*mfd.Project, error)
 //zenrpc:project	Project
 func (s *ProjectService) Update(project mfd.Project) error {
 	s.CurrentProject = &project
+	s.CurrentProject.UpdateByNSMapping()
 
 	return nil
 }

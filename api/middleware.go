@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/dizzyfool/genna/lib"
-	"github.com/semrush/zenrpc/v2"
 	"github.com/vmkteam/mfd-generator/mfd"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 type Store struct {

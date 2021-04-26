@@ -6,7 +6,7 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/xml-lang"
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/semrush/zenrpc/v2"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 type XMLLangService struct {

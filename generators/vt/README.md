@@ -243,7 +243,7 @@ import (
 	"apisrv/db"  // значение параметра -x --model
 	"apisrv/pkg/embedlog" //TODO undo hardcode
 
-	"github.com/semrush/zenrpc"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 //go:generate zenrpc
