@@ -7,6 +7,7 @@ import (
 
 	"github.com/semrush/zenrpc/v2"
 	"github.com/spf13/cobra"
+	"github.com/vmkteam/mfd-generator/api/dartclient"
 )
 
 const (
@@ -86,6 +87,13 @@ func (s *Server) Serve() error {
 	router := http.NewServeMux()
 	router.Handle(apiroot, rpc)
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
+	router.Handle(docroot+"api_client.dart", http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		resp, err := dartclient.NewClient(rpc.SMD()).Run()
+		if err != nil {
+			panic(err)
+		}
+		rw.Write(resp)
+	}))
 
 	log.Printf("starting server on %s\n", s.addr)
 
