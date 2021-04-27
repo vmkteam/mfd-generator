@@ -40,6 +40,7 @@ type dartNamespace struct {
 type dartService struct {
 	Namespace string // TODO
 	Name      string // TODO
+	Comment   string
 	Args      []dartType
 	Response  dartType
 }
@@ -109,6 +110,7 @@ class {{.ServiceName}} {
 
   final JSONRPCClient _client;
 {{$shortName := .Name}}{{range .Services}}
+  {{if not (eq .Comment "") }}// {{ .Comment }}{{ end }}
   Future<{{.FutureType}}> {{.NameLCF}}({{.ArgsType}} args) {
     return Future(() async {
       {{- if ne .FutureType "void"}}final response ={{- end }} await _client.call('{{$shortName}}.{{.NameLCF}}', args) {{.AsType}};
@@ -198,6 +200,7 @@ func (c *Client) convert() {
 		respService := dartService{
 			Namespace: namespace,
 			Name:      method,
+			Comment:   service.Description,
 			Args:      args,
 			Response:  resp,
 		}
@@ -205,8 +208,9 @@ func (c *Client) convert() {
 		// add service to namespace
 		var index int
 		for i := range c.client.Namespaces {
-			if c.client.Namespaces[i].Name == namespace {
+			if c.client.Namespaces[i].Name == cleanSymbols(namespace) {
 				index = i
+				break
 			}
 		}
 		if _, ok := c.namespaces[namespace]; !ok {
@@ -257,7 +261,7 @@ func (c *Client) addModel(dc dartClass) {
 		return
 	}
 	switch dc.Name {
-	case "PorebrikTime":
+	case "AnyCustomType":
 		return
 	}
 
@@ -280,7 +284,7 @@ func (c *Client) convertScalar(t, description string) string {
 		return "bool"
 	default:
 		switch description {
-		case "PorebrikTime":
+		case "AnyCustomType":
 			return "DateTime"
 		}
 		return ""
@@ -330,20 +334,6 @@ func (c *Client) convertType(in smd.JSONSchema, comment string) dartType {
 			Properties:  d.Properties,
 		})
 	}
-
-	// dirty hacks for dictionaries
-	// TODO we need map support in SMD schema
-	//if in.Type == "object" {
-	//	if in.Description == "ApiPharmacy" && in.Name == "pharmacies" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//	if in.Description == "ApiExtendedPickupPrice" && in.Name == "extendedPickups" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//	if in.Description == "ApiPharmacyPrice" && in.Name == "pharmacies" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//}
 
 	return result
 }
