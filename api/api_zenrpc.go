@@ -14,7 +14,7 @@ import (
 
 var RPC = struct {
 	ProjectService struct{ Open, Update, Save, Tables string }
-	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, Ping string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }
 	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
@@ -25,11 +25,12 @@ var RPC = struct {
 		Save:   "save",
 		Tables: "tables",
 	},
-	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, Ping string }{
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }{
 		GoPGVersions: "gopgversions",
 		Modes:        "modes",
 		SearchTypes:  "searchtypes",
 		Types:        "types",
+		DBTypes:      "dbtypes",
 		Ping:         "ping",
 	},
 	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
@@ -331,6 +332,17 @@ func (PublicService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"DBTypes": {
+				Description: `Gets postgres types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of types`,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
 			"Ping": {
 				Parameters: []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
@@ -357,6 +369,9 @@ func (s PublicService) Invoke(ctx context.Context, method string, params json.Ra
 
 	case RPC.PublicService.Types:
 		resp.Set(s.Types())
+
+	case RPC.PublicService.DBTypes:
+		resp.Set(s.DBTypes())
 
 	case RPC.PublicService.Ping:
 		resp.Set(s.Ping())
