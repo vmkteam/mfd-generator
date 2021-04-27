@@ -9,7 +9,7 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/semrush/zenrpc/v2/smd"
+	"github.com/vmkteam/zenrpc/v2/smd"
 )
 
 const (
@@ -352,9 +352,9 @@ func (c *Client) convertType(in smd.JSONSchema, comment string) dartType {
 func (c *Client) addComplexInterface(in smd.JSONSchema) {
 	var dartTypes []dartType
 
-	for name, p := range in.Properties {
+	for _, p := range in.Properties {
 		dartTypes = append(dartTypes, c.convertType(smd.JSONSchema{
-			Name:        name,
+			Name:        p.Name,
 			Description: strings.TrimPrefix(p.Ref, definitionsPrefix),
 			Type:        p.Type,
 			Items:       p.Items,

@@ -1,6 +1,7 @@
 package mfd
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"strings"
@@ -73,19 +74,25 @@ func (c CustomTypes) GoImport(goType, dbType string) (string, bool) {
 	return "", false
 }
 
+type NSMapping struct {
+	Namespace string `json:"namespace"`
+	Entity    string `json:"entity"`
+}
+
 // Project is xml element
 type Project struct {
 	XMLName        xml.Name    `xml:"Project" json:"-"`
 	XMLxsi         string      `xml:"xmlns:xsi,attr" json:"-"`
 	XMLxsd         string      `xml:"xmlns:xsd,attr" json:"-"`
 	Name           string      `json:"name"`
-	NamespaceNames []string    `xml:"PackageNames>string" json:"namespaces"`
+	NamespaceNames []string    `xml:"PackageNames>string" json:"-"`
 	Languages      []string    `xml:"Languages>string" json:"languages"`
 	GoPGVer        int         `xml:"GoPGVer" json:"goPGVer"`
 	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
 
 	Namespaces   []*Namespace   `xml:"-" json:"-"`
 	VTNamespaces []*VTNamespace `xml:"-" json:"-"`
+	NSMapping    []NSMapping    `xml:"-" json:"namespaces"`
 }
 
 func NewProject(name string, goPGVer int) *Project {
@@ -373,6 +380,53 @@ func (p *Project) CustomTypeMapping() model.CustomTypeMapping {
 	}
 
 	return ctm
+}
+
+func (p *Project) NamespacesMapping() []NSMapping {
+	var result []NSMapping
+
+	for _, ns := range p.Namespaces {
+		for _, e := range ns.Entities {
+			result = append(result, NSMapping{
+				Namespace: ns.Name,
+				Entity:    e.Name,
+			})
+		}
+	}
+
+	return result
+}
+
+func (p *Project) UpdateByNSMapping() {
+	for _, mapping := range p.NSMapping {
+		entity := p.Entity(mapping.Entity)
+		if entity == nil {
+			continue
+		}
+
+		source := p.Namespace(entity.Namespace)
+		target := p.Namespace(mapping.Namespace)
+		if source == nil || target == nil {
+			continue
+		}
+
+		if source.Name == target.Name {
+			continue
+		}
+
+		entity.Namespace = target.Name
+		target.Entities = append(target.Entities, entity)
+		index := source.EntityIndex(entity.Name)
+		source.Entities = append(source.Entities[:index], source.Entities[index+1:]...)
+	}
+}
+
+func (p *Project) MarshalJSON() ([]byte, error) {
+	type aux Project
+	a := aux(*p)
+	a.NSMapping = p.NamespacesMapping()
+
+	return json.Marshal(a)
 }
 
 // Namespace is xml element

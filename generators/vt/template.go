@@ -131,7 +131,7 @@ import (
 	"{{.EmbedLogPackage}}"
 	"{{.ModelPackage}}"
 
-	"github.com/semrush/zenrpc"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 //go:generate zenrpc

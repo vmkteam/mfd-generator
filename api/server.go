@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/semrush/zenrpc/v2"
-	"github.com/spf13/cobra"
 	"github.com/vmkteam/mfd-generator/api/dartclient"
+
+	"github.com/spf13/cobra"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/xml-vt"
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/semrush/zenrpc/v2"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 type XMLVTService struct {
@@ -21,7 +21,7 @@ func NewXMLVTService(store *Store) *XMLVTService {
 	}
 }
 
-// Gets xml for selected table
+// Gets vt entity for selected base entity
 //zenrpc:namespace	namespace of the base entity
 //zenrpc:entity		base entity from namespace.xml
 //zenrpc:return		VTEntity
@@ -42,7 +42,7 @@ func (s *XMLVTService) GenerateEntity(namespace, entity string) (*mfd.VTEntity, 
 	return vtEntity, nil
 }
 
-// Gets xml for selected entity in project file
+// Gets vt entity for selected entity from project
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity 	the name of the vt entity
 //zenrpc:return		VTEntity
@@ -60,10 +60,10 @@ func (s *XMLVTService) LoadEntity(namespace, entity string) (*mfd.VTEntity, erro
 	return ent, nil
 }
 
-// Gets xml for selected entity in project file
+// Saves vt entity in project
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity		VTEntity
-func (s *XMLVTService) SaveEntity(namespace string, entity *mfd.VTEntity) error {
+func (s *XMLVTService) UpdateEntity(namespace string, entity *mfd.VTEntity) error {
 	ns := s.CurrentProject.VTNamespace(namespace)
 	if ns == nil {
 		ns = s.CurrentProject.AddVTNamespace(namespace)

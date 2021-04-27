@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/semrush/zenrpc/v2"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/model"
+	"github.com/vmkteam/zenrpc/v2"
 )
 
 type PublicService struct {
@@ -84,6 +84,10 @@ func (s *PublicService) Types() []string {
 		model.TypeIPNet,
 		model.TypeInterface,
 	}
+}
+
+func (s *ProjectService) Ping() string {
+	return "Pong"
 }
 
 //go:generate zenrpc

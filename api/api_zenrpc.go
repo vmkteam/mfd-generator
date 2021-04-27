@@ -6,24 +6,25 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/semrush/zenrpc/v2"
-	"github.com/semrush/zenrpc/v2/smd"
+	"github.com/vmkteam/zenrpc/v2"
+	"github.com/vmkteam/zenrpc/v2/smd"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 var RPC = struct {
-	ProjectService struct{ Open, Update, Save, Tables string }
+	ProjectService struct{ Open, Update, Save, Tables, Ping string }
 	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
-	XMLService     struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }
+	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
-	XMLVTService   struct{ GenerateEntity, LoadEntity, SaveEntity string }
+	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 }{
-	ProjectService: struct{ Open, Update, Save, Tables string }{
+	ProjectService: struct{ Open, Update, Save, Tables, Ping string }{
 		Open:   "open",
 		Update: "update",
 		Save:   "save",
 		Tables: "tables",
+		Ping:   "ping",
 	},
 	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
 		GoPGVersions: "gopgversions",
@@ -31,39 +32,35 @@ var RPC = struct {
 		SearchTypes:  "searchtypes",
 		Types:        "types",
 	},
-	XMLService: struct{ NSMapping, GenerateEntity, LoadEntity, SaveEntity string }{
-		NSMapping:      "nsmapping",
+	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
-		SaveEntity:     "saveentity",
+		UpdateEntity:   "updateentity",
 	},
 	XMLLangService: struct{ LoadTranslation, TranslateEntity string }{
 		LoadTranslation: "loadtranslation",
 		TranslateEntity: "translateentity",
 	},
-	XMLVTService: struct{ GenerateEntity, LoadEntity, SaveEntity string }{
+	XMLVTService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
 		GenerateEntity: "generateentity",
 		LoadEntity:     "loadentity",
-		SaveEntity:     "saveentity",
+		UpdateEntity:   "updateentity",
 	},
 }
 
 func (ProjectService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
-		Description: ``,
 		Methods: map[string]smd.Service{
 			"Open": {
 				Description: `Loads project from file`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "filePath",
-						Optional:    false,
 						Description: `the path to mfd file`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "connection",
-						Optional:    false,
 						Description: `connection string`,
 						Type:        smd.String,
 					},
@@ -72,52 +69,65 @@ func (ProjectService) SMD() smd.ServiceInfo {
 					Description: `Project`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"namespaces": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "languages",
+							Type: smd.Array,
 							Items: map[string]string{
 								"type": smd.String,
 							},
 						},
-						"languages": {
-							Description: ``,
-							Type:        smd.Array,
-							Items: map[string]string{
-								"type": smd.String,
-							},
+						{
+							Name: "goPGVer",
+							Type: smd.Integer,
 						},
-						"goPGVer": {
-							Description: ``,
-							Type:        smd.Integer,
-						},
-						"customTypes": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "customTypes",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.CustomTypes",
+							},
+						},
+						{
+							Name: "namespaces",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.NSMapping",
 							},
 						},
 					},
 					Definitions: map[string]smd.Definition{
 						"mfd.CustomTypes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"dbType": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "dbType",
+									Type: smd.String,
 								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goType",
+									Type: smd.String,
 								},
-								"goImport": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goImport",
+									Type: smd.String,
+								},
+							},
+						},
+						"mfd.NSMapping": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "namespace",
+									Type: smd.String,
+								},
+								{
+									Name: "entity",
+									Type: smd.String,
 								},
 							},
 						},
@@ -129,55 +139,67 @@ func (ProjectService) SMD() smd.ServiceInfo {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "project",
-						Optional:    false,
 						Description: `Project`,
 						Type:        smd.Object,
-						Properties: map[string]smd.Property{
-							"name": {
-								Description: ``,
-								Type:        smd.String,
+						Properties: smd.PropertyList{
+							{
+								Name: "name",
+								Type: smd.String,
 							},
-							"namespaces": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "languages",
+								Type: smd.Array,
 								Items: map[string]string{
 									"type": smd.String,
 								},
 							},
-							"languages": {
-								Description: ``,
-								Type:        smd.Array,
-								Items: map[string]string{
-									"type": smd.String,
-								},
+							{
+								Name: "goPGVer",
+								Type: smd.Integer,
 							},
-							"goPGVer": {
-								Description: ``,
-								Type:        smd.Integer,
-							},
-							"customTypes": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "customTypes",
+								Type: smd.Array,
 								Items: map[string]string{
 									"$ref": "#/definitions/mfd.CustomTypes",
+								},
+							},
+							{
+								Name: "namespaces",
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/mfd.NSMapping",
 								},
 							},
 						},
 						Definitions: map[string]smd.Definition{
 							"mfd.CustomTypes": {
 								Type: "object",
-								Properties: map[string]smd.Property{
-									"dbType": {
-										Description: ``,
-										Type:        smd.String,
+								Properties: smd.PropertyList{
+									{
+										Name: "dbType",
+										Type: smd.String,
 									},
-									"goType": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "goType",
+										Type: smd.String,
 									},
-									"goImport": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "goImport",
+										Type: smd.String,
+									},
+								},
+							},
+							"mfd.NSMapping": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "namespace",
+										Type: smd.String,
+									},
+									{
+										Name: "entity",
+										Type: smd.String,
 									},
 								},
 							},
@@ -194,11 +216,16 @@ func (ProjectService) SMD() smd.ServiceInfo {
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `list of tables`,
-					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
 						"type": smd.String,
 					},
+				},
+			},
+			"Ping": {
+				Parameters: []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Type: smd.String,
 				},
 			},
 		},
@@ -256,6 +283,9 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 	case RPC.ProjectService.Tables:
 		resp.Set(s.Tables())
 
+	case RPC.ProjectService.Ping:
+		resp.Set(s.Ping())
+
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
 	}
@@ -265,14 +295,12 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 
 func (PublicService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
-		Description: ``,
 		Methods: map[string]smd.Service{
 			"GoPGVersions": {
 				Description: `Gets all supported go-pg versions`,
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `list of versions`,
-					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
 						"type": smd.Integer,
@@ -284,7 +312,6 @@ func (PublicService) SMD() smd.ServiceInfo {
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `list of modes`,
-					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
 						"type": smd.String,
@@ -296,7 +323,6 @@ func (PublicService) SMD() smd.ServiceInfo {
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `list of search types`,
-					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
 						"type": smd.String,
@@ -308,7 +334,6 @@ func (PublicService) SMD() smd.ServiceInfo {
 				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `list of types`,
-					Optional:    false,
 					Type:        smd.Array,
 					Items: map[string]string{
 						"type": smd.String,
@@ -345,47 +370,17 @@ func (s PublicService) Invoke(ctx context.Context, method string, params json.Ra
 
 func (XMLService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
-		Description: ``,
 		Methods: map[string]smd.Service{
-			"NSMapping": {
-				Description: `Saves project at filepath location`,
-				Parameters:  []smd.JSONSchema{},
-				Returns: smd.JSONSchema{
-					Description: `NSMapping`,
-					Optional:    false,
-					Type:        smd.Array,
-					Items: map[string]string{
-						"$ref": "#/definitions/NSMapping",
-					},
-					Definitions: map[string]smd.Definition{
-						"NSMapping": {
-							Type: "object",
-							Properties: map[string]smd.Property{
-								"table": {
-									Description: ``,
-									Type:        smd.String,
-								},
-								"namespace": {
-									Description: ``,
-									Type:        smd.String,
-								},
-							},
-						},
-					},
-				},
-			},
 			"GenerateEntity": {
-				Description: `Gets xml for selected table`,
+				Description: `Gets entity for selected table`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "table",
-						Optional:    false,
 						Description: `selected table name`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the new entity`,
 						Type:        smd.String,
 					},
@@ -394,29 +389,29 @@ func (XMLService) SMD() smd.ServiceInfo {
 					Description: `Entity`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"namespace": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "namespace",
+							Type: smd.String,
 						},
-						"table": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "table",
+							Type: smd.String,
 						},
-						"attributes": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "attributes",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.Attributes",
 							},
 						},
-						"searches": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "searches",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.Searches",
 							},
@@ -425,83 +420,85 @@ func (XMLService) SMD() smd.ServiceInfo {
 					Definitions: map[string]smd.Definition{
 						"mfd.Attributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"dbName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "dbName",
+									Type: smd.String,
 								},
-								"isArray": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "isArray",
+									Type: smd.Boolean,
 								},
-								"disablePointer": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "disablePointer",
+									Type: smd.Boolean,
 								},
-								"dbType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "dbType",
+									Type: smd.String,
 								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goType",
+									Type: smd.String,
 								},
-								"pk": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "pk",
+									Type: smd.Boolean,
 								},
-								"fk": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "fk",
+									Type: smd.String,
 								},
-								"nullable": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "nullable",
+									Type: smd.String,
 								},
-								"addable": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name:     "addable",
+									Optional: true,
+									Type:     smd.Boolean,
 								},
-								"updatable": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name:     "updatable",
+									Optional: true,
+									Type:     smd.Boolean,
 								},
-								"min": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "min",
+									Type: smd.Integer,
 								},
-								"max": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "max",
+									Type: smd.Integer,
 								},
-								"defaultVal": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "defaultVal",
+									Type: smd.String,
 								},
 							},
 						},
 						"mfd.Searches": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"attrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "attrName",
+									Type: smd.String,
 								},
-								"searchType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "searchType",
+									Type: smd.String,
 								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goType",
+									Type: smd.String,
 								},
 							},
 						},
@@ -509,17 +506,15 @@ func (XMLService) SMD() smd.ServiceInfo {
 				},
 			},
 			"LoadEntity": {
-				Description: `Gets xml for selected entity in project file`,
+				Description: `Gets selected entity from project`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the entity`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "entity",
-						Optional:    false,
 						Description: `the name of the entity`,
 						Type:        smd.String,
 					},
@@ -528,29 +523,29 @@ func (XMLService) SMD() smd.ServiceInfo {
 					Description: `Entity`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"namespace": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "namespace",
+							Type: smd.String,
 						},
-						"table": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "table",
+							Type: smd.String,
 						},
-						"attributes": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "attributes",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.Attributes",
 							},
 						},
-						"searches": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "searches",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.Searches",
 							},
@@ -559,120 +554,122 @@ func (XMLService) SMD() smd.ServiceInfo {
 					Definitions: map[string]smd.Definition{
 						"mfd.Attributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"dbName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "dbName",
+									Type: smd.String,
 								},
-								"isArray": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "isArray",
+									Type: smd.Boolean,
 								},
-								"disablePointer": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "disablePointer",
+									Type: smd.Boolean,
 								},
-								"dbType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "dbType",
+									Type: smd.String,
 								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goType",
+									Type: smd.String,
 								},
-								"pk": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "pk",
+									Type: smd.Boolean,
 								},
-								"fk": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "fk",
+									Type: smd.String,
 								},
-								"nullable": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "nullable",
+									Type: smd.String,
 								},
-								"addable": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name:     "addable",
+									Optional: true,
+									Type:     smd.Boolean,
 								},
-								"updatable": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name:     "updatable",
+									Optional: true,
+									Type:     smd.Boolean,
 								},
-								"min": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "min",
+									Type: smd.Integer,
 								},
-								"max": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "max",
+									Type: smd.Integer,
 								},
-								"defaultVal": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "defaultVal",
+									Type: smd.String,
 								},
 							},
 						},
 						"mfd.Searches": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"attrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "attrName",
+									Type: smd.String,
 								},
-								"searchType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "searchType",
+									Type: smd.String,
 								},
-								"goType": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "goType",
+									Type: smd.String,
 								},
 							},
 						},
 					},
 				},
 			},
-			"SaveEntity": {
-				Description: `Gets xml for selected entity in project file`,
+			"UpdateEntity": {
+				Description: `Saves selected entity in project`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "entity",
 						Optional:    true,
 						Description: `Entity`,
 						Type:        smd.Object,
-						Properties: map[string]smd.Property{
-							"name": {
-								Description: ``,
-								Type:        smd.String,
+						Properties: smd.PropertyList{
+							{
+								Name: "name",
+								Type: smd.String,
 							},
-							"namespace": {
-								Description: ``,
-								Type:        smd.String,
+							{
+								Name: "namespace",
+								Type: smd.String,
 							},
-							"table": {
-								Description: ``,
-								Type:        smd.String,
+							{
+								Name: "table",
+								Type: smd.String,
 							},
-							"attributes": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "attributes",
+								Type: smd.Array,
 								Items: map[string]string{
 									"$ref": "#/definitions/mfd.Attributes",
 								},
 							},
-							"searches": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "searches",
+								Type: smd.Array,
 								Items: map[string]string{
 									"$ref": "#/definitions/mfd.Searches",
 								},
@@ -681,83 +678,85 @@ func (XMLService) SMD() smd.ServiceInfo {
 						Definitions: map[string]smd.Definition{
 							"mfd.Attributes": {
 								Type: "object",
-								Properties: map[string]smd.Property{
-									"name": {
-										Description: ``,
-										Type:        smd.String,
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
 									},
-									"dbName": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "dbName",
+										Type: smd.String,
 									},
-									"isArray": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "isArray",
+										Type: smd.Boolean,
 									},
-									"disablePointer": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "disablePointer",
+										Type: smd.Boolean,
 									},
-									"dbType": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "dbType",
+										Type: smd.String,
 									},
-									"goType": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "goType",
+										Type: smd.String,
 									},
-									"pk": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "pk",
+										Type: smd.Boolean,
 									},
-									"fk": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "fk",
+										Type: smd.String,
 									},
-									"nullable": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "nullable",
+										Type: smd.String,
 									},
-									"addable": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name:     "addable",
+										Optional: true,
+										Type:     smd.Boolean,
 									},
-									"updatable": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name:     "updatable",
+										Optional: true,
+										Type:     smd.Boolean,
 									},
-									"min": {
-										Description: ``,
-										Type:        smd.Integer,
+									{
+										Name: "min",
+										Type: smd.Integer,
 									},
-									"max": {
-										Description: ``,
-										Type:        smd.Integer,
+									{
+										Name: "max",
+										Type: smd.Integer,
 									},
-									"defaultVal": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "defaultVal",
+										Type: smd.String,
 									},
 								},
 							},
 							"mfd.Searches": {
 								Type: "object",
-								Properties: map[string]smd.Property{
-									"name": {
-										Description: ``,
-										Type:        smd.String,
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
 									},
-									"attrName": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "attrName",
+										Type: smd.String,
 									},
-									"searchType": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "searchType",
+										Type: smd.String,
 									},
-									"goType": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "goType",
+										Type: smd.String,
 									},
 								},
 							},
@@ -775,9 +774,6 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 	var err error
 
 	switch method {
-	case RPC.XMLService.NSMapping:
-		resp.Set(s.NSMapping())
-
 	case RPC.XMLService.GenerateEntity:
 		var args = struct {
 			Table     string `json:"table"`
@@ -818,7 +814,7 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 
 		resp.Set(s.LoadEntity(args.Namespace, args.Entity))
 
-	case RPC.XMLService.SaveEntity:
+	case RPC.XMLService.UpdateEntity:
 		var args = struct {
 			Entity *mfd.Entity `json:"entity"`
 		}{}
@@ -835,7 +831,7 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 			}
 		}
 
-		resp.Set(s.SaveEntity(args.Entity))
+		resp.Set(s.UpdateEntity(args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -846,14 +842,12 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 
 func (XMLLangService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
-		Description: ``,
 		Methods: map[string]smd.Service{
 			"LoadTranslation": {
 				Description: `Loads full translation of project`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "language",
-						Optional:    false,
 						Description: `language`,
 						Type:        smd.String,
 					},
@@ -862,14 +856,14 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 					Description: `Translation`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"language": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "language",
+							Type: smd.String,
 						},
-						"namespaces": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "namespaces",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.TranslationNamespace",
 							},
@@ -878,14 +872,14 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 					Definitions: map[string]smd.Definition{
 						"mfd.TranslationNamespace": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"entities": {
-									Description: ``,
-									Type:        smd.Array,
+								{
+									Name: "entities",
+									Type: smd.Array,
 									Items: map[string]string{
 										"$ref": "#/definitions/mfd.TranslationEntity",
 									},
@@ -894,29 +888,32 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 						},
 						"mfd.TranslationEntity": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"key": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "key",
+									Type: smd.String,
 								},
-								"crumbs": {
-									Description: ``,
-									Ref:         "#/definitions/mfd.XMLMap",
-									Type:        smd.Object,
+								{
+									Name:     "crumbs",
+									Optional: true,
+									Ref:      "#/definitions/mfd.XMLMap",
+									Type:     smd.Object,
 								},
-								"form": {
-									Description: ``,
-									Ref:         "#/definitions/mfd.XMLMap",
-									Type:        smd.Object,
+								{
+									Name:     "form",
+									Optional: true,
+									Ref:      "#/definitions/mfd.XMLMap",
+									Type:     smd.Object,
 								},
-								"list": {
-									Description: ``,
-									Ref:         "#/definitions/mfd.TranslationList",
-									Type:        smd.Object,
+								{
+									Name:     "list",
+									Optional: true,
+									Ref:      "#/definitions/mfd.TranslationList",
+									Type:     smd.Object,
 								},
 							},
 						},
@@ -928,19 +925,16 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the vt entity`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "entity",
-						Optional:    false,
 						Description: `vt entity from vt.xml`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "language",
-						Optional:    false,
 						Description: `language`,
 						Type:        smd.String,
 					},
@@ -949,52 +943,57 @@ func (XMLLangService) SMD() smd.ServiceInfo {
 					Description: `TranslationEntity`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"key": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "key",
+							Type: smd.String,
 						},
-						"crumbs": {
-							Description: ``,
-							Ref:         "#/definitions/mfd.XMLMap",
-							Type:        smd.Object,
+						{
+							Name:     "crumbs",
+							Optional: true,
+							Ref:      "#/definitions/mfd.XMLMap",
+							Type:     smd.Object,
 						},
-						"form": {
-							Description: ``,
-							Ref:         "#/definitions/mfd.XMLMap",
-							Type:        smd.Object,
+						{
+							Name:     "form",
+							Optional: true,
+							Ref:      "#/definitions/mfd.XMLMap",
+							Type:     smd.Object,
 						},
-						"list": {
-							Description: ``,
-							Ref:         "#/definitions/mfd.TranslationList",
-							Type:        smd.Object,
+						{
+							Name:     "list",
+							Optional: true,
+							Ref:      "#/definitions/mfd.TranslationList",
+							Type:     smd.Object,
 						},
 					},
 					Definitions: map[string]smd.Definition{
 						"mfd.XMLMap": {
 							Type:       "object",
-							Properties: map[string]smd.Property{},
+							Properties: smd.PropertyList{},
 						},
 						"mfd.TranslationList": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"title": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "title",
+									Type: smd.String,
 								},
-								"filter": {
-									Description: ``,
-									Ref:         "#/definitions/mfd.XMLMap",
-									Type:        smd.Object,
+								{
+									Name:     "filter",
+									Optional: true,
+									Ref:      "#/definitions/mfd.XMLMap",
+									Type:     smd.Object,
 								},
-								"headers": {
-									Description: ``,
-									Ref:         "#/definitions/mfd.XMLMap",
-									Type:        smd.Object,
+								{
+									Name:     "headers",
+									Optional: true,
+									Ref:      "#/definitions/mfd.XMLMap",
+									Type:     smd.Object,
 								},
 							},
 						},
@@ -1060,20 +1059,17 @@ func (s XMLLangService) Invoke(ctx context.Context, method string, params json.R
 
 func (XMLVTService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
-		Description: ``,
 		Methods: map[string]smd.Service{
 			"GenerateEntity": {
-				Description: `Gets xml for selected table`,
+				Description: `Gets vt entity for selected base entity`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the base entity`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "entity",
-						Optional:    false,
 						Description: `base entity from namespace.xml`,
 						Type:        smd.String,
 					},
@@ -1082,100 +1078,104 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 					Description: `VTEntity`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"terminalPath": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "terminalPath",
+							Type: smd.String,
 						},
-						"attributes": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "attributes",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.VTAttributes",
 							},
 						},
-						"template": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "template",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.TmplAttributes",
 							},
 						},
-						"mode": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "mode",
+							Type: smd.String,
 						},
 					},
 					Definitions: map[string]smd.Definition{
 						"mfd.VTAttributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"attrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "attrName",
+									Type: smd.String,
 								},
-								"searchName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "searchName",
+									Type: smd.String,
 								},
-								"summary": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "summary",
+									Type: smd.Boolean,
 								},
-								"search": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "search",
+									Type: smd.Boolean,
 								},
-								"max": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "max",
+									Type: smd.Integer,
 								},
-								"min": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "min",
+									Type: smd.Integer,
 								},
-								"required": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "required",
+									Type: smd.Boolean,
 								},
-								"validate": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "validate",
+									Type: smd.String,
 								},
 							},
 						},
 						"mfd.TmplAttributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"vtAttrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "vtAttrName",
+									Type: smd.String,
 								},
-								"list": {
+								{
+									Name:        "list",
 									Description: `show in list`,
 									Type:        smd.Boolean,
 								},
-								"fkOpts": {
+								{
+									Name:        "fkOpts",
 									Description: `how to show fks`,
 									Type:        smd.String,
 								},
-								"form": {
+								{
+									Name:        "form",
 									Description: `show in object editor`,
 									Type:        smd.String,
 								},
-								"search": {
+								{
+									Name:        "search",
 									Description: `input type in search`,
 									Type:        smd.String,
 								},
@@ -1185,17 +1185,15 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 				},
 			},
 			"LoadEntity": {
-				Description: `Gets xml for selected entity in project file`,
+				Description: `Gets vt entity for selected entity from project`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the vt entity`,
 						Type:        smd.String,
 					},
 					{
 						Name:        "entity",
-						Optional:    false,
 						Description: `the name of the vt entity`,
 						Type:        smd.String,
 					},
@@ -1204,100 +1202,104 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 					Description: `VTEntity`,
 					Optional:    true,
 					Type:        smd.Object,
-					Properties: map[string]smd.Property{
-						"name": {
-							Description: ``,
-							Type:        smd.String,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
 						},
-						"terminalPath": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "terminalPath",
+							Type: smd.String,
 						},
-						"attributes": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "attributes",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.VTAttributes",
 							},
 						},
-						"template": {
-							Description: ``,
-							Type:        smd.Array,
+						{
+							Name: "template",
+							Type: smd.Array,
 							Items: map[string]string{
 								"$ref": "#/definitions/mfd.TmplAttributes",
 							},
 						},
-						"mode": {
-							Description: ``,
-							Type:        smd.String,
+						{
+							Name: "mode",
+							Type: smd.String,
 						},
 					},
 					Definitions: map[string]smd.Definition{
 						"mfd.VTAttributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"attrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "attrName",
+									Type: smd.String,
 								},
-								"searchName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "searchName",
+									Type: smd.String,
 								},
-								"summary": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "summary",
+									Type: smd.Boolean,
 								},
-								"search": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "search",
+									Type: smd.Boolean,
 								},
-								"max": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "max",
+									Type: smd.Integer,
 								},
-								"min": {
-									Description: ``,
-									Type:        smd.Integer,
+								{
+									Name: "min",
+									Type: smd.Integer,
 								},
-								"required": {
-									Description: ``,
-									Type:        smd.Boolean,
+								{
+									Name: "required",
+									Type: smd.Boolean,
 								},
-								"validate": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "validate",
+									Type: smd.String,
 								},
 							},
 						},
 						"mfd.TmplAttributes": {
 							Type: "object",
-							Properties: map[string]smd.Property{
-								"name": {
-									Description: ``,
-									Type:        smd.String,
+							Properties: smd.PropertyList{
+								{
+									Name: "name",
+									Type: smd.String,
 								},
-								"vtAttrName": {
-									Description: ``,
-									Type:        smd.String,
+								{
+									Name: "vtAttrName",
+									Type: smd.String,
 								},
-								"list": {
+								{
+									Name:        "list",
 									Description: `show in list`,
 									Type:        smd.Boolean,
 								},
-								"fkOpts": {
+								{
+									Name:        "fkOpts",
 									Description: `how to show fks`,
 									Type:        smd.String,
 								},
-								"form": {
+								{
+									Name:        "form",
 									Description: `show in object editor`,
 									Type:        smd.String,
 								},
-								"search": {
+								{
+									Name:        "search",
 									Description: `input type in search`,
 									Type:        smd.String,
 								},
@@ -1306,12 +1308,11 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"SaveEntity": {
-				Description: `Gets xml for selected entity in project file`,
+			"UpdateEntity": {
+				Description: `Saves vt entity in project`,
 				Parameters: []smd.JSONSchema{
 					{
 						Name:        "namespace",
-						Optional:    false,
 						Description: `namespace of the vt entity`,
 						Type:        smd.String,
 					},
@@ -1320,100 +1321,104 @@ func (XMLVTService) SMD() smd.ServiceInfo {
 						Optional:    true,
 						Description: `VTEntity`,
 						Type:        smd.Object,
-						Properties: map[string]smd.Property{
-							"name": {
-								Description: ``,
-								Type:        smd.String,
+						Properties: smd.PropertyList{
+							{
+								Name: "name",
+								Type: smd.String,
 							},
-							"terminalPath": {
-								Description: ``,
-								Type:        smd.String,
+							{
+								Name: "terminalPath",
+								Type: smd.String,
 							},
-							"attributes": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "attributes",
+								Type: smd.Array,
 								Items: map[string]string{
 									"$ref": "#/definitions/mfd.VTAttributes",
 								},
 							},
-							"template": {
-								Description: ``,
-								Type:        smd.Array,
+							{
+								Name: "template",
+								Type: smd.Array,
 								Items: map[string]string{
 									"$ref": "#/definitions/mfd.TmplAttributes",
 								},
 							},
-							"mode": {
-								Description: ``,
-								Type:        smd.String,
+							{
+								Name: "mode",
+								Type: smd.String,
 							},
 						},
 						Definitions: map[string]smd.Definition{
 							"mfd.VTAttributes": {
 								Type: "object",
-								Properties: map[string]smd.Property{
-									"name": {
-										Description: ``,
-										Type:        smd.String,
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
 									},
-									"attrName": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "attrName",
+										Type: smd.String,
 									},
-									"searchName": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "searchName",
+										Type: smd.String,
 									},
-									"summary": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "summary",
+										Type: smd.Boolean,
 									},
-									"search": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "search",
+										Type: smd.Boolean,
 									},
-									"max": {
-										Description: ``,
-										Type:        smd.Integer,
+									{
+										Name: "max",
+										Type: smd.Integer,
 									},
-									"min": {
-										Description: ``,
-										Type:        smd.Integer,
+									{
+										Name: "min",
+										Type: smd.Integer,
 									},
-									"required": {
-										Description: ``,
-										Type:        smd.Boolean,
+									{
+										Name: "required",
+										Type: smd.Boolean,
 									},
-									"validate": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "validate",
+										Type: smd.String,
 									},
 								},
 							},
 							"mfd.TmplAttributes": {
 								Type: "object",
-								Properties: map[string]smd.Property{
-									"name": {
-										Description: ``,
-										Type:        smd.String,
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
 									},
-									"vtAttrName": {
-										Description: ``,
-										Type:        smd.String,
+									{
+										Name: "vtAttrName",
+										Type: smd.String,
 									},
-									"list": {
+									{
+										Name:        "list",
 										Description: `show in list`,
 										Type:        smd.Boolean,
 									},
-									"fkOpts": {
+									{
+										Name:        "fkOpts",
 										Description: `how to show fks`,
 										Type:        smd.String,
 									},
-									"form": {
+									{
+										Name:        "form",
 										Description: `show in object editor`,
 										Type:        smd.String,
 									},
-									"search": {
+									{
+										Name:        "search",
 										Description: `input type in search`,
 										Type:        smd.String,
 									},
@@ -1473,7 +1478,7 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 
 		resp.Set(s.LoadEntity(args.Namespace, args.Entity))
 
-	case RPC.XMLVTService.SaveEntity:
+	case RPC.XMLVTService.UpdateEntity:
 		var args = struct {
 			Namespace string        `json:"namespace"`
 			Entity    *mfd.VTEntity `json:"entity"`
@@ -1491,7 +1496,7 @@ func (s XMLVTService) Invoke(ctx context.Context, method string, params json.Raw
 			}
 		}
 
-		resp.Set(s.SaveEntity(args.Namespace, args.Entity))
+		resp.Set(s.UpdateEntity(args.Namespace, args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
