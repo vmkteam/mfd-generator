@@ -86,7 +86,7 @@ func (s *PublicService) Types() []string {
 	}
 }
 
-func (s *ProjectService) Ping() string {
+func (s *PublicService) Ping() string {
 	return "Pong"
 }
 

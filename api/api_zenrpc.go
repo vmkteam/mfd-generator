@@ -13,24 +13,24 @@ import (
 )
 
 var RPC = struct {
-	ProjectService struct{ Open, Update, Save, Tables, Ping string }
-	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
+	ProjectService struct{ Open, Update, Save, Tables string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, Ping string }
 	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 }{
-	ProjectService: struct{ Open, Update, Save, Tables, Ping string }{
+	ProjectService: struct{ Open, Update, Save, Tables string }{
 		Open:   "open",
 		Update: "update",
 		Save:   "save",
 		Tables: "tables",
-		Ping:   "ping",
 	},
-	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, Ping string }{
 		GoPGVersions: "gopgversions",
 		Modes:        "modes",
 		SearchTypes:  "searchtypes",
 		Types:        "types",
+		Ping:         "ping",
 	},
 	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
 		GenerateEntity: "generateentity",
@@ -222,12 +222,6 @@ func (ProjectService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"Ping": {
-				Parameters: []smd.JSONSchema{},
-				Returns: smd.JSONSchema{
-					Type: smd.String,
-				},
-			},
 		},
 	}
 }
@@ -283,9 +277,6 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 	case RPC.ProjectService.Tables:
 		resp.Set(s.Tables())
 
-	case RPC.ProjectService.Ping:
-		resp.Set(s.Ping())
-
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
 	}
@@ -340,6 +331,12 @@ func (PublicService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"Ping": {
+				Parameters: []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Type: smd.String,
+				},
+			},
 		},
 	}
 }
@@ -360,6 +357,9 @@ func (s PublicService) Invoke(ctx context.Context, method string, params json.Ra
 
 	case RPC.PublicService.Types:
 		resp.Set(s.Types())
+
+	case RPC.PublicService.Ping:
+		resp.Set(s.Ping())
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
