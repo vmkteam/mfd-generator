@@ -1,4 +1,4 @@
-package dartclient
+package dart
 
 import (
 	"bytes"
@@ -25,11 +25,31 @@ type dartClass struct {
 }
 
 type dartType struct {
-	Name     string
+	name     string
 	Comment  string // TODO
 	Type     string
 	SubType  string
 	Optional bool // TODO
+}
+
+func (dt dartType) Name() string {
+	return lcFirst(dt.name)
+}
+
+func (dt dartType) TypeName() (result string) {
+	defer func() {
+		if dt.Optional {
+			result += "?"
+		}
+	}()
+	switch dt.Type {
+	case objectType:
+		return dt.SubType
+	case listType:
+		return fmt.Sprintf("List<%s?>", dt.SubType)
+	default:
+		return dt.Type
+	}
 }
 
 type dartNamespace struct {
@@ -40,6 +60,7 @@ type dartNamespace struct {
 type dartService struct {
 	Namespace string // TODO
 	Name      string // TODO
+	Comment   string
 	Args      []dartType
 	Response  dartType
 }
@@ -55,16 +76,17 @@ type Client struct {
 }
 
 func NewClient(schema smd.Schema) *Client {
-	return &Client{
+	cl := &Client{
 		smd:        schema,
 		models:     map[string]struct{}{},
 		namespaces: map[string]struct{}{},
 	}
+	cl.convert()
+	return cl
 }
 
-// Run converts SMD client to Dart model.
-func (c *Client) Run() ([]byte, error) {
-	c.convert()
+// Generate converts SMD client to Dart model.
+func (c *Client) Generate() ([]byte, error) {
 
 	var fns = template.FuncMap{
 		"len": func(a interface{}) int {
@@ -108,10 +130,11 @@ class {{.ServiceName}} {
   {{.ServiceName}}(this._client);
 
   final JSONRPCClient _client;
-{{$shortName := .Name}}{{range .Services}}
+{{$shortName := .Name}}{{ range .Services }}
+  {{ if not (eq .Comment "") }}// {{ .Comment }}{{ end }}
   Future<{{.FutureType}}> {{.NameLCF}}({{.ArgsType}} args) {
     return Future(() async {
-      {{- if ne .FutureType "void"}}final response ={{- end }} await _client.call('{{$shortName}}.{{.NameLCF}}', args) {{.AsType}};
+      {{ if ne .FutureType "void"}}final response ={{- end }} await _client.call('{{$shortName}}.{{.NameLCF}}', args) {{.AsType}};
       {{- if eq .ResponseType "List"}}
       final responseList = response?.map((e) {
         if (e == null) {
@@ -123,26 +146,29 @@ class {{.ServiceName}} {
         return {{.ResponseSubType}}.fromJson(e as Map<String, dynamic>);
 		{{- end }}
       });
-      return responseList?.toList(); 
+      return responseList?.toList() ?? List.empty(); 
       {{- else if eq .ResponseType "object"}}
       return {{.ResponseSubType}}.fromJson(response);
       {{- else if ne .FutureType "void"}}
-      return response;
+      return response{{ if not .Response.Optional }}!{{ end }};
       {{- end}}
     });
   }
   {{end}} 
-} 
+}
 {{ range .Services }}
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class {{.ArgsType}} {
-  {{.ArgsType}}( {{- $len := len .Args}}{{if gt $len -1 -}} { {{range $i,$e := .Args}}this.{{.Name}}{{if ne $len $i }}, {{end}}{{end}} } {{- end}});
+  {{.ArgsType}}( {{- $len := len .Args}}{{if gt $len -1 -}} { {{range $i,$e := .Args}} 
+    {{ if not .Optional }}required {{end}}this.{{.Name}},{{end}}
+  } {{- end}});
 
   factory {{.ArgsType}}.fromJson(Map<String, dynamic> json) => _${{.ArgsType}}FromJson(json);
 
   Map<String, dynamic> toJson() => _${{.ArgsType}}ToJson(this);
 {{range $i,$e := .Args}}
-  final {{if eq .Type "object"}}{{.SubType}}?{{else if eq .Type "List"}}List<{{.SubType}}?>?{{else}}{{.Type}}?{{end}} {{.Name}}; {{end}}
+  {{ if not (eq .Comment "") }}// {{ .Comment }}{{ end }}
+  final {{ .TypeName }} {{.Name}}; {{end}}
 }
 {{end}}{{end}}
 
@@ -151,13 +177,16 @@ class {{.ArgsType}} {
 {{range .Models}}
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class {{.Name}} {
-  {{.Name}}( {{- $len := len .Parameters}}{{if gt $len -1 -}} { {{range $i,$e := .Parameters}}this.{{.Name}}{{if ne $len $i }}, {{end}}{{end}} } {{- end}});
+  {{.Name}}( {{- $len := len .Parameters}}{{if gt $len -1 -}} { {{range $i,$e := .Parameters}}
+    {{ if not .Optional }}required {{end}}this.{{.Name}}, {{end}}
+  } {{- end}});
 
   factory {{.Name}}.fromJson(Map<String, dynamic> json) => _${{.Name}}FromJson(json);
 
   Map<String, dynamic> toJson() => _${{.Name}}ToJson(this);
 {{range $i,$e := .Parameters}}
-  final {{if eq .Type "object"}}{{.SubType}}?{{else if eq .Type "List"}}List<{{.SubType}}?>?{{else}}{{.Type}}?{{end}} {{.Name}}; {{end}}
+  {{ if not (eq .Comment "") }}// {{ .Comment }}{{ end }}
+  final {{ .TypeName }} {{.Name}}; {{end}}
 }
 {{end}}
 `)
@@ -199,6 +228,7 @@ func (c *Client) convert() {
 			Namespace: namespace,
 			Name:      method,
 			Args:      args,
+			Comment:   service.Description,
 			Response:  resp,
 		}
 
@@ -207,6 +237,7 @@ func (c *Client) convert() {
 		for i := range c.client.Namespaces {
 			if c.client.Namespaces[i].Name == namespace {
 				index = i
+				break
 			}
 		}
 		if _, ok := c.namespaces[namespace]; !ok {
@@ -228,7 +259,7 @@ func (c *Client) convert() {
 	// sort models args
 	for idx := range c.client.Models {
 		sort.Slice(c.client.Models[idx].Parameters, func(i, j int) bool {
-			return c.client.Models[idx].Parameters[i].Name < c.client.Models[idx].Parameters[j].Name
+			return c.client.Models[idx].Parameters[i].Name() < c.client.Models[idx].Parameters[j].Name()
 		})
 	}
 
@@ -245,7 +276,7 @@ func (c *Client) convert() {
 		// sort args
 		for si := range c.client.Namespaces[idx].Services {
 			sort.Slice(c.client.Namespaces[idx].Services[si].Args, func(i, j int) bool {
-				return c.client.Namespaces[idx].Services[si].Args[i].Name < c.client.Namespaces[idx].Services[si].Args[j].Name
+				return c.client.Namespaces[idx].Services[si].Args[i].Name() < c.client.Namespaces[idx].Services[si].Args[j].Name()
 			})
 		}
 	}
@@ -257,7 +288,7 @@ func (c *Client) addModel(dc dartClass) {
 		return
 	}
 	switch dc.Name {
-	case "PorebrikTime":
+	case "AnyCustomType":
 		return
 	}
 
@@ -268,7 +299,7 @@ func (c *Client) addModel(dc dartClass) {
 }
 
 // convertScalar converts scalars from go to dart.
-func (c *Client) convertScalar(t, description string) string {
+func (c *Client) convertScalar(t string) string {
 	switch t {
 	case "integer", "int":
 		return "int"
@@ -279,10 +310,6 @@ func (c *Client) convertScalar(t, description string) string {
 	case "boolean":
 		return "bool"
 	default:
-		switch description {
-		case "PorebrikTime":
-			return "DateTime"
-		}
 		return ""
 	}
 }
@@ -290,9 +317,9 @@ func (c *Client) convertScalar(t, description string) string {
 // convertType converts smd.JSONSchema to dartType.
 func (c *Client) convertType(in smd.JSONSchema, comment string) dartType {
 	result := dartType{
-		Name:     in.Name,
+		name:     in.Name,
 		Comment:  comment,
-		Type:     c.convertScalar(in.Type, in.Description),
+		Type:     c.convertScalar(in.Type),
 		Optional: in.Optional,
 	}
 
@@ -300,7 +327,7 @@ func (c *Client) convertType(in smd.JSONSchema, comment string) dartType {
 	if in.Type == "array" {
 		var subType string
 		if scalar, ok := in.Items["type"]; ok {
-			subType = c.convertScalar(scalar, in.Description)
+			subType = c.convertScalar(scalar)
 		}
 		if ref, ok := in.Items["$ref"]; ok {
 			subType = strings.TrimPrefix(ref, definitionsPrefix)
@@ -331,20 +358,6 @@ func (c *Client) convertType(in smd.JSONSchema, comment string) dartType {
 		})
 	}
 
-	// dirty hacks for dictionaries
-	// TODO we need map support in SMD schema
-	//if in.Type == "object" {
-	//	if in.Description == "ApiPharmacy" && in.Name == "pharmacies" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//	if in.Description == "ApiExtendedPickupPrice" && in.Name == "extendedPickups" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//	if in.Description == "ApiPharmacyPrice" && in.Name == "pharmacies" {
-	//		result.Type = fmt.Sprintf("Record<number, %s>", in.Description)
-	//	}
-	//}
-
 	return result
 }
 
@@ -371,16 +384,21 @@ func (n *dartNamespace) ServiceName() string {
 	return "_Service" + ucFirst(cleanSymbols(n.Name))
 }
 
-func (s *dartService) FutureType() string {
+func (s *dartService) FutureType() (result string) {
+	defer func() {
+		if s.Response.Optional && result != voidResponse {
+			result += "?"
+		}
+	}()
 	switch s.Response.Type {
 	case listType:
-		return fmt.Sprintf("List<%s?>?", s.Response.SubType)
+		return fmt.Sprintf("List<%s?>", s.Response.SubType)
 	case objectType:
-		return s.Response.SubType + "?"
+		return s.Response.SubType
 	case "":
 		return voidResponse
 	default:
-		return s.Response.Type + "?"
+		return s.Response.Type
 	}
 }
 

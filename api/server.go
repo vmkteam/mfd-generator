@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/vmkteam/mfd-generator/api/dartclient"
+	dart "github.com/vmkteam/mfd-generator/api/dartclient"
 
 	"github.com/spf13/cobra"
 	"github.com/vmkteam/zenrpc/v2"
@@ -81,7 +81,7 @@ func (s *Server) Serve() error {
 	rpc.Register(projectNS, NewProjectService(store))
 	rpc.Register(xmlNS, NewXMLService(store))
 	rpc.Register(xmlVtNS, NewXMLVTService(store))
-	rpc.Register(xmlLangNS, NewXMLLangService(store))
+	//rpc.Register(xmlLangNS, NewXMLLangService(store))
 
 	rpc.Use(ProjectMiddleware(store))
 
@@ -89,7 +89,7 @@ func (s *Server) Serve() error {
 	router.Handle(apiroot, rpc)
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
 	router.Handle(docroot+"api_client.dart", http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		resp, err := dartclient.NewClient(rpc.SMD()).Run()
+		resp, err := dart.NewClient(rpc.SMD()).Generate()
 		if err != nil {
 			panic(err)
 		}
