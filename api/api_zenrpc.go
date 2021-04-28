@@ -13,24 +13,26 @@ import (
 )
 
 var RPC = struct {
-	ProjectService struct{ Open, Update, Save, Tables, Ping string }
-	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types string }
+	ProjectService struct{ Open, Current, Update, Save, Tables string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }
 	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 }{
-	ProjectService: struct{ Open, Update, Save, Tables, Ping string }{
-		Open:   "open",
-		Update: "update",
-		Save:   "save",
-		Tables: "tables",
-		Ping:   "ping",
+	ProjectService: struct{ Open, Current, Update, Save, Tables string }{
+		Open:    "open",
+		Current: "current",
+		Update:  "update",
+		Save:    "save",
+		Tables:  "tables",
 	},
-	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types string }{
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }{
 		GoPGVersions: "gopgversions",
 		Modes:        "modes",
 		SearchTypes:  "searchtypes",
 		Types:        "types",
+		DBTypes:      "dbtypes",
+		Ping:         "ping",
 	},
 	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
 		GenerateEntity: "generateentity",
@@ -65,6 +67,78 @@ func (ProjectService) SMD() smd.ServiceInfo {
 						Type:        smd.String,
 					},
 				},
+				Returns: smd.JSONSchema{
+					Description: `Project`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
+						},
+						{
+							Name: "languages",
+							Type: smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						{
+							Name: "goPGVer",
+							Type: smd.Integer,
+						},
+						{
+							Name: "customTypes",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.CustomTypes",
+							},
+						},
+						{
+							Name: "namespaces",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.NSMapping",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.CustomTypes": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "dbType",
+									Type: smd.String,
+								},
+								{
+									Name: "goType",
+									Type: smd.String,
+								},
+								{
+									Name: "goImport",
+									Type: smd.String,
+								},
+							},
+						},
+						"mfd.NSMapping": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "namespace",
+									Type: smd.String,
+								},
+								{
+									Name: "entity",
+									Type: smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
+			"Current": {
+				Description: `Returns currently open project`,
+				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `Project`,
 					Optional:    true,
@@ -222,12 +296,6 @@ func (ProjectService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"Ping": {
-				Parameters: []smd.JSONSchema{},
-				Returns: smd.JSONSchema{
-					Type: smd.String,
-				},
-			},
 		},
 	}
 }
@@ -258,6 +326,9 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 
 		resp.Set(s.Open(args.FilePath, args.Connection))
 
+	case RPC.ProjectService.Current:
+		resp.Set(s.Current())
+
 	case RPC.ProjectService.Update:
 		var args = struct {
 			Project mfd.Project `json:"project"`
@@ -282,9 +353,6 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 
 	case RPC.ProjectService.Tables:
 		resp.Set(s.Tables())
-
-	case RPC.ProjectService.Ping:
-		resp.Set(s.Ping())
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -340,6 +408,23 @@ func (PublicService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"DBTypes": {
+				Description: `Gets postgres types`,
+				Parameters:  []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Description: `list of types`,
+					Type:        smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
+			"Ping": {
+				Parameters: []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Type: smd.String,
+				},
+			},
 		},
 	}
 }
@@ -360,6 +445,12 @@ func (s PublicService) Invoke(ctx context.Context, method string, params json.Ra
 
 	case RPC.PublicService.Types:
 		resp.Set(s.Types())
+
+	case RPC.PublicService.DBTypes:
+		resp.Set(s.DBTypes())
+
+	case RPC.PublicService.Ping:
+		resp.Set(s.Ping())
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

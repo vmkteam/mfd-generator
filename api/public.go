@@ -86,7 +86,38 @@ func (s *PublicService) Types() []string {
 	}
 }
 
-func (s *ProjectService) Ping() string {
+// Gets postgres types
+//zenrpc:return	list of types
+func (s *PublicService) DBTypes() []string {
+	return []string{
+		model.TypePGInt2,
+		model.TypePGInt4,
+		model.TypePGInt8,
+		model.TypePGNumeric,
+		model.TypePGFloat4,
+		model.TypePGFloat8,
+		model.TypePGText,
+		model.TypePGVarchar,
+		model.TypePGUuid,
+		model.TypePGBpchar,
+		model.TypePGBytea,
+		model.TypePGBool,
+		model.TypePGTimestamp,
+		model.TypePGTimestamptz,
+		model.TypePGDate,
+		model.TypePGTime,
+		model.TypePGTimetz,
+		model.TypePGInterval,
+		model.TypePGJSONB,
+		model.TypePGJSON,
+		model.TypePGHstore,
+		model.TypePGInet,
+		model.TypePGCidr,
+		model.TypePGPoint,
+	}
+}
+
+func (s *PublicService) Ping() string {
 	return "Pong"
 }
 
