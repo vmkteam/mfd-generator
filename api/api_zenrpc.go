@@ -13,17 +13,18 @@ import (
 )
 
 var RPC = struct {
-	ProjectService struct{ Open, Update, Save, Tables string }
+	ProjectService struct{ Open, Current, Update, Save, Tables string }
 	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }
 	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 }{
-	ProjectService: struct{ Open, Update, Save, Tables string }{
-		Open:   "open",
-		Update: "update",
-		Save:   "save",
-		Tables: "tables",
+	ProjectService: struct{ Open, Current, Update, Save, Tables string }{
+		Open:    "open",
+		Current: "current",
+		Update:  "update",
+		Save:    "save",
+		Tables:  "tables",
 	},
 	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }{
 		GoPGVersions: "gopgversions",
@@ -66,6 +67,78 @@ func (ProjectService) SMD() smd.ServiceInfo {
 						Type:        smd.String,
 					},
 				},
+				Returns: smd.JSONSchema{
+					Description: `Project`,
+					Optional:    true,
+					Type:        smd.Object,
+					Properties: smd.PropertyList{
+						{
+							Name: "name",
+							Type: smd.String,
+						},
+						{
+							Name: "languages",
+							Type: smd.Array,
+							Items: map[string]string{
+								"type": smd.String,
+							},
+						},
+						{
+							Name: "goPGVer",
+							Type: smd.Integer,
+						},
+						{
+							Name: "customTypes",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.CustomTypes",
+							},
+						},
+						{
+							Name: "namespaces",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/mfd.NSMapping",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"mfd.CustomTypes": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "dbType",
+									Type: smd.String,
+								},
+								{
+									Name: "goType",
+									Type: smd.String,
+								},
+								{
+									Name: "goImport",
+									Type: smd.String,
+								},
+							},
+						},
+						"mfd.NSMapping": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "namespace",
+									Type: smd.String,
+								},
+								{
+									Name: "entity",
+									Type: smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
+			"Current": {
+				Description: `Returns currently open project`,
+				Parameters:  []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
 					Description: `Project`,
 					Optional:    true,
@@ -252,6 +325,9 @@ func (s ProjectService) Invoke(ctx context.Context, method string, params json.R
 		}
 
 		resp.Set(s.Open(args.FilePath, args.Connection))
+
+	case RPC.ProjectService.Current:
+		resp.Set(s.Current())
 
 	case RPC.ProjectService.Update:
 		var args = struct {

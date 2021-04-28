@@ -47,6 +47,12 @@ func (s *ProjectService) Open(filePath, connection string) (*mfd.Project, error)
 	return project, nil
 }
 
+// Returns currently open project
+//zenrpc:return 		Project
+func (s *ProjectService) Current() (*mfd.Project, error) {
+	return s.CurrentProject, nil
+}
+
 // Updates project in memory
 //zenrpc:project	Project
 func (s *ProjectService) Update(project mfd.Project) error {
