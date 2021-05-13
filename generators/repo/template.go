@@ -119,7 +119,7 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) Update{{.Name}}(ctx context.Context, {
 	return res.RowsAffected() > 0, err
 }
 {{if .HasPKs}}
-//  Delete{{.Name}} {{if .HasStatus}}set statusId to deleted in DB{{else}}deletes {{.Name}} from DB{{end}}.
+// Delete{{.Name}} {{if .HasStatus}}set statusId to deleted in DB{{else}}deletes {{.Name}} from DB{{end}}.
 func ({{$.ShortVarName}}r {{$.Name}}Repo) Delete{{.Name}}(ctx context.Context{{range .PKs}}, {{.Arg}} {{.Type}}{{end}}) (deleted bool, err error) {
 	{{.VarName}} := &{{.Name}}{ {{range $i, $e := .PKs}}{{if $i}}, {{end}}{{.Field}}: {{.Arg}}{{end}}{{if .HasStatus}}, StatusID: StatusDeleted,{{end}} }
 
