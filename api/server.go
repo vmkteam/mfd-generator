@@ -19,8 +19,8 @@ const (
 	publicNS  = "public"
 	projectNS = "project"
 	xmlNS     = "xml"
-	xmlVtNS   = "xml-vt"
-	xmlLangNS = "xml-lang"
+	xmlVtNS   = "xmlvt"
+	xmlLangNS = "xmllang"
 )
 
 type Server struct {
@@ -66,7 +66,7 @@ func (s *Server) ReadFlags(command *cobra.Command) (err error) {
 }
 
 func (s *Server) Serve() error {
-	apiroot := path.Join(s.path, "/")
+	apiroot := path.Join(s.path, "/api")
 	docroot := path.Join(s.path, "/doc") + "/"
 
 	rpc := zenrpc.NewServer(zenrpc.Options{
@@ -81,11 +81,12 @@ func (s *Server) Serve() error {
 	rpc.Register(projectNS, NewProjectService(store))
 	rpc.Register(xmlNS, NewXMLService(store))
 	rpc.Register(xmlVtNS, NewXMLVTService(store))
-	rpc.Register(xmlLangNS, NewXMLLangService(store))
+	//rpc.Register(xmlLangNS, NewXMLLangService(store))
 
 	rpc.Use(ProjectMiddleware(store))
 
 	router := http.NewServeMux()
+	router.Handle("/", http.FileServer(http.Dir("./web/")))
 	router.Handle(apiroot, rpc)
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
 	router.Handle(docroot+"api_client.dart", http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
