@@ -15,7 +15,7 @@ import (
 var RPC = struct {
 	ProjectService struct{ Open, Current, Update, Save, Tables string }
 	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }
-	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity string }
+	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity, GenerateModelCode, GenerateSearchModelCode string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
 }{
@@ -34,10 +34,12 @@ var RPC = struct {
 		DBTypes:      "dbtypes",
 		Ping:         "ping",
 	},
-	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity string }{
-		GenerateEntity: "generateentity",
-		LoadEntity:     "loadentity",
-		UpdateEntity:   "updateentity",
+	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity, GenerateModelCode, GenerateSearchModelCode string }{
+		GenerateEntity:          "generateentity",
+		LoadEntity:              "loadentity",
+		UpdateEntity:            "updateentity",
+		GenerateModelCode:       "generatemodelcode",
+		GenerateSearchModelCode: "generatesearchmodelcode",
 	},
 	XMLLangService: struct{ LoadTranslation, TranslateEntity string }{
 		LoadTranslation: "loadtranslation",
@@ -855,6 +857,260 @@ func (XMLService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"GenerateModelCode": {
+				Description: `Generates model go code, that represents this entity.`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "entity",
+						Description: `Entity`,
+						Type:        smd.Object,
+						Properties: smd.PropertyList{
+							{
+								Name: "name",
+								Type: smd.String,
+							},
+							{
+								Name: "namespace",
+								Type: smd.String,
+							},
+							{
+								Name: "table",
+								Type: smd.String,
+							},
+							{
+								Name: "attributes",
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/mfd.Attributes",
+								},
+							},
+							{
+								Name: "searches",
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/mfd.Searches",
+								},
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.Attributes": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
+									},
+									{
+										Name: "dbName",
+										Type: smd.String,
+									},
+									{
+										Name: "isArray",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "disablePointer",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "dbType",
+										Type: smd.String,
+									},
+									{
+										Name: "goType",
+										Type: smd.String,
+									},
+									{
+										Name: "pk",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "fk",
+										Type: smd.String,
+									},
+									{
+										Name: "nullable",
+										Type: smd.String,
+									},
+									{
+										Name:     "addable",
+										Optional: true,
+										Type:     smd.Boolean,
+									},
+									{
+										Name:     "updatable",
+										Optional: true,
+										Type:     smd.Boolean,
+									},
+									{
+										Name: "min",
+										Type: smd.Integer,
+									},
+									{
+										Name: "max",
+										Type: smd.Integer,
+									},
+									{
+										Name: "defaultVal",
+										Type: smd.String,
+									},
+								},
+							},
+							"mfd.Searches": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
+									},
+									{
+										Name: "attrName",
+										Type: smd.String,
+									},
+									{
+										Name: "searchType",
+										Type: smd.String,
+									},
+									{
+										Name: "goType",
+										Type: smd.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type: smd.String,
+				},
+			},
+			"GenerateSearchModelCode": {
+				Description: `Generates search go code, that represents this entity.`,
+				Parameters: []smd.JSONSchema{
+					{
+						Name:        "entity",
+						Description: `Entity`,
+						Type:        smd.Object,
+						Properties: smd.PropertyList{
+							{
+								Name: "name",
+								Type: smd.String,
+							},
+							{
+								Name: "namespace",
+								Type: smd.String,
+							},
+							{
+								Name: "table",
+								Type: smd.String,
+							},
+							{
+								Name: "attributes",
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/mfd.Attributes",
+								},
+							},
+							{
+								Name: "searches",
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/mfd.Searches",
+								},
+							},
+						},
+						Definitions: map[string]smd.Definition{
+							"mfd.Attributes": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
+									},
+									{
+										Name: "dbName",
+										Type: smd.String,
+									},
+									{
+										Name: "isArray",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "disablePointer",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "dbType",
+										Type: smd.String,
+									},
+									{
+										Name: "goType",
+										Type: smd.String,
+									},
+									{
+										Name: "pk",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "fk",
+										Type: smd.String,
+									},
+									{
+										Name: "nullable",
+										Type: smd.String,
+									},
+									{
+										Name:     "addable",
+										Optional: true,
+										Type:     smd.Boolean,
+									},
+									{
+										Name:     "updatable",
+										Optional: true,
+										Type:     smd.Boolean,
+									},
+									{
+										Name: "min",
+										Type: smd.Integer,
+									},
+									{
+										Name: "max",
+										Type: smd.Integer,
+									},
+									{
+										Name: "defaultVal",
+										Type: smd.String,
+									},
+								},
+							},
+							"mfd.Searches": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "name",
+										Type: smd.String,
+									},
+									{
+										Name: "attrName",
+										Type: smd.String,
+									},
+									{
+										Name: "searchType",
+										Type: smd.String,
+									},
+									{
+										Name: "goType",
+										Type: smd.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type: smd.String,
+				},
+			},
 		},
 	}
 }
@@ -923,6 +1179,44 @@ func (s XMLService) Invoke(ctx context.Context, method string, params json.RawMe
 		}
 
 		resp.Set(s.UpdateEntity(args.Entity))
+
+	case RPC.XMLService.GenerateModelCode:
+		var args = struct {
+			Entity mfd.Entity `json:"entity"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"entity"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.GenerateModelCode(args.Entity))
+
+	case RPC.XMLService.GenerateSearchModelCode:
+		var args = struct {
+			Entity mfd.Entity `json:"entity"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"entity"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.GenerateSearchModelCode(args.Entity))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

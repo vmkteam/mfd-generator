@@ -1,8 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
+	"text/template"
 
+	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/generators/xml"
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -76,3 +80,46 @@ func (s *XMLService) UpdateEntity(entity *mfd.Entity) error {
 
 	return nil
 }
+
+// Generates model go code, that represents this entity.
+//zenrpc:entity Entity
+func (s *XMLService) GenerateModelCode(entity mfd.Entity) (string, error) {
+	ent := model.PackEntity(entity, model.Options{GoPGVer: s.CurrentProject.GoPGVer, CustomTypes: s.CurrentProject.CustomTypes})
+	tpl := template.Must(template.New("tmp").Parse(modelTemplate))
+	var b bytes.Buffer
+	err := tpl.Execute(&b, ent)
+	if err != nil {
+		return "", err
+	}
+	res, err := format.Source(b.Bytes())
+	return string(res), err
+}
+
+// Generates search go code, that represents this entity.
+//zenrpc:entity Entity
+func (s *XMLService) GenerateSearchModelCode(entity mfd.Entity) (string, error) {
+	ent := model.PackEntity(entity, model.Options{GoPGVer: s.CurrentProject.GoPGVer, CustomTypes: s.CurrentProject.CustomTypes})
+	tpl := template.Must(template.New("tmp").Parse(searchTemplate))
+	var b bytes.Buffer
+	err := tpl.Execute(&b, ent)
+	if err != nil {
+		return "", err
+	}
+	res, err := format.Source(b.Bytes())
+	return string(res), err
+}
+
+const modelTemplate = `type {{.Name}} struct {
+    tableName struct{} {{.Tag}}
+    {{range .Columns}}
+    {{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{if .HasRelations}}
+    {{range .Relations}}
+    {{.Name}} *{{.Type}} {{.Tag}} {{.Comment}}{{end}}{{end}}
+}`
+
+const searchTemplate = `type {{.Name}}Search struct {
+    search 
+
+    {{range .Columns}}
+    {{.Name}} {{.GoType}}{{end}}
+}`
