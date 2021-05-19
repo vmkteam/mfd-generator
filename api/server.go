@@ -1,13 +1,14 @@
 package api
 
 import (
+	"embed"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 
-	"github.com/vmkteam/mfd-generator/api/dartclient"
-
 	"github.com/spf13/cobra"
+	"github.com/vmkteam/mfd-generator/api/dartclient"
 	"github.com/vmkteam/zenrpc/v2"
 )
 
@@ -65,6 +66,9 @@ func (s *Server) ReadFlags(command *cobra.Command) (err error) {
 	return nil
 }
 
+//go:embed web/*
+var webuiFiles embed.FS
+
 func (s *Server) Serve() error {
 	apiroot := path.Join(s.path, "/api")
 	docroot := path.Join(s.path, "/doc") + "/"
@@ -86,7 +90,7 @@ func (s *Server) Serve() error {
 	rpc.Use(ProjectMiddleware(store))
 
 	router := http.NewServeMux()
-	router.Handle("/", http.FileServer(http.Dir("./web/")))
+	router.Handle("/", AddPrefix("web/", http.FileServer(http.FS(webuiFiles))))
 	router.Handle(apiroot, rpc)
 	router.Handle(docroot, http.StripPrefix(docroot, http.FileServer(http.Dir("tools/smd-box"))))
 	router.Handle(docroot+"api_client.dart", http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -100,4 +104,21 @@ func (s *Server) Serve() error {
 	log.Printf("starting server on %s\n", s.addr)
 
 	return http.ListenAndServe(s.addr, router)
+}
+
+func AddPrefix(prefix string, h http.Handler) http.Handler {
+	if prefix == "" {
+		return h
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := prefix + r.URL.Path
+		rp := prefix + r.URL.RawPath
+		r2 := new(http.Request)
+		*r2 = *r
+		r2.URL = new(url.URL)
+		*r2.URL = *r.URL
+		r2.URL.Path = p
+		r2.URL.RawPath = rp
+		h.ServeHTTP(w, r2)
+	})
 }
