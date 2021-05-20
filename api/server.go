@@ -38,7 +38,7 @@ func (s *Server) AddFlags(command *cobra.Command) {
 	flags := command.Flags()
 	flags.SortFlags = false
 
-	flags.StringP(addrFlag, "a", ":8080", "Set address to listen")
+	flags.StringP(addrFlag, "a", ":8880", "Set address to listen")
 
 	flags.String(pathFlag, "/", "Set path to handle")
 

@@ -14,7 +14,7 @@ import (
 
 var RPC = struct {
 	ProjectService struct{ Open, Current, Update, Save, Tables string }
-	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }
+	PublicService  struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, HTMLTypes, Ping string }
 	XMLService     struct{ GenerateEntity, LoadEntity, UpdateEntity, GenerateModelCode, GenerateSearchModelCode string }
 	XMLLangService struct{ LoadTranslation, TranslateEntity string }
 	XMLVTService   struct{ GenerateEntity, LoadEntity, UpdateEntity string }
@@ -26,12 +26,13 @@ var RPC = struct {
 		Save:    "save",
 		Tables:  "tables",
 	},
-	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, Ping string }{
+	PublicService: struct{ GoPGVersions, Modes, SearchTypes, Types, DBTypes, HTMLTypes, Ping string }{
 		GoPGVersions: "gopgversions",
 		Modes:        "modes",
 		SearchTypes:  "searchtypes",
 		Types:        "types",
 		DBTypes:      "dbtypes",
+		HTMLTypes:    "htmltypes",
 		Ping:         "ping",
 	},
 	XMLService: struct{ GenerateEntity, LoadEntity, UpdateEntity, GenerateModelCode, GenerateSearchModelCode string }{
@@ -421,6 +422,15 @@ func (PublicService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"HTMLTypes": {
+				Parameters: []smd.JSONSchema{},
+				Returns: smd.JSONSchema{
+					Type: smd.Array,
+					Items: map[string]string{
+						"type": smd.String,
+					},
+				},
+			},
 			"Ping": {
 				Parameters: []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
@@ -450,6 +460,9 @@ func (s PublicService) Invoke(ctx context.Context, method string, params json.Ra
 
 	case RPC.PublicService.DBTypes:
 		resp.Set(s.DBTypes())
+
+	case RPC.PublicService.HTMLTypes:
+		resp.Set(s.HTMLTypes())
 
 	case RPC.PublicService.Ping:
 		resp.Set(s.Ping())

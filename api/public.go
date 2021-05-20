@@ -117,6 +117,23 @@ func (s *PublicService) DBTypes() []string {
 	}
 }
 
+func (s *PublicService) HTMLTypes() []string {
+	return []string{
+		mfd.TypeHTMLNone,
+		mfd.TypeHTMLInput,
+		mfd.TypeHTMLText,
+		mfd.TypeHTMLPassword,
+		mfd.TypeHTMLEditor,
+		mfd.TypeHTMLCheckbox,
+		mfd.TypeHTMLDateTime,
+		mfd.TypeHTMLDate,
+		mfd.TypeHTMLTime,
+		mfd.TypeHTMLSelect,
+		mfd.TypeHTMLFile,
+		mfd.TypeHTMLImage,
+	}
+}
+
 func (s *PublicService) Ping() string {
 	return "Pong"
 }
