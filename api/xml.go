@@ -98,6 +98,7 @@ func (s *XMLService) GenerateModelCode(entity mfd.Entity) (string, error) {
 // Generates search go code, that represents this entity.
 //zenrpc:entity Entity
 func (s *XMLService) GenerateSearchModelCode(entity mfd.Entity) (string, error) {
+	//todo PackSearchEntity panics
 	ent := model.PackEntity(entity, model.Options{GoPGVer: s.CurrentProject.GoPGVer, CustomTypes: s.CurrentProject.CustomTypes})
 	tpl := template.Must(template.New("tmp").Parse(searchTemplate))
 	var b bytes.Buffer
@@ -118,6 +119,7 @@ const modelTemplate = `type {{.Name}} struct {
 }`
 
 const searchTemplate = `type {{.Name}}Search struct {
+	// fixme: wrong search type
     search 
 
     {{range .Columns}}
