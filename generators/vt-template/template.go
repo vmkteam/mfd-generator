@@ -202,16 +202,16 @@ const listDefaultTemplate = `<template>
   </vt-entity-view>
 </template>
 
-[[raw "<"]]script lang="ts">
-import { Component } from "vue-property-decorator";
-import { Observer } from "mobx-vue";
-import EntityList from "common/Entity/EntityList";
-import Store from "common/Entity/EntityCollectionStore";
+[[raw '<']]script lang='ts'>
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
+import EntityList from 'common/Entity/EntityList';
+import Store from 'common/Entity/EntityCollectionStore';
 import {
   [[.Name]]Summary as Model,
   [[.Name]]Search as SearchModel
-} from "services/api/factory";
-import Filters from "./components/ListFilters.vue";
+} from 'services/api/factory';
+import Filters from './components/ListFilters.vue';
 
 @Observer
 @Component({
@@ -269,11 +269,11 @@ const filterDefaultTemplate = `<template>
 			</template>
 			</vt-form-field>[[else]]<vt-form-field[[if not .IsShortFilter]]
               v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
-              component="[[.Component]]" 
+              component="[[.Component]]"
               :label="$t('[[$.JSName]].list.filter.[[.JSName]]')"[[if .IsFK]]
               entity="[[ .FKJSName | ToLower ]]"
-              searchBy="[[.FKJSSearch]]"
-			  async[[end]]
+              search-by="[[.FKJSSearch]]"
+              async[[end]]
               placeholder=""
               v-model="filters.[[.JSName]]"
               class="mb-2"
@@ -307,9 +307,9 @@ const filterDefaultTemplate = `<template>
 </template>
 
 <script lang="ts">
-import { Component } from "vue-property-decorator";
-import { Observer } from "mobx-vue";
-import EntityListFilters from "common/Entity/EntityListFilters";
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
+import EntityListFilters from 'common/Entity/EntityListFilters';
 
 @Observer
 @Component
@@ -388,7 +388,7 @@ const formDefaultTemplate = `<template>
                     :label="$t('[[$.JSName]].form.[[.JSName]]Label')"
                     v-model="store.model.[[.JSName]]"[[if .IsFK]]
 					entity="[[ .FKJSName | ToLower ]]"
-					searchBy="[[.FKJSSearch]]"
+					search-by="[[.FKJSSearch]]"
 					prefetch[[end]]
                     :error-messages="$t(i18nFieldError(store.errors.[[.JSName]]))"
                     :disabled="store.isLoading"
@@ -449,11 +449,11 @@ const formDefaultTemplate = `<template>
 </template>
 
 [[raw "<script"]] lang="ts">
-import { Component } from "vue-property-decorator";
-import { Observer } from "mobx-vue";
-import { [[.Name]] as Model } from "services/api/factory";
-import Store from "common/Entity/EntityModelStore";
-import EntityForm from "common/Entity/EntityForm";
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
+import { [[.Name]] as Model } from 'services/api/factory';
+import Store from 'common/Entity/EntityModelStore';
+import EntityForm from 'common/Entity/EntityForm';
 
 @Observer
 @Component
