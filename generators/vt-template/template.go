@@ -36,19 +36,29 @@ export default [{{range $model := .Entities}}
 // fuck backtick js
 const listDefaultTemplate = `<template>
   <vt-entity-view>
-    <v-layout align-start justify-center>
+    <v-layout
+      align-start
+      justify-center
+    >
       <v-flex column>
         <v-layout justify-center>
-          <v-flex xs12 md8>
-            <v-layout align-center mb-2 wrap>
+          <v-flex
+            xs12
+            md8
+          >
+            <v-layout
+              align-center
+              mb-2
+              wrap
+            >
               <v-flex>
                 <v-layout align-center>
                   <h2 class="ellipsed mr-1">
                     {{ $t("[[.JSName]].list.title") }}
                   </h2>
                   <span
-                    class="text--secondary subtitle-2"
                     v-if="store.pagination.totalItems"
+                    class="text--secondary subtitle-2"
                   >
                     {{ store.pagination.totalItems }}
                   </span>
@@ -57,12 +67,12 @@ const listDefaultTemplate = `<template>
               <v-spacer />
               <v-flex shrink>
                 <v-btn
-                  @click.stop="filtersIsOpen = !filtersIsOpen"
                   :color="
 ` + "                    `${store.activeFiltersCount ? 'teal' : 'grey'}`" + `
                   "
                   class="mr-2"
                   text
+                  @click.stop="filtersIsOpen = !filtersIsOpen"
                 >
                   {{ $t("common.list.filter.title") }}
                   {{
@@ -74,11 +84,16 @@ const listDefaultTemplate = `<template>
                     mdi-filter
                   </v-icon>
                 </v-btn>
-				[[if not .ReadOnly]]<v-btn dark color="success" :to="{ name: '[[.JSName]]Add' }">
-                  <v-icon left>add</v-icon>
+                [[if not .ReadOnly]]<v-btn
+                  dark
+                  color="success"
+                  :to="{ name: '[[.JSName]]Add' }"
+                >
+                  <v-icon left>
+                    add
+                  </v-icon>
                   {{ $t("common.list.addNewLabel") }}
-                </v-btn>
-				[[end]]
+                </v-btn>[[end]]
               </v-flex>
             </v-layout>
             <filters
@@ -110,11 +125,11 @@ const listDefaultTemplate = `<template>
                     mr-sm-2
                   >
                     <v-text-field
+                      v-model="store.filters.[[.TitleField]]"
                       :placeholder="
                         $t('[[.JSName]].list.filter.quickFilterPlaceholder')
                       "
                       hide-details
-                      v-model="store.filters.[[.TitleField]]"
                       @keyup.enter.native="submitFilters()"
                     />
                   </v-flex>
@@ -128,9 +143,11 @@ const listDefaultTemplate = `<template>
                       :filters="store.activeFilters"
                       @reset:filters="resetFiltersKey"
                     />
-                  </v-flex>
-                  [[end]]
-                  <v-flex v-if="$vuetify.breakpoint.smAndUp" mt-sm-4>
+                  </v-flex>[[end]]
+                  <v-flex
+                    v-if="$vuetify.breakpoint.smAndUp"
+                    mt-sm-4
+                  >
                     <vt-compact-pagination
                       :value="store.pagination.page"
                       :total-pages="store.pagination.totalPages"
@@ -142,16 +159,15 @@ const listDefaultTemplate = `<template>
 
               [[raw "<!-- Table -->"]]
               <v-data-table
+                v-model="selected"
                 :headers="headers"
                 :items="store.list"
                 :options="store.vuetifyTableOptions"
                 :server-items-length="store.pagination.totalItems"
-                v-model="selected"
                 item-key="[[range .PKs]][[.JSName]][[end]]"
                 :footer-props="{
                   itemsPerPageOptions: [10, 25, 50, 100, 500]
                 }"
-                @update:options="setPagination"
                 :class="[
                   'data-table-wrapper-sticky-fix',
                   {
@@ -163,19 +179,26 @@ const listDefaultTemplate = `<template>
                 :show-select="false"
                 :loading="store.isLoading"
                 fixed-header
+                @update:options="setPagination"
               >[[range .ListColumns]][[if eq .JSName "statusId"]]
                 <template #item.status="{ item }">
                   <span class="text-no-wrap">
-                    <vt-status-badge v-model="item.status" small />
+                    <vt-status-badge
+                      v-model="item.status"
+                      small
+                    />
                   </span>
                 </template>[[else]]
                 [[raw "<"]]template #item.[[.JSName]]="{ item }">[[if .IsBool]]
-				  <vt-boolean-badge :value="item.[[.JSName]]" small />[[else]][[if .EditLink]]
+                  <vt-boolean-badge
+                    :value="item.[[.JSName]]"
+                    small
+                  />[[else]][[if .EditLink]]
                   <router-link
                     :to="{ name: '[[$.JSName]]Edit', params: { [[range $.PKs]]id: item.[[.JSName]][[end]] } }"
                     class="font-weight-medium"
                   >[[end]]
-                  {{ item.[[.JSName]][[if .HasPipe]] | [[.Pipe]][[end]] }}[[end]][[if .EditLink]]
+                  [[if .EditLink]]  [[end]]{{ item.[[.JSName]][[if .HasPipe]] | [[.Pipe]][[end]] }}[[end]][[if .EditLink]]
                   </router-link>[[end]]
                 </template>[[end]][[end]][[if not $.ReadOnly]]
                 <template #item.[[range $.PKs]][[.JSName]]="{ item }"[[end]]>
@@ -202,7 +225,7 @@ const listDefaultTemplate = `<template>
   </vt-entity-view>
 </template>
 
-[[raw '<']]script lang='ts'>
+[[raw "<"]]script lang="ts">
 import { Component } from 'vue-property-decorator';
 import { Observer } from 'mobx-vue';
 import EntityList from 'common/Entity/EntityList';
@@ -215,27 +238,28 @@ import Filters from './components/ListFilters.vue';
 
 @Observer
 @Component({
-  name: "List",
+  name: 'List',
   components: { Filters }
 })
 export default class List extends EntityList {
   store: Store = new Store(Model, SearchModel);
 
-  get headers() {
-    return [ [[range $i, $e := .ListColumns]][[if ne $i 0]]
+  get headers () {
+    return [
+      [[range $i, $e := .ListColumns]][[if ne $i 0]]
       },
-[[end]]{[[if eq .JSName "statusId"]]
-        text: this.$t("[[$.JSName]].list.headers.status"),
-        value: "status",
-		sortable: false
-[[else]]
-        text: this.$t("[[$.JSName]].list.headers.[[.JSName]]"),
-        value: "[[.JSName]]"[[if eq $i 0]],
-        align: "left"[[end]][[if not .IsSortable]],
-		sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]}[[else]]},
+      [[end]]{[[if eq .JSName "statusId"]]
+        text: this.$t('[[$.JSName]].list.headers.status'),
+        value: 'status',
+        sortable: false
+      [[else]]
+        text: this.$t('[[$.JSName]].list.headers.[[.JSName]]'),
+        value: '[[.JSName]]'[[if eq $i 0]],
+        align: 'left'[[end]][[if not .IsSortable]],
+        sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]}[[else]]},
       {
-        text: this.$t("[[$.JSName]].list.headers.actions"),
-        value: "id",
+        text: this.$t('[[$.JSName]].list.headers.actions'),
+        value: 'id',
         sortable: false
       }[[end]]
     ];
@@ -253,14 +277,16 @@ const filterDefaultTemplate = `<template>
         <v-form @submit.prevent="$emit('submitFilters')">
           <v-card-text class="pb-0">
             [[raw "<!-- generated part -->"]]
-            [[range $i, $e := .FilterColumns]][[if .IsCheckBox]]<vt-form-field[[if not .IsShortFilter]]
+            [[range $i, $e := .FilterColumns]][[if .IsCheckBox]]<vt-form-field
+            [[if not .IsShortFilter]]
               v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
-            v-model="filters.[[.JSName]]">
+              v-model="filters.[[.JSName]]"
+            >
 			<template #component-slot>
 			[[raw "<v-checkbox"]]
+			v-model="filters.[[.JSName]]"
 			:label="$t('[[$.JSName]].list.filter.[[.JSName]]')"
             placeholder=""
-			v-model="filters.[[.JSName]]"
             class="mb-2"
             hide-details
 			clearable
@@ -269,13 +295,13 @@ const filterDefaultTemplate = `<template>
 			</template>
 			</vt-form-field>[[else]]<vt-form-field[[if not .IsShortFilter]]
               v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
+              v-model="filters.[[.JSName]]"
               component="[[.Component]]"
               :label="$t('[[$.JSName]].list.filter.[[.JSName]]')"[[if .IsFK]]
               entity="[[ .FKJSName | ToLower ]]"
               search-by="[[.FKJSSearch]]"
               async[[end]]
               placeholder=""
-              v-model="filters.[[.JSName]]"
               class="mb-2"
               hide-details
               clearable[[if .ShowShortFilterLabel]]
@@ -283,7 +309,10 @@ const filterDefaultTemplate = `<template>
               <v-layout v-if="!isFullFilter">
                 <v-flex xs12>
                   <v-subheader class="mb-2 mt-2 pl-0 pl-sm-4">
-                    <a href="#" @click.stop.prevent="isFullFilter = true">
+                    <a
+                      href="#"
+                      @click.stop.prevent="isFullFilter = true"
+                    >
                       {{ $t("common.list.filter.allFiltersLabel") }}
                     </a>
                   </v-subheader>
@@ -295,7 +324,10 @@ const filterDefaultTemplate = `<template>
           </v-card-text>
           <v-card-actions class="pa-4 pt-0">
             <v-flex offset-sm-3>
-              <v-btn color="primary" type="submit">
+              <v-btn
+                color="primary"
+                type="submit"
+              >
                 {{ $t("common.list.filter.submitButtonLabel") }}
               </v-btn>
             </v-flex>
@@ -321,9 +353,19 @@ export default class Filters extends EntityListFilters {}
 
 const formDefaultTemplate = `<template>
   <vt-entity-view>
-    <v-layout align-start justify-center>
-      <v-flex xs12 md8 mb-2>
-        <v-layout mb-2 wrap>
+    <v-layout
+      align-start
+      justify-center
+    >
+      <v-flex
+        xs12
+        md8
+        mb-2
+      >
+        <v-layout
+          mb-2
+          wrap
+        >
           <v-flex>
             <h2 class="ellipsed">
               {{ store.model.[[.TitleField]] || "..." }}
@@ -346,18 +388,24 @@ const formDefaultTemplate = `<template>
                 {{ $t("common.form.cancelButtonLabel") }}
               </template>
             </v-btn>
-            <v-hover v-if="$route.params.id" #default="{ hover }">
+            <v-hover
+              v-if="$route.params.id"
+              #default="{ hover }"
+            >
               <v-btn
                 :color="hover ? 'error' : ''"
-                @click.stop="onDelete('[[.TitleField]]')"
                 icon
+                @click.stop="onDelete('[[.TitleField]]')"
               >
                 <v-icon>delete</v-icon>
               </v-btn>
             </v-hover>
           </v-flex>
         </v-layout>
-        <v-tabs v-model="tab" mobile-break-point="0">
+        <v-tabs
+          v-model="tab"
+          mobile-break-point="0"
+        >
           <v-tab
             :class="{
               'error--text': tabsHasError.includes(0)
@@ -367,44 +415,48 @@ const formDefaultTemplate = `<template>
           </v-tab>
         </v-tabs>
         <v-card v-if="store.model">
-          <v-form @submit.prevent="onSaveAndBack" ref="form">
+          <v-form
+            ref="form"
+            @submit.prevent="onSaveAndBack"
+          >
             <v-card-text>
               <v-tabs-items v-model="tab">
                 <v-tab-item eager>
                   [[raw "<!--  generated part -->"]]
-				  [[range .FormColumns]][[if .IsCheckBox]]<vt-form-field v-model="store.model.[[.JSName]]">
+                  [[range .FormColumns]][[if .IsCheckBox]]<vt-form-field v-model="store.model.[[.JSName]]">
 					<template #component-slot>
-					  [[raw "<v-checkbox"]]
-					    v-model="store.model.[[.JSName]]"
+	                  [[raw "<v-checkbox"]]
+	                    v-model="store.model.[[.JSName]]"
 						[[raw ":error-messages="]]"$t(i18nFieldError(store.errors.[[.JSName]]))"
                     	:disabled="store.isLoading"
 						:label="$t('[[$.JSName]].form.[[.JSName]]Label')"
 						color="primary"
-					  />
+	                  />
 					</template>
                   </vt-form-field>
-				  [[else]][[raw "<vt-form-field"]]
+                  [[else]][[raw "<vt-form-field"]]
+                    v-model="store.model.[[.JSName]]"[[if .IsFK]]
+                    entity="[[ .FKJSName | ToLower ]]"
+                    search-by="[[.FKJSSearch]]"
+                    prefetch[[end]]
                     component="[[.Component]]"
                     :label="$t('[[$.JSName]].form.[[.JSName]]Label')"
-                    v-model="store.model.[[.JSName]]"[[if .IsFK]]
-					entity="[[ .FKJSName | ToLower ]]"
-					search-by="[[.FKJSSearch]]"
-					prefetch[[end]]
                     :error-messages="$t(i18nFieldError(store.errors.[[.JSName]]))"
                     :disabled="store.isLoading"
                     placeholder=""[[if .Required]]
-					required[[else]]
-					clearable[[end]][[range .Params]]
+                    required[[else]]
+                    clearable[[end]][[range .Params]]
                     [[.]][[end]]
-                  />
-				  [[end]][[end]]
-                  <!-- end of generated part -->
+                  />[[end]][[end]][[raw "<!--  end generated part -->"]]
                 </v-tab-item>
               </v-tabs-items>
             </v-card-text>
             <v-card-actions>
               <v-layout wrap>
-                <v-flex v-if="$vuetify.breakpoint.smAndUp" xs3> </v-flex>
+                <v-flex
+                  v-if="$vuetify.breakpoint.smAndUp"
+                  xs3
+                />
                 <v-flex>
                   <v-layout wrap>
                     <v-btn
