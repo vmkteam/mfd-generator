@@ -134,7 +134,6 @@ import (
 	"github.com/vmkteam/zenrpc/v2"
 )
 
-//go:generate zenrpc
 {{range $model := .Entities}}
 type {{.Name}}Service struct {
 	zenrpc.Service
