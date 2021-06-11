@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/vmkteam/mfd-generator/api/dartclient"
@@ -101,7 +102,12 @@ func (s *Server) Serve() error {
 		rw.Write(resp)
 	}))
 
-	log.Printf("starting server on %s\n", s.addr)
+	parts := strings.Split(s.addr, ":")
+	if len(parts) == 2 && parts[0] == "" {
+		s.addr = "localhost" + s.addr
+	}
+
+	log.Printf("starting server on http://%s\n", s.addr)
 
 	return http.ListenAndServe(s.addr, router)
 }
