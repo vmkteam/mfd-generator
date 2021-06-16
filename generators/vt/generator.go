@@ -203,6 +203,10 @@ func (g *Generator) Generate() error {
 		}
 	}
 
+	if err := updateServer(project.VTNamespaces, g.options); err != nil {
+		return fmt.Errorf("update vt server error: %w", err)
+	}
+
 	// printing zenrpc server code
 	if err := PrintServer(project.VTNamespaces, serverTemplate, g.options); err != nil {
 		return fmt.Errorf("generate vt server error: %w", err)
