@@ -71,11 +71,11 @@ func (p *Project) VTNamespaceNames() []string {
 // VTNamespace is xml element
 type VTNamespace struct {
 	XMLName xml.Name `xml:"VTNamespace" json:"-"`
-	XMLxsi  string   `xml:"xmlns:xsi,attr"`
-	XMLxsd  string   `xml:"xmlns:xsd,attr"`
+	XMLxsi  string   `xml:"xmlns:xsi,attr" json:"-"`
+	XMLxsd  string   `xml:"xmlns:xsd,attr" json:"-"`
 	Name    string
 
-	Entities []*VTEntity `xml:"VTEntities>Entity"`
+	Entities []*VTEntity `xml:"VTEntities>Entity" json:"vtEntities"`
 }
 
 func NewVTNamespace(namespace string) *VTNamespace {
@@ -135,19 +135,20 @@ func (n *VTNamespace) VTEntityNames() []string {
 // VTEntity is xml element
 type VTEntity struct {
 	XMLName xml.Name `xml:"Entity" json:"-"`
-	Name    string   `xml:"Name,attr"`
+	Name    string   `xml:"Name,attr" json:"name"`
 
-	TerminalPath string `xml:"TerminalPath"`
+	TerminalPath string `xml:"TerminalPath" json:"terminalPath"`
 
-	Attributes     VTAttributes   `xml:"Attributes>Attribute"`
-	TmplAttributes TmplAttributes `xml:"Template>Attribute"`
+	Attributes     VTAttributes   `xml:"Attributes>Attribute" json:"attributes"`
+	TmplAttributes TmplAttributes `xml:"Template>Attribute" json:"template"`
 
 	// DEPRECATED
-	NoTemplates bool   `xml:"WithoutTemplates,attr,omitempty"`
-	Mode        string `xml:"Mode,attr"`
+	NoTemplates bool `xml:"WithoutTemplates,attr,omitempty" json:"-"`
+
+	Mode string `xml:"Mode,attr" json:"mode"`
 
 	// corresponding entity
-	Entity *Entity `xml:"-"`
+	Entity *Entity `xml:"-" json:"-"`
 }
 
 // Attribute gets mfd.VTAttribute by its field name
@@ -184,23 +185,20 @@ func (e *VTEntity) TmplAttributeByNames(name, attrName string) *TmplAttribute {
 type VTAttribute struct {
 	XMLName xml.Name `xml:"Attribute" json:"-"`
 
-	// Names
-	Name       string `xml:"Name,attr"`
-	AttrName   string `xml:"AttrName,attr,omitempty"`
-	SearchName string `xml:"SearchName,attr,omitempty"`
+	Name       string `xml:"Name,attr" json:"name"`
+	AttrName   string `xml:"AttrName,attr,omitempty" json:"attrName"`
+	SearchName string `xml:"SearchName,attr,omitempty" json:"searchName"`
 
-	// model options
-	Summary bool `xml:"Summary,attr"` // show in list
-	Search  bool `xml:"Search,attr"`  // show in search
+	Summary bool `xml:"Summary,attr" json:"summary"`
+	Search  bool `xml:"Search,attr" json:"search"`
 
-	// Validate options
-	MaxValue int    `xml:"Max,attr"`
-	MinValue int    `xml:"Min,attr"`
-	Required bool   `xml:"Required,attr"`
-	Validate string `xml:"Validate,attr"`
+	MaxValue int    `xml:"Max,attr" json:"max"`
+	MinValue int    `xml:"Min,attr" json:"min"`
+	Required bool   `xml:"Required,attr" json:"required"`
+	Validate string `xml:"Validate,attr" json:"validate"`
 
 	// corresponding entity attribute
-	Attribute *Attribute `xml:"-"`
+	Attribute *Attribute `xml:"-" json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
@@ -221,16 +219,16 @@ func (a *VTAttribute) Merge(with *VTAttribute) *VTAttribute {
 type TmplAttribute struct {
 	XMLName xml.Name `xml:"Attribute" json:"-"`
 
-	Name     string `xml:"Name,attr"`
-	AttrName string `xml:"VTAttrName,attr"`
+	Name     string `xml:"Name,attr" json:"name"`
+	AttrName string `xml:"VTAttrName,attr" json:"vtAttrName"`
 
-	List   bool   `xml:"List,attr"`             // show in list
-	FKOpts string `xml:"FKOpts,attr,omitempty"` // how to show fks
-	Form   string `xml:"Form,attr"`             // show in object editor
-	Search string `xml:"Search,attr"`           // input type in search
+	List   bool   `xml:"List,attr" json:"list"`               // show in list
+	FKOpts string `xml:"FKOpts,attr,omitempty" json:"fkOpts"` // how to show fks
+	Form   string `xml:"Form,attr" json:"form"`               // show in object editor
+	Search string `xml:"Search,attr" json:"search"`           // input type in search
 
 	// corresponding vt attribute
-	VTAttribute *VTAttribute `xml:"-"`
+	VTAttribute *VTAttribute `xml:"-" json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute

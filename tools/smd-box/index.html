@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SMD Box</title>
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="https://bootswatch.com/3/paper/bootstrap.min.css">
+    <link href="app.css" rel="stylesheet">
+    <script type="text/javascript" src="app.js"></script></head>
+<body>
+<div id="smdbox-root"></div>
+<script>
+    if (window.smdbox) {
+        window.smdbox({
+            selector: '#smdbox-root',
+            smdUrl: 'http://localhost:8080/?smd',
+            endpoint: 'http://localhost:8080/',
+            headers: {}
+        })
+    }
+</script>
+</body>
+</html>

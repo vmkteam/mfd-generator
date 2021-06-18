@@ -266,6 +266,10 @@ func fixPointer(attribute mfd.Attribute) string {
 		return attribute.GoType
 	}
 
+	if attribute.GoType == "" {
+		return attribute.GoType
+	}
+
 	if attribute.GoType[0] != '*' {
 		return "*" + attribute.GoType
 	}
