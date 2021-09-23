@@ -7,7 +7,7 @@ export default [{{range $model := .Entities}}
     name: "{{.JSName}}List",
     path: "/{{.TerminalPath}}",
     component: () =>
-      import(/* webpackChunkName: "{{.Name}}List" */ "pages/Entity/{{.Name}}/List.vue"),
+      import("@/pages/Entity/{{.Name}}/List.vue"),
     meta: {
       breadcrumbs: ["dashboard", "{{.JSName}}List"]
     }
@@ -16,7 +16,7 @@ export default [{{range $model := .Entities}}
     name: "{{.JSName}}Edit",
     path: "/{{.TerminalPath}}/:id/edit",
     component: () =>
-      import(/* webpackChunkName: "{{.Name}}Form" */ "pages/Entity/{{.Name}}/Form.vue"),
+      import("@/pages/Entity/{{.Name}}/Form.vue"),
     meta: {
       breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Edit"]
     }
@@ -25,7 +25,7 @@ export default [{{range $model := .Entities}}
     name: "{{.JSName}}Add",
     path: "/{{.TerminalPath}}/add",
     component: () =>
-      import(/* webpackChunkName: "{{.Name}}Form" */ "pages/Entity/{{.Name}}/Form.vue"),
+      import("@/pages/Entity/{{.Name}}/Form.vue"),
     meta: {
       breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
     }
@@ -228,12 +228,12 @@ const listDefaultTemplate = `<template>
 [[raw "<"]]script lang="ts">
 import { Component } from 'vue-property-decorator';
 import { Observer } from 'mobx-vue';
-import EntityList from 'common/Entity/EntityList';
-import Store from 'common/Entity/EntityCollectionStore';
+import EntityList from '@/common/Entity/EntityList';
+import Store from '@/common/Entity/EntityCollectionStore';
 import {
   [[.Name]]Summary as Model,
   [[.Name]]Search as SearchModel
-} from 'services/api/factory';
+} from '@/services/api/factory';
 import Filters from './components/ListFilters.vue';
 
 @Observer
@@ -341,7 +341,7 @@ const filterDefaultTemplate = `<template>
 <script lang="ts">
 import { Component } from 'vue-property-decorator';
 import { Observer } from 'mobx-vue';
-import EntityListFilters from 'common/Entity/EntityListFilters';
+import EntityListFilters from '@/common/Entity/EntityListFilters';
 
 @Observer
 @Component
@@ -503,9 +503,9 @@ const formDefaultTemplate = `<template>
 [[raw "<script"]] lang="ts">
 import { Component } from 'vue-property-decorator';
 import { Observer } from 'mobx-vue';
-import { [[.Name]] as Model } from 'services/api/factory';
-import Store from 'common/Entity/EntityModelStore';
-import EntityForm from 'common/Entity/EntityForm';
+import { [[.Name]] as Model } from '@/services/api/factory';
+import Store from '@/common/Entity/EntityModelStore';
+import EntityForm from '@/common/Entity/EntityForm';
 
 @Observer
 @Component
