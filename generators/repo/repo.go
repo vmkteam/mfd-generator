@@ -160,11 +160,7 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	sortField, sortDir := sort(entity)
 
 	// getting plural name for function name (eg CategoriesList)
-	schema, table := util.Split(entity.Table)
-	goNamePlural := util.CamelCased(util.Sanitize(table))
-	if schema != util.PublicSchema {
-		goNamePlural = util.CamelCased(schema) + goNamePlural
-	}
+	goNamePlural := mfd.MakePlural(te.Name)
 
 	// getting var name for variable name (eg categories, newsList)
 	varName := mfd.VarName(te.Name)
