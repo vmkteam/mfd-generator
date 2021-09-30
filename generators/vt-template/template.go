@@ -203,7 +203,7 @@ const listDefaultTemplate = `<template>
                 </template>[[end]][[end]][[if not $.ReadOnly]]
                 <template #item.[[range $.PKs]][[.JSName]]="{ item }"[[end]]>
                   <span class="text-no-wrap">
-                    <v-hover #default="{ hover }">
+                    <v-hover v-slot="{ hover }">
                       <v-btn
                         text
                         dark
@@ -390,7 +390,7 @@ const formDefaultTemplate = `<template>
             </v-btn>
             <v-hover
               v-if="$route.params.id"
-              #default="{ hover }"
+              v-slot="{ hover }"
             >
               <v-btn
                 :color="hover ? 'error' : ''"
