@@ -98,7 +98,13 @@ func ShortVarName(name string) string {
 		}
 	}
 
-	return string(r)
+	for i := 0; i < len(r); i++ {
+		if varName := string(r[i:]); !IsReserved(varName) {
+			return varName
+		}
+	}
+
+	return VarName(name)
 }
 
 func UrlName(name string) string {
