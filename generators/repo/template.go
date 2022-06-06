@@ -80,8 +80,7 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) One{{.Name}}(ctx context.Context, sear
 
 	if errors.Is(err, pg.ErrMultiRows) {
 		return nil, err
-	}
-	if errors.Is(err, pg.ErrNoRows) {
+	} else if errors.Is(err, pg.ErrNoRows) {
 		return nil, nil
 	}
 
