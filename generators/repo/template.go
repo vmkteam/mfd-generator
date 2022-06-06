@@ -4,7 +4,8 @@ const repoDefaultTemplate = `
 package {{.Package}}
 
 import (
-	"context"{{if .HasImports}}{{range .Imports}}
+	"context"
+	"errors"{{if .HasImports}}{{range .Imports}}
 	"{{.}}"{{end}}
 	{{end}}
 
@@ -77,10 +78,9 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) One{{.Name}}(ctx context.Context, sear
 	obj := &{{.Name}}{}
 	err := buildQuery(ctx, {{$.ShortVarName}}r.db, obj, search, {{$.ShortVarName}}r.filters[Tables.{{.Name}}.Name], PagerTwo, ops...).Select()
 
-	switch err {
-	case pg.ErrMultiRows:
+	if errors.Is(err, pg.ErrMultiRows) {
 		return nil, err
-	case pg.ErrNoRows:
+	} else if errors.Is(err, pg.ErrNoRows) {
 		return nil, nil
 	}
 
