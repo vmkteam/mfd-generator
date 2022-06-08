@@ -252,7 +252,7 @@ export default class List extends EntityList {
         text: this.$t('[[$.JSName]].list.headers.status'),
         value: 'status',
         sortable: false
-      [[else]]
+      [[- else ]]
         text: this.$t('[[$.JSName]].list.headers.[[.JSName]]'),
         value: '[[.JSName]]'[[if eq $i 0]],
         align: 'left'[[end]][[if not .IsSortable]],
