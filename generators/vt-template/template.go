@@ -256,7 +256,11 @@ export default class List extends EntityList {
         text: this.$t('[[$.JSName]].list.headers.[[.JSName]]'),
         value: '[[.JSName]]'[[if eq $i 0]],
         align: 'left'[[end]][[if not .IsSortable]],
-        sortable: false[[end]][[end]][[end]][[if $.ReadOnly]]}[[else]]},
+        sortable: false[[end]][[end]][[end]]
+      [[- if $.ReadOnly ]]
+      }
+      [[- else ]]
+      },
       {
         text: this.$t('[[$.JSName]].list.headers.actions'),
         value: 'id',
