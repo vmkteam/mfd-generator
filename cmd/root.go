@@ -17,7 +17,7 @@ import (
 )
 
 var root = &cobra.Command{
-	Use:   "mfd",
+	Use:   "mfd-generator",
 	Short: "",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
