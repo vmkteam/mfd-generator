@@ -12,7 +12,7 @@ import ({{if .HasImports}}{{range .Imports}}
 type {{.Name}} struct { {{range .ModelColumns}}
 	{{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{if .HasModelRelations}}
 	{{range .ModelRelations}}
-	{{.Name}} *{{.Type}} {{.Tag}}{{end}}{{end}}
+	{{.Name}} *{{.Type}}{{if ne .Type "Status"}}Summary{{end}} {{.Tag}}{{end}}{{end}}
 }
 
 func ({{.ShortVarName}} *{{.Name}}) ToDB() *db.{{.Name}} {
@@ -32,10 +32,7 @@ func ({{.ShortVarName}} *{{.Name}}) ToDB() *db.{{.Name}} {
 	if {{$model.VarName}}{{.Name}} := {{$model.ShortVarName}}.{{.FieldName}}.ToDB(); {{$model.VarName}}{{.Name}} != nil {
 		{{$model.VarName}}.{{.Name}} = *{{$model.VarName}}{{.Name}}
 	}
-	{{end}}{{end}}{{end}}{{if .HasModelRelations}}{{range .ModelRelations}}{{if ne .Name "Status"}} 
-	if {{$model.ShortVarName}}.{{.FieldName}} != nil {
-		{{$model.VarName}}.{{.Name}} = {{$model.ShortVarName}}.{{.FieldName}}.ToDB()
-	}{{end}}{{end}}{{end}}
+	{{end}}{{end}}{{end}}
 
 	return {{.VarName}}
 }
@@ -89,7 +86,7 @@ func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
 		{{.Name}}: New{{.ParamsName}}(in.{{.Name}}),{{end}}{{else}}
 		{{.Name}}: {{if ne .FromDBName ""}}{{.FromDBName}},{{else}}in.{{.Name}},{{end}}{{end}}{{end}}{{if .HasModelRelations}}
 		{{range .ModelRelations}}
-		{{.Name}}:   New{{.Type}}(in.{{.Name}}{{if eq .Name "Status"}}ID{{end}}),{{end}}{{end}}
+		{{.Name}}:   New{{.Type}}{{if ne .Name "Status"}}Summary{{end}}(in.{{.Name}}{{if eq .Name "Status"}}ID{{end}}),{{end}}{{end}}
 	}
 	{{range .ModelColumns}}{{if .IsParams}}{{if not .NilCheck}}
 	if {{$model.VarName}}{{.Name}} := New{{.ParamsName}}(&in.{{.Name}}); {{$model.VarName}}{{.Name}} != nil {
@@ -139,12 +136,26 @@ type {{.Name}}Service struct {
 	zenrpc.Service
 	embedlog.Logger
 	{{$.VarName}}Repo db.{{$.Name}}Repo
+    {{- if .HasRelations }}
+    {{- range .UniqueRelations }}
+    {{- if ne $.VarName .NameSpace }}
+    {{.NameSpace}}Repo db.{{.NameSpace | title}}Repo
+    {{- end }}
+    {{- end}}
+    {{- end}}
 }
 
 func New{{.Name}}Service(dbo db.DB, logger embedlog.Logger) *{{.Name}}Service {
 	return &{{.Name}}Service{
 		Logger:   logger,
 		{{$.VarName}}Repo: db.New{{$.Name}}Repo(dbo),
+        {{- if .HasRelations }}
+        {{- range .UniqueRelations }}
+        {{- if ne $.VarName .NameSpace }}
+        {{.NameSpace}}Repo: db.New{{.NameSpace | title}}Repo(dbo),
+        {{- end }}
+        {{- end}}
+        {{- end}}
 	}
 }
 
@@ -345,6 +356,8 @@ const serverDefaultTemplate = `
 
 	const (
 		NSAuth = "auth"
+		NSUser = "user"
+
 		{{range .Entities}}
 		NS{{.Name}} = "{{.VarName}}"{{end}}
 	)
@@ -352,6 +365,8 @@ const serverDefaultTemplate = `
 	// services
 	rpc.RegisterAll(map[string]zenrpc.Invoker{
 		NSAuth: NewAuthService(dbo, logger),
+		NSUser: NewUserService(dbo, logger),
+
 		{{range .Entities}}
 		NS{{.Name}}: New{{.Name}}Service(dbo, logger),{{end}}
 	})

@@ -9,6 +9,7 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/spf13/cobra v1.1.3
 	github.com/vmkteam/zenrpc/v2 v2.2.1
+	golang.org/x/text v0.3.3
 )
 
 require (
