@@ -13,15 +13,23 @@ import (
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func raw(str string) template.HTML {
 	return template.HTML(str)
 }
 
+func title(str string) template.HTML {
+	c := cases.Title(language.Und, cases.NoLower)
+	return template.HTML(c.String(str))
+}
+
 var TemplateFunctions = template.FuncMap{
 	"raw":     raw,
 	"ToLower": strings.ToLower,
+	"title":   title,
 }
 
 type Packer func(*Namespace) (interface{}, error)

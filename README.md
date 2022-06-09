@@ -1,4 +1,4 @@
-# MDF Generator
+# MFD Generator
 
 **mfd generator** призван облегчить работу с базой данных путем генерирования моделей, поисков и валидаторов, а также сопутствующих сущностей вплоть до интерфейса админки.
 Проект включает в себя несколько генераторов, каждый из которых генерирует xml, go, js разных уровней.
@@ -22,35 +22,25 @@
 
 Описание форматов xml файлов можно найти в соответствующих генераторах [xml](/generators/xml), [xml-vt](/generators/xml-vt) и [xml-lang](/generators/xml-lang)
 
-### CHANGELOG
+# Command line usage
+```
+Usage:
+  mfd-generator [flags]
+  mfd-generator [command]
 
-#### v0.0.1  
-**xml**
-- `-o --output` renamed to `-m --mfd` 
-- `-p --pkgs`  renamed to `-n --namespaces`  
-- added `-p --print` flag to print value for `namespaces` flag based on current project. flag was moved from `model` generator
+Available Commands:
+  help        Help about any command
+  model       Create golang model from xml
+  repo        Create repo from xml
+  server      Run web server with generators
+  template    Create vt template from xml
+  vt          Create vt from xml
+  xml         Create or update project base with namespaces and entities
+  xml-lang    Create lang xml from mfd
+  xml-vt      Create vt xml from mfd
 
-**xml-vt**
-- generator command renamed from `xml vt` to `xml-vt`
-- `-p --ns`  renamed to `-n --namespaces`    
+Flags:
+  -h, --help   help for mfd
 
-**xml-lang**
-- generator command renamed from `xml lang` to `xml-lang`
-
-**model**
-- `-n --ns` flag renamed to `-p --print` and moved to **xml** generator
-- `-p --package` flag now not required. if flag not set - last element of output path will be used
-
-#### v0.0.2 
-
-**repo**
-- `-n --ns`  renamed to `-n --namespaces` 
-- `-p --package` flag now not required. if flag not set - last element of output path will be used
-
-**vt**
-- `-n --ns`  renamed to `-n --namespaces`
-- `-x --model-pkg`  renamed to `-x --model`
-
-**vt-template** 
-- `-n --ns`  renamed to `-n --namespaces`
-- disabled custom templates flags
+Use "mfd-generator [command] --help" for more information about a command.
+```

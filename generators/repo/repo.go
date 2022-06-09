@@ -93,9 +93,13 @@ type EntityData struct {
 	HasRelations bool
 	Relations    []string
 
-	Columns         []AttributeData
-	HasNotAddable   bool
+	Columns []AttributeData
+
+	HasNotAddable bool
+	NotAddable    []string
+
 	HasNotUpdatable bool
+	NotUpdatable    []string
 }
 
 // PackEntity packs mfd entity to template data
@@ -106,6 +110,8 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	hasStatus := false
 	hasNotAddable := false
 	hasNotUpdatable := false
+	var notAddable []string
+	var notUpdatable []string
 	var pks []PKPair
 
 	imports := mfd.NewSet()
@@ -138,10 +144,12 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 
 		if !column.IsAddable() {
 			hasNotAddable = true
+			notAddable = append(notAddable, column.Name)
 		}
 
 		if !column.IsUpdatable() {
 			hasNotUpdatable = true
+			notUpdatable = append(notUpdatable, column.Name)
 		}
 
 		columns = append(columns, AttributeData{
@@ -188,9 +196,12 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 		Relations:    relations,
 		HasRelations: len(relations) > 0,
 
-		Columns:         columns,
-		HasNotAddable:   hasNotAddable,
+		Columns:       columns,
+		HasNotAddable: hasNotAddable,
+		NotAddable:    notAddable,
+
 		HasNotUpdatable: hasNotUpdatable,
+		NotUpdatable:    notUpdatable,
 	}
 }
 

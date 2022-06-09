@@ -82,8 +82,9 @@ type ServiceEntityData struct {
 	AliasField string
 	AliasArg   string
 
-	HasRelations bool
-	Relations    []ServiceRelationData
+	HasRelations    bool
+	Relations       []ServiceRelationData
+	UniqueRelations []ServiceRelationData
 
 	ReadOnly bool
 }
@@ -97,7 +98,9 @@ func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData
 	})
 
 	var relations []ServiceRelationData
+	var uniqueRelations []ServiceRelationData
 	var sortColumns []string
+	foreignKeys := make(map[string]struct{})
 	for _, vtAttr := range vtEntity.Attributes {
 		if vtAttr.AttrName != "" {
 			if !vtAttr.Attribute.IsArray && vtAttr.Summary {
@@ -105,7 +108,12 @@ func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData
 			}
 
 			if vtAttr.Attribute.ForeignKey != "" && vtAttr.Attribute.ForeignEntity != nil {
-				relations = append(relations, PackServiceRelationData(*vtAttr, *vtAttr.Attribute.ForeignEntity))
+				serviceRelationData := PackServiceRelationData(*vtAttr, *vtAttr.Attribute.ForeignEntity)
+				relations = append(relations, serviceRelationData)
+				if _, ok := foreignKeys[vtAttr.Attribute.ForeignEntity.Namespace]; !ok {
+					foreignKeys[vtAttr.Attribute.ForeignEntity.Namespace] = struct{}{}
+					uniqueRelations = append(uniqueRelations, serviceRelationData)
+				}
 			}
 		}
 	}
@@ -155,8 +163,9 @@ func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData
 		AliasField: aliasField,
 		AliasArg:   aliasArg,
 
-		HasRelations: len(relations) > 0,
-		Relations:    relations,
+		HasRelations:    len(relations) > 0,
+		Relations:       relations,
+		UniqueRelations: uniqueRelations,
 
 		ReadOnly: vtEntity.Mode == mfd.ModeReadOnly || vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
 	}
