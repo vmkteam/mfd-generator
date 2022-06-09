@@ -102,7 +102,7 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) Count{{.NamePlural}}(ctx context.Conte
 func ({{$.ShortVarName}}r {{$.Name}}Repo) Add{{.Name}}(ctx context.Context, {{.VarName}} *{{.Name}}, ops ...OpFunc) (*{{.Name}}, error) {
 	q := {{$.ShortVarName}}r.db.ModelContext(ctx, {{.VarName}})
 	applyOps(q, ops...)
-	_, err := q.Insert()
+	_, err := q{{if .HasNotAddable}}.ExcludeColumn({{range .NotAddable}}Columns.{{$e.Name}}.{{.}},{{end}}){{end}}.Insert()
 
 	return {{.VarName}}, err
 }
@@ -111,7 +111,7 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) Add{{.Name}}(ctx context.Context, {{.V
 func ({{$.ShortVarName}}r {{$.Name}}Repo) Update{{.Name}}(ctx context.Context, {{.VarName}} *{{.Name}}, ops ...OpFunc) (bool, error) {
 	q := {{$.ShortVarName}}r.db.ModelContext(ctx, {{.VarName}}).WherePK()
 	applyOps(q, ops...)
-	res, err := q.Update()
+	res, err := q{{if .HasNotUpdatable}}.ExcludeColumn({{range .NotUpdatable}}Columns.{{$e.Name}}.{{.}},{{end}}){{end}}.Update()
 	if err != nil {
 		return false, err
 	}
