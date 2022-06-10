@@ -104,7 +104,7 @@ func (e TranslationEntity) ToJSONMap() map[string]interface{} {
 }
 
 type TranslationList struct {
-	Title   string  `xml:"Title,omitempty" json:"title"`
+	Title   string  `xml:"Title" json:"title"`
 	Filter  *XMLMap `xml:"Filter" json:"filter"`
 	Headers *XMLMap `xml:"Headers" json:"headers"`
 }
