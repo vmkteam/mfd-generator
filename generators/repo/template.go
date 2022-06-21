@@ -101,8 +101,13 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) Count{{.NamePlural}}(ctx context.Conte
 // Add{{.Name}} adds {{.Name}} to DB.
 func ({{$.ShortVarName}}r {{$.Name}}Repo) Add{{.Name}}(ctx context.Context, {{.VarName}} *{{.Name}}, ops ...OpFunc) (*{{.Name}}, error) {
 	q := {{$.ShortVarName}}r.db.ModelContext(ctx, {{.VarName}})
+	{{- if .HasNotAddable }}
+	if len(ops) == 0 {
+		q = q.ExcludeColumn({{range .NotAddable}}Columns.{{$e.Name}}.{{.}},{{end}})
+	}
+	{{- end }}
 	applyOps(q, ops...)
-	_, err := q{{if .HasNotAddable}}.ExcludeColumn({{range .NotAddable}}Columns.{{$e.Name}}.{{.}},{{end}}){{end}}.Insert()
+	_, err := q.Insert()
 
 	return {{.VarName}}, err
 }
@@ -110,8 +115,13 @@ func ({{$.ShortVarName}}r {{$.Name}}Repo) Add{{.Name}}(ctx context.Context, {{.V
 // Update{{.Name}} updates {{.Name}} in DB.
 func ({{$.ShortVarName}}r {{$.Name}}Repo) Update{{.Name}}(ctx context.Context, {{.VarName}} *{{.Name}}, ops ...OpFunc) (bool, error) {
 	q := {{$.ShortVarName}}r.db.ModelContext(ctx, {{.VarName}}).WherePK()
+	{{- if .HasNotUpdatable }}
+	if len(ops) == 0 {
+		q = q.ExcludeColumn({{range .NotUpdatable}}Columns.{{$e.Name}}.{{.}},{{end}})
+    }
+    {{- end }}
 	applyOps(q, ops...)
-	res, err := q{{if .HasNotUpdatable}}.ExcludeColumn({{range .NotUpdatable}}Columns.{{$e.Name}}.{{.}},{{end}}){{end}}.Update()
+	res, err := q.Update()
 	if err != nil {
 		return false, err
 	}
