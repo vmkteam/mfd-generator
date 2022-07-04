@@ -217,7 +217,7 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	for _, entity := range entities {
-		exiting := project.Entity(entity.GoName)
+		exiting := project.EntityByTable(entity.PGFullName)
 		if exiting != nil {
 			set.Prepend(exiting.Namespace)
 		}

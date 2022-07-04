@@ -138,7 +138,17 @@ func (p *Project) Entity(entity string) *Entity {
 	return nil
 }
 
-// Entity returns mfd.VTEntity by its name
+// EntityByTable returns mfd.Entity by its table
+func (p *Project) EntityByTable(table string) *Entity {
+	for _, n := range p.Namespaces {
+		if e := n.EntityByTable(table); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+// VTEntity returns mfd.VTEntity by its name
 func (p *Project) VTEntity(entity string) *VTEntity {
 	for _, n := range p.VTNamespaces {
 		if e := n.VTEntity(entity); e != nil {
@@ -460,6 +470,17 @@ func (n *Namespace) Entity(entity string) *Entity {
 	return nil
 }
 
+// EntityByTable returns mfd.Entity by table name
+func (n *Namespace) EntityByTable(table string) *Entity {
+	for _, e := range n.Entities {
+		if e.Table == table {
+			return e
+		}
+	}
+
+	return nil
+}
+
 // EntityIndex returns mfd.Entity index by its name
 func (n *Namespace) EntityIndex(entity string) int {
 	for i, e := range n.Entities {
@@ -684,7 +705,7 @@ func (a *Attribute) IsIDsArray() bool {
 	return strings.HasSuffix(a.Name, util.IDs) && a.IsArray
 }
 
-// Attribute is xml element
+// Search is xml element
 type Search struct {
 	XMLName    xml.Name `xml:"Search" json:"-"`
 	Name       string   `xml:"Name,attr" json:"name"`
@@ -706,7 +727,7 @@ func (s *Search) ForeignAttribute() (entity, attribute string) {
 }
 
 func IsStatus(name string) bool {
-	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status" || strings.ToLower(name) == "status_id"
+	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status_id"
 }
 
 func IsArraySearch(search string) bool {
