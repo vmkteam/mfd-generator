@@ -16,9 +16,12 @@ func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity, new
 	// processing all columns
 	var attributes mfd.Attributes
 	var searches mfd.Searches
+	name := entity.GoName
+
 	if existing != nil {
 		attributes = existing.Attributes
 		searches = existing.Searches
+		name = existing.Name
 	}
 
 	hasAlias := false
@@ -54,7 +57,7 @@ func PackEntity(namespace string, entity model.Entity, existing *mfd.Entity, new
 	}
 
 	mfdEntity := &mfd.Entity{
-		Name:       entity.GoName,
+		Name:       name,
 		Namespace:  namespace,
 		Table:      entity.PGFullName,
 		Attributes: attributes,

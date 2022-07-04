@@ -38,7 +38,7 @@ func (s *XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error
 	}
 
 	for _, entity := range entities {
-		exiting := s.CurrentProject.Entity(entity.GoName)
+		exiting := s.CurrentProject.EntityByTable(entity.PGFullName)
 
 		// adding to project
 		entity := xml.PackEntity(namespace, entity, exiting, s.CurrentProject.CustomTypes)
