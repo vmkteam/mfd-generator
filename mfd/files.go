@@ -155,12 +155,20 @@ func SaveProjectVT(filename string, p *Project) error {
 }
 
 func MarshalToFile(filename string, v interface{}) error {
-	bytes, err := xml.MarshalIndent(v, "", "    ")
+	b, err := xml.MarshalIndent(v, "", "    ")
 	if err != nil {
 		return fmt.Errorf("marshal data error: %w", err)
 	}
 
-	if _, err := Save(bytes, filename); err != nil {
+	// need for json searching rules
+	b = bytes.Replace(b, []byte("-&gt;"), []byte("->"), -1)
+
+	// append line break at end of file, if not exists
+	if !bytes.HasSuffix(b, []byte("\n")) {
+		b = append(b, []byte("\n")...)
+	}
+
+	if _, err = Save(b, filename); err != nil {
 		return fmt.Errorf("write file error: %w", err)
 	}
 
