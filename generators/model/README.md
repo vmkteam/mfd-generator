@@ -34,7 +34,7 @@ Flags:
 Приведено в сокращённом варианте
 
 ```go
-//nolint
+//nolint:all
 //lint:file-ignore U1000 ignore unused code, it's generated
 package db // значение параметра -p --package
 
@@ -132,7 +132,7 @@ type User struct {
 #### model_search.go 
 
 ```go
-//nolint
+//nolint:all
 //lint:file-ignore U1000 ignore unused code, it's generated
 package db // значение параметра -p --package
 
@@ -270,7 +270,7 @@ func (ps *PostSearch) Q() applier {
 #### model_validate.go
 
 ```go
-//nolint
+//nolint:all
 //lint:file-ignore U1000 ignore unused code, it's generated
 package db // значение параметра -p --package
 
