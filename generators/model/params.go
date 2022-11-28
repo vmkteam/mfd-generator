@@ -7,7 +7,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io/ioutil"
 	"os"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -44,7 +43,7 @@ type ParamsFile struct {
 func ReadParamsFile(filename, pack string) (*ParamsFile, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		src := fmt.Sprintf("package %s", pack)
-		if err := ioutil.WriteFile(filename, []byte(src), 0644); err != nil {
+		if err := os.WriteFile(filename, []byte(src), 0644); err != nil {
 			return nil, fmt.Errorf("write file error: %w", err)
 		}
 	} else if err != nil {
@@ -90,7 +89,7 @@ func (p *ParamsFile) Add(name string) bool {
 		return false
 	}
 
-	new := &ast.GenDecl{
+	newDecl := &ast.GenDecl{
 		TokPos: p.file.End(),
 		Tok:    token.TYPE,
 		Specs: []ast.Spec{
@@ -101,7 +100,7 @@ func (p *ParamsFile) Add(name string) bool {
 		},
 	}
 
-	p.file.Decls = append(p.file.Decls, new)
+	p.file.Decls = append(p.file.Decls, newDecl)
 	return true
 }
 

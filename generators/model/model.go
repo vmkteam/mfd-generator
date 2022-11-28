@@ -14,7 +14,8 @@ import (
 
 // NamespaceData stores package info
 type NamespaceData struct {
-	Package string
+	GeneratorVersion string
+	Package          string
 
 	HasImports bool
 	Imports    []string
@@ -48,7 +49,8 @@ func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 	}
 
 	return NamespaceData{
-		Package: options.Package,
+		GeneratorVersion: mfd.Version,
+		Package:          options.Package,
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),

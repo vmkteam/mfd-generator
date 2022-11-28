@@ -1,19 +1,20 @@
 package cmd
 
 import (
-	"flag"
+	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/vmkteam/mfd-generator/api"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/generators/vt"
-	"github.com/vmkteam/mfd-generator/generators/vt-template"
+	vttmpl "github.com/vmkteam/mfd-generator/generators/vt-template"
 	"github.com/vmkteam/mfd-generator/generators/xml"
-	"github.com/vmkteam/mfd-generator/generators/xml-lang"
-	"github.com/vmkteam/mfd-generator/generators/xml-vt"
-
-	"github.com/spf13/cobra"
+	xmllang "github.com/vmkteam/mfd-generator/generators/xml-lang"
+	xmlvt "github.com/vmkteam/mfd-generator/generators/xml-vt"
+	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 var root = &cobra.Command{
@@ -33,7 +34,12 @@ var root = &cobra.Command{
 	},
 }
 
-var debug = flag.Bool("debug", false, "enable debug output")
+var versionCmd = &cobra.Command{
+	Use: "version",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("MFD Generator", mfd.Version)
+	},
+}
 
 func init() {
 	root.AddCommand(
@@ -45,6 +51,7 @@ func init() {
 		vt.CreateCommand(),
 		vttmpl.CreateCommand(),
 		api.CreateCommand(),
+		versionCmd,
 	)
 }
 

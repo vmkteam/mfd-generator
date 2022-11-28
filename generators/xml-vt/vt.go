@@ -9,6 +9,10 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
+var (
+	AttrPassword = "Password"
+)
+
 // this code used to convert entities from database to namespace in mfd project file
 
 func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
@@ -256,7 +260,7 @@ func inputType(attribute mfd.Attribute, forSearch bool) string {
 		}
 		return mfd.TypeHTMLText
 	case model.TypePGVarchar:
-		if attribute.Name == "Password" {
+		if attribute.Name == AttrPassword {
 			return mfd.TypeHTMLPassword
 		}
 		if attribute.Max >= 256 {
@@ -277,7 +281,7 @@ func inputType(attribute mfd.Attribute, forSearch bool) string {
 }
 
 func inSummary(attr mfd.Attribute) bool {
-	if attr.Name == "Password" {
+	if attr.Name == AttrPassword {
 		return false
 	}
 
@@ -285,7 +289,7 @@ func inSummary(attr mfd.Attribute) bool {
 }
 
 func inSearch(attr mfd.Attribute) bool {
-	if attr.Name == "Password" {
+	if attr.Name == AttrPassword {
 		return false
 	}
 

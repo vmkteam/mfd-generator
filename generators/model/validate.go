@@ -23,7 +23,8 @@ const (
 
 // ValidateNamespaceData stores namespace info for template
 type ValidateNamespaceData struct {
-	Package string
+	GeneratorVersion string
+	Package          string
 
 	HasImports bool
 	Imports    []string
@@ -53,7 +54,8 @@ func PackValidateNamespace(namespaces []*mfd.Namespace, options Options) Validat
 	}
 
 	return ValidateNamespaceData{
-		Package: options.Package,
+		GeneratorVersion: mfd.Version,
+		Package:          options.Package,
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),

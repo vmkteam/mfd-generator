@@ -5,6 +5,8 @@ import (
 
 	"github.com/fatih/camelcase"
 	"github.com/jinzhu/inflection"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -86,18 +88,19 @@ func Translate(lang, key string) string {
 		return found
 	}
 
+	c := cases.Title(language.Und, cases.NoLower)
+
 	// try to convert camelcase for EN
 	if lang == EnLang && key != "" {
-		w := key
 		if strings.HasSuffix(key, "Ids") {
-			w = strings.TrimSuffix(key, "Ids")
-			w = inflection.Plural(w)
+			key = strings.TrimSuffix(key, "Ids")
+			key = inflection.Plural(key)
 		} else {
-			w = strings.TrimSuffix(key, "Id")
+			key = strings.TrimSuffix(key, "Id")
 		}
 
-		splitted := camelcase.Split(w)
-		splitted[0] = strings.Title(splitted[0]) // uppercase first letter
+		splitted := camelcase.Split(key)
+		splitted[0] = c.String(splitted[0]) // uppercase first letter
 
 		return strings.Join(splitted, " ")
 	}

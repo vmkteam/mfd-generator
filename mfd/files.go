@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -113,7 +112,7 @@ func LoadVTNamespace(filename string) (*VTNamespace, error) {
 
 func UnmarshalFile(filename string, v interface{}) (err error) {
 	var bytes []byte
-	if bytes, err = ioutil.ReadFile(filename); err != nil {
+	if bytes, err = os.ReadFile(filename); err != nil {
 		return fmt.Errorf("read file error: %w", err)
 	}
 
@@ -161,7 +160,7 @@ func MarshalToFile(filename string, v interface{}) error {
 	}
 
 	// need for json searching rules
-	b = bytes.Replace(b, []byte("-&gt;"), []byte("->"), -1)
+	b = bytes.ReplaceAll(b, []byte("-&gt;"), []byte("->"))
 
 	// append line break at end of file, if not exists
 	if !bytes.HasSuffix(b, []byte("\n")) {
@@ -260,7 +259,7 @@ func LoadTemplate(path, def string) (string, error) {
 		return def, nil
 	}
 
-	contents, err := ioutil.ReadFile(path)
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

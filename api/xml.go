@@ -27,11 +27,12 @@ func NewXMLService(store *Store) *XMLService {
 	}
 }
 
-// Gets entity for selected table
+// GenerateEntity returns entity for selected table.
+//
 //zenrpc:table		selected table name
 //zenrpc:namespace	namespace of the new entity
 //zenrpc:return		Entity
-func (s *XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error) {
+func (s XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error) {
 	entities, err := s.Genna.Read([]string{table}, false, false, s.CurrentProject.GoPGVer, s.CurrentProject.CustomTypeMapping())
 	if err != nil {
 		return nil, err
@@ -49,11 +50,12 @@ func (s *XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error
 	return nil, fmt.Errorf("table not found in database")
 }
 
-// Gets selected entity from project
+// LoadEntity returns selected entity from project.
+//
 //zenrpc:namespace	namespace of the entity
 //zenrpc:entity 	the name of the entity
 //zenrpc:return		Entity
-func (s *XMLService) LoadEntity(namespace, entity string) (*mfd.Entity, error) {
+func (s XMLService) LoadEntity(namespace, entity string) (*mfd.Entity, error) {
 	ns := s.CurrentProject.Namespace(namespace)
 	if ns == nil {
 		return nil, fmt.Errorf("namespace %s not found", namespace)
@@ -67,9 +69,10 @@ func (s *XMLService) LoadEntity(namespace, entity string) (*mfd.Entity, error) {
 	return ent, nil
 }
 
-// Saves selected entity in project
+// UpdateEntity saves selected entity in project.
+//
 //zenrpc:entity	Entity
-func (s *XMLService) UpdateEntity(entity *mfd.Entity) error {
+func (s XMLService) UpdateEntity(entity *mfd.Entity) error {
 	ns := s.CurrentProject.Namespace(entity.Namespace)
 	if ns == nil {
 		ns = s.CurrentProject.AddNamespace(entity.Namespace)
@@ -81,9 +84,10 @@ func (s *XMLService) UpdateEntity(entity *mfd.Entity) error {
 	return nil
 }
 
-// Generates model go code, that represents this entity.
+// GenerateModelCode generates model go code, that represents this entity.
+//
 //zenrpc:entity Entity
-func (s *XMLService) GenerateModelCode(entity mfd.Entity) (string, error) {
+func (s XMLService) GenerateModelCode(entity mfd.Entity) (string, error) {
 	ent := model.PackEntity(entity, model.Options{GoPGVer: s.CurrentProject.GoPGVer, CustomTypes: s.CurrentProject.CustomTypes})
 	tpl := template.Must(template.New("tmp").Parse(modelTemplate))
 	var b bytes.Buffer
@@ -95,9 +99,10 @@ func (s *XMLService) GenerateModelCode(entity mfd.Entity) (string, error) {
 	return string(res), err
 }
 
-// Generates search go code, that represents this entity.
+// GenerateSearchModelCode generates search go code, that represents this entity.
+//
 //zenrpc:entity Entity
-func (s *XMLService) GenerateSearchModelCode(entity mfd.Entity) (string, error) {
+func (s XMLService) GenerateSearchModelCode(entity mfd.Entity) (string, error) {
 	//todo PackSearchEntity panics
 	ent := model.PackEntity(entity, model.Options{GoPGVer: s.CurrentProject.GoPGVer, CustomTypes: s.CurrentProject.CustomTypes})
 	tpl := template.Must(template.New("tmp").Parse(searchTemplate))

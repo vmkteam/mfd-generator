@@ -30,7 +30,7 @@ const (
 // VTNamespace returns mfd.VTNamespace by its name
 func (p *Project) VTNamespace(namespace string) *VTNamespace {
 	for _, ns := range p.VTNamespaces {
-		if strings.ToLower(ns.Name) == strings.ToLower(namespace) {
+		if strings.EqualFold(ns.Name, namespace) {
 			return ns
 		}
 	}
@@ -92,7 +92,7 @@ func NewVTNamespace(namespace string) *VTNamespace {
 // VTEntity returns mfd.VTEntity by its name
 func (n *VTNamespace) VTEntity(entity string) *VTEntity {
 	for _, e := range n.Entities {
-		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+		if strings.EqualFold(e.Name, entity) {
 			return e
 		}
 	}
@@ -103,7 +103,7 @@ func (n *VTNamespace) VTEntity(entity string) *VTEntity {
 // VTEntityIndex returns mfd.VTEntity index by its name
 func (n *VTNamespace) VTEntityIndex(entity string) int {
 	for i, e := range n.Entities {
-		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+		if strings.EqualFold(e.Name, entity) {
 			return i
 		}
 	}
@@ -122,7 +122,7 @@ func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
 	return entity
 }
 
-// EntityNames returns every entity in project
+// VTEntityNames returns every entity in project.
 func (n *VTNamespace) VTEntityNames() []string {
 	var result []string
 	for _, entity := range n.Entities {
@@ -148,7 +148,7 @@ type VTEntity struct {
 	Mode string `xml:"Mode,attr" json:"mode"`
 
 	// corresponding entity
-	Entity *Entity `xml:"-" json:"-"`
+	Entity *Entity `json:"-"`
 }
 
 // Attribute gets mfd.VTAttribute by its field name
@@ -161,7 +161,7 @@ func (e *VTEntity) Attribute(name string) *VTAttribute {
 	return nil
 }
 
-// Attribute gets mfd.VTAttribute by its field name
+// AttributeByNames gets mfd.VTAttribute by its field name
 func (e *VTEntity) AttributeByNames(attrName, searchName string) *VTAttribute {
 	for _, a := range e.Attributes {
 		if a.AttrName == attrName && a.SearchName == searchName {
@@ -171,7 +171,7 @@ func (e *VTEntity) AttributeByNames(attrName, searchName string) *VTAttribute {
 	return nil
 }
 
-// Attribute gets mfd.TmplAttribute by its field name
+// TmplAttributeByNames gets mfd.TmplAttribute by its field name
 func (e *VTEntity) TmplAttributeByNames(name, attrName string) *TmplAttribute {
 	for _, a := range e.TmplAttributes {
 		if a.Name == name && a.AttrName == attrName {
@@ -198,7 +198,7 @@ type VTAttribute struct {
 	Validate string `xml:"Validate,attr" json:"validate"`
 
 	// corresponding entity attribute
-	Attribute *Attribute `xml:"-" json:"-"`
+	Attribute *Attribute `json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
@@ -228,7 +228,7 @@ type TmplAttribute struct {
 	Search string `xml:"Search,attr" json:"search"`           // input type in search
 
 	// corresponding vt attribute
-	VTAttribute *VTAttribute `xml:"-" json:"-"`
+	VTAttribute *VTAttribute `json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute

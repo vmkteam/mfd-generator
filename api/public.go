@@ -7,6 +7,8 @@ import (
 	"github.com/vmkteam/zenrpc/v2"
 )
 
+//go:generate zenrpc
+
 type PublicService struct {
 	zenrpc.Service
 }
@@ -15,9 +17,10 @@ func NewPublicService() *PublicService {
 	return &PublicService{}
 }
 
-// Gets all supported go-pg versions
+// GoPGVersions returns all supported go-pg versions.
+//
 //zenrpc:return	list of versions
-func (s *PublicService) GoPGVersions() []int {
+func (s PublicService) GoPGVersions() []int {
 	return []int{
 		mfd.GoPG8,
 		mfd.GoPG9,
@@ -25,9 +28,10 @@ func (s *PublicService) GoPGVersions() []int {
 	}
 }
 
-// Gets all available entity modes
+// Modes returns all available entity modes.
+//
 //zenrpc:return	list of modes
-func (s *PublicService) Modes() []string {
+func (s PublicService) Modes() []string {
 	return []string{
 		mfd.ModeFull,
 		mfd.ModeReadOnlyWithTemplates,
@@ -36,9 +40,10 @@ func (s *PublicService) Modes() []string {
 	}
 }
 
-// Gets all available search types
+// SearchTypes returns all available search types.
+//
 //zenrpc:return	list of search types
-func (s *PublicService) SearchTypes() []string {
+func (s PublicService) SearchTypes() []string {
 	return []string{
 		mfd.SearchEquals,
 		mfd.SearchNotEquals,
@@ -64,9 +69,10 @@ func (s *PublicService) SearchTypes() []string {
 	}
 }
 
-// Gets std types
+// Types returns list of types.
+//
 //zenrpc:return	list of types
-func (s *PublicService) Types() []string {
+func (s PublicService) Types() []string {
 	return []string{
 		model.TypeInt,
 		model.TypeInt32,
@@ -86,9 +92,10 @@ func (s *PublicService) Types() []string {
 	}
 }
 
-// Gets postgres types
+// DBTypes returns postgres types.
+//
 //zenrpc:return	list of types
-func (s *PublicService) DBTypes() []string {
+func (s PublicService) DBTypes() []string {
 	return []string{
 		model.TypePGInt2,
 		model.TypePGInt4,
@@ -117,7 +124,7 @@ func (s *PublicService) DBTypes() []string {
 	}
 }
 
-func (s *PublicService) HTMLTypes() []string {
+func (s PublicService) HTMLTypes() []string {
 	return []string{
 		mfd.TypeHTMLNone,
 		mfd.TypeHTMLInput,
@@ -134,8 +141,6 @@ func (s *PublicService) HTMLTypes() []string {
 	}
 }
 
-func (s *PublicService) Ping() string {
+func (s PublicService) Ping() string {
 	return "Pong"
 }
-
-//go:generate zenrpc

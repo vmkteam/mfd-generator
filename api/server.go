@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/vmkteam/mfd-generator/api/dartclient"
 	"github.com/vmkteam/zenrpc/v2"
+
+	"github.com/vmkteam/mfd-generator/api/dartclient"
 )
 
 const (
