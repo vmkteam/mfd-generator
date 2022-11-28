@@ -174,6 +174,7 @@ func (s {{.Name}}Service) dbSort(ops *ViewOps) db.OpFunc {
 }
 
 // Count returns count {{.NamePlural}} according to conditions in search params.
+//
 //zenrpc:search {{.Name}}Search
 //zenrpc:return int
 //zenrpc:500 Internal Error
@@ -186,6 +187,7 @@ func (s {{.Name}}Service) Count(ctx context.Context, search *{{.Name}}Search) (i
 }
 
 // Get returns а list of {{.NamePlural}} according to conditions in search params.
+//
 //zenrpc:search {{.Name}}Search
 //zenrpc:viewOps ViewOps
 //zenrpc:return []{{.Name}}Summary
@@ -205,6 +207,7 @@ func (s {{.Name}}Service) Get(ctx context.Context, search *{{.Name}}Search, view
 }
 
 // GetByID returns a {{.Name}} by its ID.{{range .PKs}}
+//
 //zenrpc:{{.Arg}} {{.Type}}{{end}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
@@ -227,7 +230,8 @@ func (s {{.Name}}Service) byID(ctx context.Context{{range .PKs}}, {{.Arg}} {{.Ty
 	return db, nil
 }{{if not .ReadOnly}}
 
-// Add adds a {{.Name}} from from the query.
+// Add adds a {{.Name}} from the query.
+//
 //zenrpc:{{.VarName}} {{.Name}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
@@ -245,6 +249,7 @@ func (s {{.Name}}Service) Add(ctx context.Context, {{.VarName}} {{.Name}}) (*{{.
 }
 
 // Update updates the {{.Name}} data identified by id from the query.
+//
 //zenrpc:{{.VarNamePlural}} {{.Name}}
 //zenrpc:return {{.Name}}
 //zenrpc:500 Internal Error
@@ -267,6 +272,7 @@ func (s {{.Name}}Service) Update(ctx context.Context, {{.VarName}} {{.Name}}) (b
 }
 
 // Delete deletes the {{.Name}} by its ID.{{range .PKs}}
+//
 //zenrpc:{{.Arg}} {{.Type}}{{end}}
 //zenrpc:return isDeleted
 //zenrpc:500 Internal Error
@@ -285,6 +291,7 @@ func (s {{.Name}}Service) Delete(ctx context.Context{{range .PKs}}, {{.Arg}} {{.
 }
 
 // Validate verifies that {{.Name}} data is valid.
+//
 //zenrpc:{{.VarName}} {{.Name}}
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
