@@ -38,6 +38,7 @@ Available Commands:
   repo        Create repo from xml
   server      Run web server with generators
   template    Create vt template from xml
+  version     Print mfd-generator version
   vt          Create vt from xml
   xml         Create or update project base with namespaces and entities
   xml-lang    Create lang xml from mfd
