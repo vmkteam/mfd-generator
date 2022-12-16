@@ -148,7 +148,7 @@ type VTEntity struct {
 	Mode string `xml:"Mode,attr" json:"mode"`
 
 	// corresponding entity
-	Entity *Entity `json:"-"`
+	Entity *Entity `xml:"-" json:"-"`
 }
 
 // Attribute gets mfd.VTAttribute by its field name
@@ -183,8 +183,6 @@ func (e *VTEntity) TmplAttributeByNames(name, attrName string) *TmplAttribute {
 
 // VTAttribute is xml element
 type VTAttribute struct {
-	XMLName xml.Name `xml:"Attribute" json:"-"`
-
 	Name       string `xml:"Name,attr" json:"name"`
 	AttrName   string `xml:"AttrName,attr,omitempty" json:"attrName"`
 	SearchName string `xml:"SearchName,attr,omitempty" json:"searchName"`
@@ -198,7 +196,7 @@ type VTAttribute struct {
 	Validate string `xml:"Validate,attr" json:"validate"`
 
 	// corresponding entity attribute
-	Attribute *Attribute `json:"-"`
+	Attribute *Attribute `xml:"-" json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
@@ -228,7 +226,7 @@ type TmplAttribute struct {
 	Search string `xml:"Search,attr" json:"search"`           // input type in search
 
 	// corresponding vt attribute
-	VTAttribute *VTAttribute `json:"-"`
+	VTAttribute *VTAttribute `xml:"-" json:"-"`
 }
 
 // Merge fills attribute (from db) values from old (in file) attribute
