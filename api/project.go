@@ -7,7 +7,7 @@ import (
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
-	"github.com/dizzyfool/genna/lib"
+	genna "github.com/dizzyfool/genna/lib"
 	"github.com/vmkteam/zenrpc/v2"
 )
 
@@ -23,11 +23,12 @@ func NewProjectService(store *Store) *ProjectService {
 	}
 }
 
-// Loads project from file
+// Open loads project from file.
+//
 //zenrpc:filePath		the path to mfd file
 //zenrpc:connection 	connection string
 //zenrpc:return 		Project
-func (s *ProjectService) Open(filePath, connection string) (*mfd.Project, error) {
+func (s ProjectService) Open(filePath, connection string) (*mfd.Project, error) {
 	project, err := mfd.LoadProject(filePath, false, DefaultGoPGVer)
 	if err != nil {
 		return nil, err
@@ -47,23 +48,25 @@ func (s *ProjectService) Open(filePath, connection string) (*mfd.Project, error)
 	return project, nil
 }
 
-// Returns currently open project
+// Current returns currently opened project.
+//
 //zenrpc:return 		Project
-func (s *ProjectService) Current() (*mfd.Project, error) {
+func (s ProjectService) Current() (*mfd.Project, error) {
 	return s.CurrentProject, nil
 }
 
-// Updates project in memory
+// Update updates project in memory.
+//
 //zenrpc:project	Project
-func (s *ProjectService) Update(project mfd.Project) error {
+func (s ProjectService) Update(project mfd.Project) error {
 	s.CurrentProject = &project
 	s.CurrentProject.UpdateByNSMapping()
 
 	return nil
 }
 
-// Saves project from memory to disk
-func (s *ProjectService) Save() error {
+// Save saves project from memory to disk.
+func (s ProjectService) Save() error {
 	if err := mfd.SaveMFD(s.CurrentFile, s.CurrentProject); err != nil {
 		return err
 	}
@@ -81,10 +84,11 @@ func (s *ProjectService) Save() error {
 	return nil
 }
 
-// Gets all tables from database
+// Tables returns all tables from database.
+//
 //zenrpc:url	the connection string to pg database
 //zenrpc:return	list of tables
-func (s *ProjectService) Tables() ([]string, error) {
+func (s ProjectService) Tables() ([]string, error) {
 	schemas, err := s.Genna.Store.Schemas()
 	if err != nil {
 		return nil, err

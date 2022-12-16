@@ -1,5 +1,9 @@
 # MFD Generator
 
+[![Release](https://img.shields.io/github/release/vmkteam/mfd-generator.svg)](https://github.com/vmkteam/mfd-generator/releases/latest)
+[![Build Status](https://github.com/vmkteam/mfd-generator/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/vmkteam/mfd-generator/actions)
+[![Linter Status](https://github.com/vmkteam/mfd-generator/actions/workflows/golangci-lint.yml/badge.svg?branch=master)](https://github.com/vmkteam/mfd-generator/actions)
+
 **mfd generator** призван облегчить работу с базой данных путем генерирования моделей, поисков и валидаторов, а также сопутствующих сущностей вплоть до интерфейса админки.
 Проект включает в себя несколько генераторов, каждый из которых генерирует xml, go, js разных уровней.
 
@@ -34,6 +38,7 @@ Available Commands:
   repo        Create repo from xml
   server      Run web server with generators
   template    Create vt template from xml
+  version     Print mfd-generator version
   vt          Create vt from xml
   xml         Create or update project base with namespaces and entities
   xml-lang    Create lang xml from mfd

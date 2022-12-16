@@ -179,7 +179,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 		inp.IsCheckBox = true
 	}
 
-	if strings.ToLower(tmpl.Name) == "alias" {
+	if strings.EqualFold(tmpl.Name, "alias") {
 		if title := vtEntity.Entity.TitleAttribute(); title != nil {
 			trasliteratingValue := template.HTML(mfd.VarName(title.Name))
 

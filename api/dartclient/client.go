@@ -10,6 +10,8 @@ import (
 	"unicode"
 
 	"github.com/vmkteam/zenrpc/v2/smd"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -417,7 +419,8 @@ func (s dartService) IsResponseSubTypeScalar() bool {
 }
 
 func (s dartService) ArgsType() string {
-	return fmt.Sprintf("%s%sArgs", strings.Title(cleanSymbols(s.Namespace)), strings.Title(s.Name))
+	c := cases.Title(language.Und, cases.NoLower)
+	return fmt.Sprintf("%s%sArgs", c.String(cleanSymbols(s.Namespace)), c.String(s.Name))
 }
 
 func lcFirst(str string) string {

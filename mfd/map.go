@@ -50,8 +50,6 @@ func (m *XMLMap) Append(key, value string) {
 			Value:   value,
 		})
 	}
-
-	return
 }
 
 func (m *XMLMap) Delete(key string) {

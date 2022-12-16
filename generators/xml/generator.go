@@ -9,7 +9,7 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/generators/base"
-	"github.com/dizzyfool/genna/lib"
+	genna "github.com/dizzyfool/genna/lib"
 	"github.com/dizzyfool/genna/model"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -37,7 +37,6 @@ func CreateCommand() *cobra.Command {
 type Generator struct {
 	options Options
 	verbose bool
-	base    base.Generator
 
 	printNamespaces bool
 }
@@ -110,7 +109,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 		return
 	}
 
-	if g.options.GoPgVer < mfd.GoPG8 && g.options.GoPgVer > mfd.GoPG10 {
+	if g.options.GoPgVer < mfd.GoPG8 || g.options.GoPgVer > mfd.GoPG10 {
 		return fmt.Errorf("unsupported go-pg version: %d", g.options.GoPgVer)
 	}
 
@@ -248,7 +247,7 @@ func (g *Generator) Generate() (err error) {
 				// asking namespace from prompt
 				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
 					// may happen only in ctrl+c
-					return nil
+					return fmt.Errorf("prompt namespace error: %w", err)
 				}
 				// if user choose to skip
 				if namespace == "skip" {
@@ -312,7 +311,7 @@ func PrintNamespaces(project *mfd.Project) string {
 		for _, entity := range namespace.Entities {
 			format = append(format, entity.Table)
 		}
-		formats = append(formats, fmt.Sprintf("%s:%s", namespace, strings.Join(format, ",")))
+		formats = append(formats, fmt.Sprintf("%s:%s", namespace.Name, strings.Join(format, ",")))
 	}
 
 	return strings.Join(formats, ";")

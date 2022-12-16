@@ -24,8 +24,6 @@ func CreateCommand() *cobra.Command {
 // Generator represents mfd generator
 type Generator struct {
 	options Options
-	verbose bool
-	base    base.Generator
 }
 
 // New creates generator

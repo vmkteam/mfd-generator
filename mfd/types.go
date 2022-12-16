@@ -59,7 +59,7 @@ func IsArray(typ string) (string, bool) {
 }
 
 func IsJson(typ string) bool {
-	return strings.Index(typ, JsonFieldSep) != -1
+	return strings.Contains(typ, JsonFieldSep)
 }
 
 func MakeZeroValue(typ string) string {

@@ -199,7 +199,7 @@ func (g *Generator) Generate() error {
 		output = path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
 		serviceData := PackServiceNamespace(ns, g.options)
 		if _, err := mfd.FormatAndSave(serviceData, output, serviceTemplate, true); err != nil {
-			return fmt.Errorf("generate service %s error: %w", ns, err)
+			return fmt.Errorf("generate service %s error: %w", namespace, err)
 		}
 	}
 

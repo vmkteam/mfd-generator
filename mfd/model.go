@@ -10,6 +10,8 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
+const Version = "v0.3.8"
+
 // go-pg versions
 const (
 	GoPG8  = 8
@@ -110,7 +112,7 @@ func NewProject(name string, goPGVer int) *Project {
 // Namespace returns mfd.Namespace by its name
 func (p *Project) Namespace(namespace string) *Namespace {
 	for _, ns := range p.Namespaces {
-		if strings.ToLower(ns.Name) == strings.ToLower(namespace) {
+		if strings.EqualFold(ns.Name, namespace) {
 			return ns
 		}
 	}
@@ -169,7 +171,7 @@ func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 }
 
 func (p *Project) IsConsistent() error {
-	if p.GoPGVer < GoPG8 && p.GoPGVer > GoPG10 {
+	if p.GoPGVer < GoPG8 || p.GoPGVer > GoPG10 {
 		return fmt.Errorf("unsupported go-pg version: %d", p.GoPGVer)
 	}
 
@@ -180,16 +182,8 @@ func (p *Project) IsConsistent() error {
 		}
 
 		for _, entity := range ns.Entities {
-			for _, attr := range entity.Attributes {
-				if attr.ForeignKey != "" && attr.ForeignEntity == nil {
-					return fmt.Errorf("fk entity %s not found for %s column in %s entity %s namespace", attr.ForeignKey, attr.Name, entity.Name, nsName)
-				}
-			}
-
-			for _, search := range entity.Searches {
-				if search.Attribute == nil || search.Entity == nil {
-					return fmt.Errorf("attribute %s not found for %s search in %s entity %s namespace", search.AttrName, search.Name, entity.Name, nsName)
-				}
+			if err := p.IsConsistentEntity(entity, nsName); err != nil {
+				return err
 			}
 		}
 	}
@@ -201,23 +195,45 @@ func (p *Project) IsConsistent() error {
 		}
 
 		for _, vtEntity := range vtNamespace.Entities {
-			if vtEntity.Entity == nil {
-				return fmt.Errorf("entity not found vtEntity %s in %s namespace", vtEntity.Name, vtNamespace.Name)
-			}
-
-			for _, vtAttribute := range vtEntity.Attributes {
-				if vtAttribute.Attribute == nil {
-					if vtAttribute.AttrName != "" {
-						return fmt.Errorf("attribute %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.AttrName, vtAttribute.Name, vtEntity.Name, vtNamespace.Name)
-					}
-					if vtAttribute.SearchName != "" {
-						return fmt.Errorf("search %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.SearchName, vtAttribute.Name, vtEntity.Name, vtNamespace.Name)
-					}
-				}
+			if err := p.IsConsistentVTEntity(vtEntity, vtNamespace.Name); err != nil {
+				return err
 			}
 		}
 	}
 
+	return nil
+}
+
+func (p *Project) IsConsistentEntity(entity *Entity, namespace string) error {
+	for _, attr := range entity.Attributes {
+		if attr.ForeignKey != "" && attr.ForeignEntity == nil {
+			return fmt.Errorf("fk entity %s not found for %s column in %s entity %s namespace", attr.ForeignKey, attr.Name, entity.Name, namespace)
+		}
+	}
+
+	for _, search := range entity.Searches {
+		if search.Attribute == nil || search.Entity == nil {
+			return fmt.Errorf("attribute %s not found for %s search in %s entity %s namespace", search.AttrName, search.Name, entity.Name, namespace)
+		}
+	}
+	return nil
+}
+
+func (p *Project) IsConsistentVTEntity(vtEntity *VTEntity, namespace string) error {
+	if vtEntity.Entity == nil {
+		return fmt.Errorf("entity not found vtEntity %s in %s namespace", vtEntity.Name, namespace)
+	}
+
+	for _, vtAttribute := range vtEntity.Attributes {
+		if vtAttribute.Attribute == nil {
+			if vtAttribute.AttrName != "" {
+				return fmt.Errorf("attribute %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.AttrName, vtAttribute.Name, vtEntity.Name, namespace)
+			}
+			if vtAttribute.SearchName != "" {
+				return fmt.Errorf("search %s not found for attribute %s in vtEntity %s in %s namespace", vtAttribute.SearchName, vtAttribute.Name, vtEntity.Name, namespace)
+			}
+		}
+	}
 	return nil
 }
 
@@ -291,24 +307,7 @@ func (p *Project) UpdateLinks() {
 			}
 
 			// making search links
-			for _, search := range entity.Searches {
-				// attach own attribute and entity
-				if attr := entity.AttributeByName(search.AttrName); attr != nil {
-					search.Attribute = attr
-					search.Entity = entity
-				}
-
-				if search.IsForeignSearch() {
-					foreignName, foreignAttribute := search.ForeignAttribute()
-
-					if foreign := p.Entity(foreignName); foreign != nil {
-						if attr := foreign.AttributeByName(foreignAttribute); attr != nil {
-							search.Attribute = attr
-							search.Entity = foreign
-						}
-					}
-				}
-			}
+			p.updateSearchLinks(entity)
 		}
 	}
 
@@ -346,7 +345,28 @@ func (p *Project) UpdateLinks() {
 	}
 }
 
-func (p *Project) AddCustomTypes(mapping model.CustomTypeMapping) (new CustomTypes) {
+func (p *Project) updateSearchLinks(entity *Entity) {
+	for _, search := range entity.Searches {
+		// attach own attribute and entity
+		if attr := entity.AttributeByName(search.AttrName); attr != nil {
+			search.Attribute = attr
+			search.Entity = entity
+		}
+
+		if search.IsForeignSearch() {
+			foreignName, foreignAttribute := search.ForeignAttribute()
+
+			if foreign := p.Entity(foreignName); foreign != nil {
+				if attr := foreign.AttributeByName(foreignAttribute); attr != nil {
+					search.Attribute = attr
+					search.Entity = foreign
+				}
+			}
+		}
+	}
+}
+
+func (p *Project) AddCustomTypes(mapping model.CustomTypeMapping) (newCustomTypes CustomTypes) {
 	for _, customType := range mapping {
 		if customType.GoType == "" {
 			continue
@@ -374,11 +394,11 @@ func (p *Project) AddCustomTypes(mapping model.CustomTypeMapping) (new CustomTyp
 			}
 
 			p.CustomTypes = append(p.CustomTypes, ct)
-			new = append(new, ct)
+			newCustomTypes = append(newCustomTypes, ct)
 		}
 	}
 
-	return new
+	return newCustomTypes
 }
 
 func (p *Project) CustomTypeMapping() model.CustomTypeMapping {
@@ -462,7 +482,7 @@ func NewNamespace(name string) *Namespace {
 // Entity returns mfd.Entity by its name
 func (n *Namespace) Entity(entity string) *Entity {
 	for _, e := range n.Entities {
-		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+		if strings.EqualFold(e.Name, entity) {
 			return e
 		}
 	}
@@ -484,7 +504,7 @@ func (n *Namespace) EntityByTable(table string) *Entity {
 // EntityIndex returns mfd.Entity index by its name
 func (n *Namespace) EntityIndex(entity string) int {
 	for i, e := range n.Entities {
-		if strings.ToLower(e.Name) == strings.ToLower(entity) {
+		if strings.EqualFold(e.Name, entity) {
 			return i
 		}
 	}
@@ -515,8 +535,6 @@ func (n *Namespace) AddEntity(entity *Entity) *Entity {
 
 // Entity is xml element
 type Entity struct {
-	XMLName xml.Name `xml:"Entity" json:"-"`
-
 	Name      string `xml:"Name,attr" json:"name"`
 	Namespace string `xml:"Namespace,attr" json:"namespace"`
 	Table     string `xml:"Table,attr" json:"table"`
@@ -612,8 +630,6 @@ func (e *Entity) TitleAttribute() *Attribute {
 
 // Attribute is xml element
 type Attribute struct {
-	XMLName xml.Name `xml:"Attribute" json:"-"`
-
 	Name   string `xml:"Name,attr" json:"name"`
 	DBName string `xml:"DBName,attr" json:"dbName"`
 
@@ -718,7 +734,7 @@ type Search struct {
 }
 
 func (s *Search) IsForeignSearch() bool {
-	return strings.Index(s.AttrName, ".") != -1
+	return strings.Contains(s.AttrName, ".")
 }
 
 func (s *Search) ForeignAttribute() (entity, attribute string) {
@@ -727,7 +743,7 @@ func (s *Search) ForeignAttribute() (entity, attribute string) {
 }
 
 func IsStatus(name string) bool {
-	return strings.ToLower(name) == "statusid" || strings.ToLower(name) == "status_id"
+	return strings.EqualFold(name, "statusid") || strings.EqualFold(name, "status_id")
 }
 
 func IsArraySearch(search string) bool {

@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/vmkteam/mfd-generator/generators/xml-lang"
+	xmllang "github.com/vmkteam/mfd-generator/generators/xml-lang"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/vmkteam/zenrpc/v2"
@@ -21,10 +21,11 @@ func NewXMLLangService(store *Store) *XMLLangService {
 	}
 }
 
-// Loads full translation of project
+// LoadTranslation loads full translation of project.
+//
 //zenrpc:language   language
 //zenrpc:return		Translation
-func (s *XMLLangService) LoadTranslation(language string) (*mfd.Translation, error) {
+func (s XMLLangService) LoadTranslation(language string) (*mfd.Translation, error) {
 	translations, err := mfd.LoadTranslations(s.CurrentFile, []string{language})
 	if err != nil {
 		return nil, err
@@ -37,12 +38,13 @@ func (s *XMLLangService) LoadTranslation(language string) (*mfd.Translation, err
 	return nil, nil
 }
 
-// Translates entity
+// TranslateEntity translates entity.
+//
 //zenrpc:namespace	namespace of the vt entity
 //zenrpc:entity		vt entity from vt.xml
 //zenrpc:language   language
 //zenrpc:return		TranslationEntity
-func (s *XMLLangService) TranslateEntity(namespace, entity, language string) (*mfd.TranslationEntity, error) {
+func (s XMLLangService) TranslateEntity(namespace, entity, language string) (*mfd.TranslationEntity, error) {
 	translations, err := mfd.LoadTranslations(s.CurrentFile, []string{language})
 	if err != nil {
 		return nil, err

@@ -1,0 +1,94 @@
+run:
+  # default concurrency is a available CPU number
+  concurrency: 4
+
+  # timeout for analysis, e.g. 30s, 5m, default is 1m
+  deadline: 30m
+
+  # exit code when at least one issue was found, default is 1
+  issues-exit-code: 1
+
+  # include test files or not, default is true
+  tests: true
+
+  # skip files
+  skip-files:
+    - ".*\\_gen\\.go$"
+
+output:
+  # colored-line-number|line-number|json|tab|checkstyle|code-climate, default is "colored-line-number"
+  format: colored-line-number
+
+  # print lines of code with issue, default is true
+  print-issued-lines: true
+
+  # print linter name in the end of issue text, default is true
+  print-linter-name: true
+
+linters-settings:
+  gocognit:
+    min-complexity: 50
+  gocritic:
+    # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint` run to see all tags and checks.
+    # Empty list by default. See https://github.com/go-critic/go-critic#usage -> section "Tags".
+    enabled-checks:
+      - appendAssign
+      - appendCombine
+      - assignOp
+      - badCond
+      - boolExprSimplify
+      - captLocal
+      - caseOrder
+      - defaultCaseOrder
+      - dupArg
+      - dupBranchBody
+      - dupCase
+      - dupSubExpr
+      - elseif
+      - emptyFallthrough
+      - emptyStringTest
+      - equalFold
+      - exitAfterDefer
+      - flagName
+      - hexLiteral
+      - indexAlloc
+      - nilValReturn
+      - offBy1
+      - regexpMust
+      - sloppyLen
+      - switchTrue
+      - wrapperFunc
+      - yodaStyleExpr
+
+linters:
+  enable-all: false
+  disable-all: true
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - decorder
+    - depguard
+    - dogsled
+    - dupl
+    - errname
+    - gocognit
+    - goconst
+    - gocritic
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+    - nilerr
+    - predeclared
+    - staticcheck
+    - tenv
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
