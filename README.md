@@ -1,6 +1,6 @@
 # MFD Generator
 
-[![Release](https://img.shields.io/github/release/vmkteam/mfd-generator.svg)](https://github.com/vmkteam/zenrpc/releases/latest)
+[![Release](https://img.shields.io/github/release/vmkteam/mfd-generator.svg)](https://github.com/vmkteam/mfd-generator/releases/latest)
 [![Build Status](https://github.com/vmkteam/mfd-generator/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/vmkteam/mfd-generator/actions)
 [![Linter Status](https://github.com/vmkteam/mfd-generator/actions/workflows/golangci-lint.yml/badge.svg?branch=master)](https://github.com/vmkteam/mfd-generator/actions)
 
