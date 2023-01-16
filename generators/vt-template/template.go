@@ -66,24 +66,6 @@ const listDefaultTemplate = `<template>
               </v-flex>
               <v-spacer />
               <v-flex shrink>
-                <v-btn
-                  :color="
-` + "                    `${store.activeFiltersCount ? 'teal' : 'grey'}`" + `
-                  "
-                  class="mr-2"
-                  text
-                  @click.stop="filtersIsOpen = !filtersIsOpen"
-                >
-                  {{ $t("common.list.filter.title") }}
-                  {{
-                    store.activeFiltersCount
-` + "                      ? `(${store.activeFiltersCount})`" + `
-                      : ""
-                  }}
-                  <v-icon right>
-                    mdi-filter
-                  </v-icon>
-                </v-btn>
                 [[if not .ReadOnly]]<v-btn
                   dark
                   color="success"
@@ -96,12 +78,6 @@ const listDefaultTemplate = `<template>
                 </v-btn>[[end]]
               </v-flex>
             </v-layout>
-            <filters
-              v-if="filtersIsOpen"
-              :filters="store.filters"
-              :active-filters="store.activeFilters"
-              @submitFilters="submitFilters"
-            />
           </v-flex>
         </v-layout>
 
@@ -113,12 +89,11 @@ const listDefaultTemplate = `<template>
               <v-card-title class="pt-0">
                 <v-layout
                   justify-space-between
-                  align-start
+                  align-end
                   wrap
                   class="flex-sm-nowrap"
                 >[[if .HasQuickFilter]]
                   <v-flex
-                    v-if="!store.activeFilters.[[.TitleField]]"
                     xs12
                     sm4
                     md3
@@ -135,13 +110,13 @@ const listDefaultTemplate = `<template>
                   </v-flex>
                   <v-flex
                     xs12
-                    mt-sm-4
-                    :class="` + "` ${store.activeFilters.[[.TitleField]] ? 'sm12' : 'sm9'}`" + `"
+                    ml-sm-10
+                    mr-sm-10
                   >
-                    <vt-filters-chips
-                      entity="[[.JSName]]"
-                      :filters="store.activeFilters"
-                      @reset:filters="resetFiltersKey"
+                    <multi-filters
+                      :filters="store.filters"
+                      :active-filters="store.activeFilters"
+                      @submitFilters="submitFilters"
                     />
                   </v-flex>[[end]]
                   <v-flex
@@ -234,12 +209,12 @@ import {
   [[.Name]]Summary as Model,
   [[.Name]]Search as SearchModel
 } from '@/services/api/factory';
-import Filters from './components/ListFilters.vue';
+import MultiFilters from './components/MultiListFilters.vue';
 
 @Observer
 @Component({
   name: 'List',
-  components: { Filters }
+  components: { MultiFilters }
 })
 export default class List extends EntityList {
   store: Store = new Store(Model, SearchModel);
@@ -275,71 +250,13 @@ export default class List extends EntityList {
 `
 
 const filterDefaultTemplate = `<template>
-  <v-layout mb-2>
-    <v-flex>
-      <v-card>
-        <v-form @submit.prevent="$emit('submitFilters')">
-          <v-card-text class="pb-0">
-            [[raw "<!-- generated part -->"]]
-            [[range $i, $e := .FilterColumns]][[if .IsCheckBox]]<vt-form-field
-            [[if not .IsShortFilter]]
-              v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
-              v-model="filters.[[.JSName]]"
-            >
-			<template #component-slot>
-			[[raw "<v-checkbox"]]
-			v-model="filters.[[.JSName]]"
-			:label="$t('[[$.JSName]].list.filter.[[.JSName]]')"
-            placeholder=""
-            class="mb-2"
-            hide-details
-			clearable
-			color="primary"
-			/>
-			</template>
-			</vt-form-field>[[else]]<vt-form-field[[if not .IsShortFilter]]
-              v-if="isFullFilter || activeFilters.[[.JSName]]"[[end]]
-              v-model="filters.[[.JSName]]"
-              component="[[.Component]]"
-              :label="$t('[[$.JSName]].list.filter.[[.JSName]]')"[[if .IsFK]]
-              entity="[[ .FKJSName | ToLower ]]"
-              search-by="[[.FKJSSearch]]"
-              async[[end]]
-              placeholder=""
-              class="mb-2"
-              hide-details
-              clearable[[if .ShowShortFilterLabel]]
-            >
-              <v-layout v-if="!isFullFilter">
-                <v-flex xs12>
-                  <v-subheader class="mb-2 mt-2 pl-0 pl-sm-4">
-                    <a
-                      href="#"
-                      @click.stop.prevent="isFullFilter = true"
-                    >
-                      {{ $t("common.list.filter.allFiltersLabel") }}
-                    </a>
-                  </v-subheader>
-                </v-flex>
-              </v-layout>
-            </vt-form-field>[[else]]
-            />[[end]][[end]]
-            [[end]][[raw "<!-- generated part end -->"]]
-          </v-card-text>
-          <v-card-actions class="pa-4 pt-0">
-            <v-flex offset-sm-3>
-              <v-btn
-                color="primary"
-                type="submit"
-              >
-                {{ $t("common.list.filter.submitButtonLabel") }}
-              </v-btn>
-            </v-flex>
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-flex>
-  </v-layout>
+  <vt-multi-filter
+    :items="filterItems"
+    :filters="filters"
+    autofocus
+    :label="$t('common.list.filter.title')"
+    @submitFilters="$emit('submitFilters')"
+  />
 </template>
 
 <script lang="ts">
@@ -349,10 +266,47 @@ import EntityListFilters from '@/common/Entity/EntityListFilters';
 
 @Observer
 @Component
-export default class Filters extends EntityListFilters {}
+export default class MultiListFilters extends EntityListFilters {
+  filterItems = [
+[[- $filtersLen := len .FilterColumns ]]
+[[- range $i, $e := .FilterColumns ]]
+    [[- if (isLast $i $filtersLen) ]]
+    {
+      id: 'divider'
+    },
+    [[- end ]]
+    {
+      id: '[[ .JSName ]]',
+      type: '[[ .SearchType ]]',
+      title: this.$t('[[ $.JSName ]].list.filter.[[ .JSName ]]'),
+      value: [[ if .IsCheckBox ]]true[[ else ]]null[[ end ]],
+      values: null,
+      settings: {
+        placeholder: '',
+        [[- if or .IsCheckBox ( eq .SearchType "select") ]]
+        itemText: 'text',
+        itemValue: 'value',
+        [[- end ]]
+        [[- if .IsFK ]]
+        entity: '[[ .FKJSName | ToLower ]]',
+        searchBy: '[[ .FKJSSearch ]]',
+        async: true,
+        [[- end ]]
+        [[- if and .IsFK .IsArray ]]
+        multiple: true,
+        itemText: ' [[.FKJSSearch ]]',
+        searchAdditional: {},
+        [[- end ]]
+        [[- if eq .Component "vt-datetime-picker" ]]
+        iso: true,
+        [[- end ]]
+        component: '[[ .Component ]]'
+      }
+    }[[ if (notLast $i $filtersLen) ]],[[ end ]]
+[[- end ]]
+  ].filter(Boolean)
+}
 </script>
-
-<style scoped></style>
 `
 
 const formDefaultTemplate = `<template>
