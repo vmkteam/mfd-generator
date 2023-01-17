@@ -29,6 +29,12 @@ var TemplateFunctions = template.FuncMap{
 	"raw":     raw,
 	"ToLower": strings.ToLower,
 	"title":   title,
+	"notLast": func(index int, length int) bool {
+		return index+1 != length
+	},
+	"isLast": func(index int, length int) bool {
+		return index+1 == length
+	},
 }
 
 type Packer func(*Namespace) (interface{}, error)

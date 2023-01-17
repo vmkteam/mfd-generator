@@ -176,7 +176,7 @@ func (g *Generator) Generate() error {
 				return fmt.Errorf("generate entity %s list error: %w", entity.Name, err)
 			}
 
-			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "components/ListFilters.vue")
+			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "components/MultiListFilters.vue")
 			if err := SaveEntity(*entity, output, filterTemplate); err != nil {
 				return fmt.Errorf("generate entity %s filters  error: %w", entity.Name, err)
 			}

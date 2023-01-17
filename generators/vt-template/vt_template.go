@@ -8,8 +8,6 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 )
 
-const MaxShortFilters = 3
-
 // EntityData stores entity info
 type EntityData struct {
 	Name   string
@@ -58,26 +56,6 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 		}
 		if attr.Form != mfd.TypeHTMLNone && attr.Form != "" {
 			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false))
-		}
-	}
-
-	// making short filters
-	for i, filter := range tmpl.FilterColumns {
-		if i < MaxShortFilters {
-			tmpl.FilterColumns[i].IsShortFilter = true
-		}
-
-		if i == MaxShortFilters {
-			tmpl.FilterColumns[i-1].ShowShortFilterLabel = true
-		}
-
-		// status will override last short filter
-		if i >= MaxShortFilters && mfd.IsStatus(filter.JSName) {
-			tmpl.FilterColumns[MaxShortFilters-1].IsShortFilter = false
-			tmpl.FilterColumns[MaxShortFilters-1].ShowShortFilterLabel = false
-
-			tmpl.FilterColumns[i].IsShortFilter = true
-			tmpl.FilterColumns[i].ShowShortFilterLabel = true
 		}
 	}
 
@@ -137,12 +115,11 @@ type InputData struct {
 	IsFK       bool
 	FKJSName   string
 	FKJSSearch string
-
-	IsShortFilter        bool
-	ShowShortFilterLabel bool
+	SearchType string
 
 	Required bool
 
+	IsArray    bool
 	IsCheckBox bool
 	Params     []template.HTML
 }
@@ -151,12 +128,12 @@ type InputData struct {
 func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) InputData {
 	inp := InputData{
 		JSName:    mfd.VarName(tmpl.Name),
-		Component: filterComponent(tmpl.Search),
+		Component: filterComponent(tmpl.Search, isSearch),
 		Params:    []template.HTML{},
 	}
 
 	if !isSearch {
-		inp.Component = filterComponent(tmpl.Form)
+		inp.Component = filterComponent(tmpl.Form, isSearch)
 	}
 
 	if mfd.IsStatus(tmpl.Name) {
@@ -194,7 +171,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 		attr := tmpl.VTAttribute.Attribute
 
 		if attr.ForeignKey == mfd.VfsFile {
-			inp.Component = filterComponent(tmpl.Form)
+			inp.Component = filterComponent(tmpl.Form, isSearch)
 			inp.IsFK = false
 			inp.FKJSName = mfd.VarName(mfd.FKName(tmpl.AttrName))
 			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
@@ -207,22 +184,34 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
 			if attr.IsArray {
 				inp.Params = append(inp.Params, `multiple`, `chips`)
+				inp.IsArray = true
 			}
 		}
+	}
+
+	if isSearch {
+		inp.SearchType = filterInputType(tmpl.Search, inp)
 	}
 
 	return inp
 }
 
-func filterComponent(input string) string {
+func filterComponent(input string, isSearch bool) string {
+	defaultComponent := "v-text-field"
 	switch input {
 	case mfd.TypeHTMLInput:
-		return "v-text-field"
+		return defaultComponent
 	case mfd.TypeHTMLCheckbox:
 		return "v-checkbox"
 	case mfd.TypeHTMLText:
+		if isSearch {
+			return defaultComponent
+		}
 		return "v-textarea"
 	case mfd.TypeHTMLEditor:
+		if isSearch {
+			return defaultComponent
+		}
 		return "vt-tinymce-editor"
 	case mfd.TypeHTMLDateTime:
 		return "vt-datetime-picker"
@@ -236,5 +225,29 @@ func filterComponent(input string) string {
 		return "vt-vfs-image-input"
 	}
 
-	return "v-text-field"
+	return defaultComponent
+}
+
+func filterInputType(input string, inp InputData) string {
+	if inp.IsFK && inp.IsArray {
+		return "multi-select"
+	}
+	if inp.IsFK || mfd.IsStatus(inp.JSName) {
+		return "select"
+	}
+
+	switch input {
+	case mfd.TypeHTMLInput, mfd.TypeHTMLText, mfd.TypeHTMLEditor:
+		return "input"
+	case mfd.TypeHTMLDateTime, mfd.TypeHTMLTime:
+		return "datetime"
+	case mfd.TypeHTMLDate:
+		return "date"
+	case mfd.TypeHTMLSelect:
+		return "select"
+	case mfd.TypeHTMLCheckbox:
+		return "boolean"
+	}
+
+	return "input"
 }
