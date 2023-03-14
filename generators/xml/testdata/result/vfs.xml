@@ -1,0 +1,41 @@
+<Package xmlns:xsi="" xmlns:xsd="">
+    <Name>vfs</Name>
+    <Entities>
+        <Entity Name="VfsFile" Namespace="vfs" Table="vfsFiles">
+            <Attributes>
+                <Attribute Name="ID" DBName="fileId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="FolderID" DBName="folderId" DBType="int4" GoType="int" PK="false" FK="VfsFolder" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="Path" DBName="path" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="Params" DBName="params" DBType="text" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="IsFavorite" DBName="isFavorite" DBType="bool" GoType="*bool" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="MimeType" DBName="mimeType" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="FileSize" DBName="fileSize" DBType="int4" GoType="*int" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="FileExists" DBName="fileExists" DBType="bool" GoType="bool" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamp" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+            </Attributes>
+            <Searches>
+                <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+                <Search Name="TitleILike" AttrName="Title" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="PathILike" AttrName="Path" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="ParamsILike" AttrName="Params" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="MimeTypeILike" AttrName="MimeType" SearchType="SEARCHTYPE_ILIKE"></Search>
+            </Searches>
+        </Entity>
+        <Entity Name="VfsFolder" Namespace="vfs" Table="vfsFolders">
+            <Attributes>
+                <Attribute Name="ID" DBName="folderId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ParentFolderID" DBName="parentFolderId" DBType="int4" GoType="*int" PK="false" FK="VfsFolder" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="IsFavorite" DBName="isFavorite" DBType="bool" GoType="*bool" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamp" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+            </Attributes>
+            <Searches>
+                <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+                <Search Name="TitleILike" AttrName="Title" SearchType="SEARCHTYPE_ILIKE"></Search>
+            </Searches>
+        </Entity>
+    </Entities>
+</Package>
