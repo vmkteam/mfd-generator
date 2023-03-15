@@ -1,8 +1,6 @@
 package xml
 
 import (
-	"bufio"
-	"bytes"
 	"os"
 
 	"testing"
@@ -30,33 +28,16 @@ func TestGenerator_Generate(t *testing.T) {
 			}
 
 			for _, f := range files {
-				content, err := readFile("testdata/result/" + f.Name())
+				content, err := os.ReadFile("testdata/result/" + f.Name())
 				if err != nil {
 					t.Fatal(err)
 				}
-				necessaryContent, err := readFile("testdata/necessary/" + f.Name())
+				necessaryContent, err := os.ReadFile("testdata/necessary/" + f.Name())
 				if err != nil {
 					t.Fatal(err)
 				}
-				So(content, ShouldEqual, necessaryContent)
+				So(content, ShouldResemble, necessaryContent)
 			}
 		})
 	})
-
-}
-
-func readFile(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	wr := bytes.Buffer{}
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		wr.WriteString(sc.Text())
-	}
-
-	return wr.String(), nil
 }
