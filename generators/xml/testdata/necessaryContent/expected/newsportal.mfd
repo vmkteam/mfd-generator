@@ -1,13 +1,9 @@
-<Project xmlns:xsi="" xmlns:xsd="">
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Name>newsportal.mfd</Name>
     <PackageNames>
         <string>portal</string>
-        <string>common</string>
-        <string>vfs</string>
     </PackageNames>
-    <Languages>
-        <string>en</string>
-    </Languages>
+    <Languages></Languages>
     <GoPGVer>10</GoPGVer>
     <CustomTypes></CustomTypes>
 </Project>
