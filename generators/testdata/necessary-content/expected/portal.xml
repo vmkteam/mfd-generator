@@ -1,4 +1,4 @@
-<Package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Package xmlns:xsi="" xmlns:xsd="">
     <Name>portal</Name>
     <Entities>
         <Entity Name="Category" Namespace="portal" Table="categories">
