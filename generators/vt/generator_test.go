@@ -4,8 +4,9 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {
@@ -18,11 +19,11 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.MFDPath = testdata.PathExpectedMfd
 			generator.options.Package = testdata.PackageVt
 			generator.options.Namespaces = []string{"portal"}
-			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/necessary-content/expected/db"
+			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
 
 			t.Log("Generate vt")
 			_ = generator.Generate()
-			//todo: failed, because portal.go generate import with empty quotes. Run test and check "generators/testdata/necessary-content/actual/vt/portal.go"
+			//todo: failed, because portal.go generate import with empty quotes. Run test and check "generators/testdata/actual/vt/portal.go"
 			//So(err, ShouldBeNil)
 		})
 

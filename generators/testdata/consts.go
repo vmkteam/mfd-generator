@@ -1,24 +1,27 @@
 package testdata
 
 const (
+	FilenameMfd   = "newsportal.mfd"
+	FilenameXml   = "portal.xml"
+	FilenameVtXml = "portal.vt.xml"
+
 	PackageDB         = "db"
 	PackageVt         = "vt"
 	PackageVtTemplate = "vt-template"
-	FilenameMfd       = "newsportal.mfd"
-	PathActual        = "../testdata/necessary-content/actual/"
-	PathExpected      = "../testdata/necessary-content/expected/"
 
-	AllPrefix    = "/all"
-	EntityPrefix = "/entities"
-
-	PathExpectedMfd              = PathExpected + FilenameMfd
+	PathActual                   = "../testdata/actual/"
+	PathExpected                 = "../testdata/expected/"
 	PathActualMfd                = PathActual + FilenameMfd
+	PathExpectedMfd              = PathExpected + FilenameMfd
 	PathActualDB                 = PathActual + PackageDB + "/"
 	PathExpectedDB               = PathExpected + PackageDB + "/"
 	PathActualVt                 = PathActual + PackageVt + "/"
 	PathExpectedVt               = PathExpected + PackageVt + "/"
-	PathActualVtTemplateAll      = PathActual + PackageVtTemplate + AllPrefix + "/"
-	PathExpectedVtTemplateAll    = PathExpected + PackageVtTemplate + AllPrefix + "/"
-	PathActualVtTemplateEntity   = PathActual + PackageVtTemplate + EntityPrefix + "/"
-	PathExpectedVtTemplateEntity = PathExpected + PackageVtTemplate + EntityPrefix + "/"
+	PathActualVtTemplateAll      = PathActual + PackageVtTemplate + PrefixAll + "/"
+	PathExpectedVtTemplateAll    = PathExpected + PackageVtTemplate + PrefixAll + "/"
+	PathActualVtTemplateEntity   = PathActual + PackageVtTemplate + PrefixEntity + "/"
+	PathExpectedVtTemplateEntity = PathExpected + PackageVtTemplate + PrefixEntity + "/"
+
+	PrefixAll    = "/all"
+	PrefixEntity = "/entities"
 )
