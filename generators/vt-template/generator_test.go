@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {
@@ -55,7 +56,7 @@ func TestGenerator_Generate(t *testing.T) {
 		})
 
 		Convey("Check correct generate with entities", func() {
-			generator.options.Output = "../testdata/necessary-content/actual/vt-template/entities/"
+			generator.options.Output = testdata.PathActual + "vt-template/entities/"
 			generator.options.Entities = []string{"Category", "Tag"}
 
 			t.Log("Generate vt-template with entities")

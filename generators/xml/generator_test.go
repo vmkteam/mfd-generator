@@ -4,19 +4,26 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-// todo: fail if ../testdata/necessary-content/actual/*.mfd,*.xml exists,
-// todo: panic if ../testdata/necessary-content/actual/*.mfd exists and xml not exist
+// todo: fail if ../testdata/actual/*.mfd,*.xml exists,
+// todo: panic if ../testdata/actual/*.mfd exists and xml not exist
 func TestGenerator_Generate(t *testing.T) {
+	// Store the PATH environment variable in a variable
+	dbdsn, exists := os.LookupEnv("dbdsn")
+	if !exists {
+		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
+	}
+
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Check correct generate", func() {
 			generator := New()
 
 			generator.options.Def()
-			generator.options.URL = `postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable`
+			generator.options.URL = dbdsn
 			generator.options.Output = testdata.PathActualMfd
 			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags")
 

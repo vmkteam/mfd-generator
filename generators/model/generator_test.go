@@ -4,8 +4,9 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {

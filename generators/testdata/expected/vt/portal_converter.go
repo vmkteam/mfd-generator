@@ -1,7 +1,7 @@
 package vt
 
 import (
-	"github.com/vmkteam/mfd-generator/generators/testdata/necessary-content/expected/db"
+	"github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
 )
 
 func NewCategory(in *db.Category) *Category {
