@@ -13,7 +13,7 @@ import (
 // todo: panic if ../testdata/actual/*.mfd exists and xml not exist
 func TestGenerator_Generate(t *testing.T) {
 	// Store the PATH environment variable in a variable
-	dbdsn, exists := os.LookupEnv("dbdsn")
+	dbdsn, exists := os.LookupEnv("DB_DSN")
 	if !exists {
 		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
 	}
