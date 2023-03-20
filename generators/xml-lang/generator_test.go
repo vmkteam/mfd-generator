@@ -24,7 +24,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.MFDPath = testdata.PathActualMfd
 
 			t.Log("Generate xml-vt")
-			err := generator.Generate()
+			err = generator.Generate()
 			So(err, ShouldBeNil)
 		})
 
