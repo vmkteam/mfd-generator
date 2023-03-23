@@ -60,7 +60,7 @@ func prepareFiles() error {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXml), filepath.Join(testdata.PathActual, testdata.FilenameXml))
+	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(testdata.PathActual, testdata.FilenameXML))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

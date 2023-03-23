@@ -7,8 +7,8 @@ const (
 	DirParent   = ".."
 
 	FilenameMFD   = "newsportal.mfd"
-	FilenameXml   = "portal.xml"
-	FilenameVTXml = "portal.vt.xml"
+	FilenameXML   = "portal.xml"
+	FilenameVTXML = "portal.vt.xml"
 
 	PackageDB         = "db"
 	PackageVT         = "vt"
