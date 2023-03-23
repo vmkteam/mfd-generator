@@ -2,6 +2,7 @@ package vttmpl
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -14,8 +15,8 @@ func TestGenerator_Generate(t *testing.T) {
 	Convey("TestGenerator_Generate", t, func() {
 		generator := New()
 
-		generator.options.Output = testdata.PathActualVtTemplateAll
-		generator.options.MFDPath = testdata.PathExpectedMfd
+		generator.options.Output = testdata.PathActualVTTemplateAll
+		generator.options.MFDPath = testdata.PathExpectedMFD
 		generator.options.Namespaces = []string{"portal"}
 
 		Convey("Check correct generate", func() {
@@ -24,30 +25,30 @@ func TestGenerator_Generate(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		filePrefix := "src/pages/Entity/"
+		filePrefix := filepath.Join("src", "pages", "Entity")
 
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
-				"Category/List.vue":                        {},
-				"Category/components/MultiListFilters.vue": {},
-				"News/Form.vue":                            {},
-				"News/List.vue":                            {},
-				"Tag/Form.vue":                             {},
-				"Tag/List.vue":                             {},
-				"Category/Form.vue":                        {},
-				"News/components/MultiListFilters.vue":     {},
-				"Tag/components/MultiListFilters.vue":      {},
-				"routes.ts":                                {},
+				filepath.Join("Category", "List.vue"):                           {},
+				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
+				filepath.Join("News", "Form.vue"):                               {},
+				filepath.Join("News", "List.vue"):                               {},
+				filepath.Join("Tag", "Form.vue"):                                {},
+				filepath.Join("Tag", "List.vue"):                                {},
+				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("News", "components", "MultiListFilters.vue"):     {},
+				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
+				filepath.Join("routes.ts"):                                      {},
 			}
 
 			for f := range expectedFilenames {
-				filenameWithFullPath := testdata.PathActualVtTemplateAll + filePrefix + f
+				filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateAll, filePrefix, f)
 				t.Logf("Check %s file", filenameWithFullPath)
 				content, err := os.ReadFile(filenameWithFullPath)
 				if err != nil {
 					t.Fatal(err)
 				}
-				expectedContent, err := os.ReadFile(testdata.PathExpectedVtTemplateAll + filePrefix + f)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateAll, filePrefix, f))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -56,7 +57,7 @@ func TestGenerator_Generate(t *testing.T) {
 		})
 
 		Convey("Check correct generate with entities", func() {
-			generator.options.Output = testdata.PathActual + "vt-template/entities/"
+			generator.options.Output = filepath.Join(testdata.PathActual, "vt-template", "entities")
 			generator.options.Entities = []string{"Category", "Tag"}
 
 			t.Log("Generate vt-template with entities")
@@ -66,24 +67,24 @@ func TestGenerator_Generate(t *testing.T) {
 
 		Convey("Check generated files with entities", func() {
 			expectedFilenames := map[string]struct{}{
-				"Category/List.vue":                        {},
-				"Category/components/MultiListFilters.vue": {},
-				"Tag/Form.vue":                             {},
-				"Tag/List.vue":                             {},
-				"Category/Form.vue":                        {},
-				"Tag/components/MultiListFilters.vue":      {},
-				"routes.ts":                                {},
+				filepath.Join("Category", "List.vue"):                           {},
+				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
+				filepath.Join("Tag", "Form.vue"):                                {},
+				filepath.Join("Tag", "List.vue"):                                {},
+				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
+				filepath.Join("routes.ts"):                                      {},
 			}
 
 			Convey("Check content", func() {
 				for f := range expectedFilenames {
-					filenameWithFullPath := testdata.PathActualVtTemplateEntity + filePrefix + f
+					filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateEntity, filePrefix, f)
 					t.Logf("Check %s file", filenameWithFullPath)
 					content, err := os.ReadFile(filenameWithFullPath)
 					if err != nil {
 						t.Fatal(err)
 					}
-					expectedContent, err := os.ReadFile(testdata.PathExpectedVtTemplateEntity + filePrefix + f)
+					expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateEntity, filePrefix, f))
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -92,13 +93,13 @@ func TestGenerator_Generate(t *testing.T) {
 			})
 
 			Convey("Check filenames", func() {
-				actualFiles, err := fullFilesPaths(testdata.PathExpectedVtTemplateEntity)
+				actualFiles, err := fullFilesPaths(testdata.PathExpectedVTTemplateEntity)
 				if err != nil {
 					t.Fatal(err)
 				}
 
 				for _, a := range actualFiles {
-					shortPath := strings.ReplaceAll(a, testdata.PathExpectedVtTemplateEntity+filePrefix, "")
+					shortPath := strings.ReplaceAll(a, filepath.Join(testdata.PathExpectedVTTemplateEntity, filePrefix)+string(os.PathSeparator), "")
 					t.Logf("Check %s filename", shortPath)
 					_, ok := expectedFilenames[shortPath]
 					So(ok, ShouldBeTrue)
@@ -117,13 +118,13 @@ func fullFilesPaths(path string) ([]string, error) {
 	var filePaths []string
 	for _, file := range files {
 		if file.IsDir() {
-			paths, err := fullFilesPaths(path + file.Name() + "/")
+			paths, err := fullFilesPaths(filepath.Join(path, file.Name()))
 			if err != nil {
 				return nil, err
 			}
 			filePaths = append(filePaths, paths...)
 		} else {
-			filePaths = append(filePaths, path+file.Name())
+			filePaths = append(filePaths, filepath.Join(path, file.Name()))
 		}
 	}
 

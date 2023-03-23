@@ -2,6 +2,7 @@ package xmlvt
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
@@ -20,7 +21,7 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check correct generate", func() {
 			generator := New()
 
-			generator.options.MFDPath = testdata.PathActualMfd
+			generator.options.MFDPath = testdata.PathActualMFD
 
 			t.Log("Generate xml-vt")
 			err := generator.Generate()
@@ -34,11 +35,11 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(testdata.PathActual + f)
+				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
 				if err != nil {
 					t.Fatal(err)
 				}
-				expectedContent, err := os.ReadFile(testdata.PathExpected + f)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, f))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -54,12 +55,12 @@ func prepareFiles() error {
 		return err
 	}
 
-	err = os.Link(testdata.PathExpectedMfd, testdata.PathActualMfd)
+	err = os.Link(testdata.PathExpectedMFD, testdata.PathActualMFD)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
-	err = os.Link(testdata.PathExpected+testdata.FilenameXml, testdata.PathActual+testdata.FilenameXml)
+	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXml), filepath.Join(testdata.PathActual, testdata.FilenameXml))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

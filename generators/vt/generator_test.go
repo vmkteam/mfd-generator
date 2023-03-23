@@ -2,6 +2,7 @@ package vt
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
@@ -15,9 +16,9 @@ func TestGenerator_Generate(t *testing.T) {
 			generator := New()
 
 			generator.options.Def()
-			generator.options.Output = testdata.PathActualVt
-			generator.options.MFDPath = testdata.PathExpectedMfd
-			generator.options.Package = testdata.PackageVt
+			generator.options.Output = testdata.PathActualVT
+			generator.options.MFDPath = testdata.PathExpectedMFD
+			generator.options.Package = testdata.PackageVT
 			generator.options.Namespaces = []string{"portal"}
 			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
 
@@ -36,11 +37,11 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(testdata.PathActualVt + f)
+				content, err := os.ReadFile(filepath.Join(testdata.PathActualVT, f))
 				if err != nil {
 					t.Fatal(err)
 				}
-				expectedContent, err := os.ReadFile(testdata.PathExpectedVt + f)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVT, f))
 				if err != nil {
 					t.Fatal(err)
 				}

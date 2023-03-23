@@ -2,6 +2,7 @@ package xml
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
@@ -24,7 +25,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			generator.options.Def()
 			generator.options.URL = dbdsn
-			generator.options.Output = testdata.PathActualMfd
+			generator.options.Output = testdata.PathActualMFD
 			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags")
 
 			t.Log("Generate xml")
@@ -40,11 +41,11 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(testdata.PathActual + f)
+				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
 				if err != nil {
 					t.Fatal(err)
 				}
-				expectedContent, err := os.ReadFile(testdata.PathExpected + f)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, f))
 				if err != nil {
 					t.Fatal(err)
 				}

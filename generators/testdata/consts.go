@@ -1,27 +1,35 @@
 package testdata
 
+import "path/filepath"
+
 const (
-	FilenameMfd   = "newsportal.mfd"
+	DirTestdata = "testdata"
+	DirParent   = ".."
+
+	FilenameMFD   = "newsportal.mfd"
 	FilenameXml   = "portal.xml"
-	FilenameVtXml = "portal.vt.xml"
+	FilenameVTXml = "portal.vt.xml"
 
 	PackageDB         = "db"
-	PackageVt         = "vt"
-	PackageVtTemplate = "vt-template"
+	PackageVT         = "vt"
+	PackageVTTemplate = "vt-template"
 
-	PathActual                   = "../testdata/actual/"
-	PathExpected                 = "../testdata/expected/"
-	PathActualMfd                = PathActual + FilenameMfd
-	PathExpectedMfd              = PathExpected + FilenameMfd
-	PathActualDB                 = PathActual + PackageDB + "/"
-	PathExpectedDB               = PathExpected + PackageDB + "/"
-	PathActualVt                 = PathActual + PackageVt + "/"
-	PathExpectedVt               = PathExpected + PackageVt + "/"
-	PathActualVtTemplateAll      = PathActual + PackageVtTemplate + PrefixAll + "/"
-	PathExpectedVtTemplateAll    = PathExpected + PackageVtTemplate + PrefixAll + "/"
-	PathActualVtTemplateEntity   = PathActual + PackageVtTemplate + PrefixEntity + "/"
-	PathExpectedVtTemplateEntity = PathExpected + PackageVtTemplate + PrefixEntity + "/"
+	PrefixAll    = "all"
+	PrefixEntity = "entities"
+)
 
-	PrefixAll    = "/all"
-	PrefixEntity = "/entities"
+var (
+	PathActual   = filepath.Join(DirParent, DirTestdata, "actual")
+	PathExpected = filepath.Join(DirParent, DirTestdata, "expected")
+
+	PathActualMFD                = filepath.Join(PathActual, FilenameMFD)
+	PathExpectedMFD              = filepath.Join(PathExpected, FilenameMFD)
+	PathActualDB                 = filepath.Join(PathActual, PackageDB)
+	PathExpectedDB               = filepath.Join(PathExpected, PackageDB)
+	PathActualVT                 = filepath.Join(PathActual, PackageVT)
+	PathExpectedVT               = filepath.Join(PathExpected, PackageVT)
+	PathActualVTTemplateAll      = filepath.Join(PathActual, PackageVTTemplate, PrefixAll)
+	PathExpectedVTTemplateAll    = filepath.Join(PathExpected, PackageVTTemplate, PrefixAll)
+	PathActualVTTemplateEntity   = filepath.Join(PathActual, PackageVTTemplate, PrefixEntity)
+	PathExpectedVTTemplateEntity = filepath.Join(PathExpected, PackageVTTemplate, PrefixEntity)
 )

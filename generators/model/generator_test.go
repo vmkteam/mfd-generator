@@ -2,6 +2,7 @@ package model
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
@@ -16,7 +17,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			generator.options.Def()
 			generator.options.Output = testdata.PathActualDB
-			generator.options.MFDPath = testdata.PathExpectedMfd
+			generator.options.MFDPath = testdata.PathExpectedMFD
 			generator.options.Package = testdata.PackageDB
 
 			t.Log("Generate model")
@@ -34,11 +35,11 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(testdata.PathActualDB + f)
+				content, err := os.ReadFile(filepath.Join(testdata.PathActualDB, f))
 				if err != nil {
 					t.Fatal(err)
 				}
-				expectedContent, err := os.ReadFile(testdata.PathExpectedDB + f)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedDB, f))
 				if err != nil {
 					t.Fatal(err)
 				}
