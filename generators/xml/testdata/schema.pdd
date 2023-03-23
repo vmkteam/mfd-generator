@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<DBMODEL Version="1.92" TYPE="PostgreSQL">
+
+<MODELSETTINGS MDDVERSION="1.16.0 (build 1173)" ModelProject="" ModelName="test" ModelCompany="" ModelAuthor="" ModelCopyright="" ModelVersion="" ModelVersionAI="0" ModelSaveScriptsWithVersion="0" ModelCreated="2022-12-12 18:49:00" ModelUpdated="2022-12-12 18:49:00" Description="" Annotation="" ZoomFac="150.00" XPos="0" YPos="0" PrintLink="" GenSettings="object GenSettings1: TGenSettings\n  TextCharCase = tccMixed\n  ModelCheck = True\n  DropIfExists = True\n  NotValidConstraints = False\n  ConcurrentlyIndexes = False\n  ISQL = False\n  ExecuteAfterGeneration = True\n  DBOptions = [dbgoCreate, dbgoBeginScript, dbgoEndScript]\n  ViewOptions = [viewgoCreate, viewgoCreateRule]\n  SPOptions = [spgoCreate]\n  TableOptions = [tblgoCreate, tblgoBeginScript, tblgoEndScript, tblgoComment, tblgoCreatePK, tblgoCreateFK, tblgoCreateIndex, tblgoCreateRule, tblgoCreateTrigger, tblgoCreateCHECK, tblgoFieldDefault]\n  OwnerOptions = [owngoSchema, owngoTable, owngoView, owngoSP, owngoSequence, owngoUDT]\n  ACLOptions = [aclgoSchema, aclgoTable, aclgoView, aclgoSP, aclgoSequence]\n  ModifyOptions = [mgoKeepTbls, mgoBackupTbls, mgoTraceRenaming]\n  RoleCreate = True\n  RoleWhenCreate = rocrInScript\n  SQLTypeNames = False\nend\n" DisplaySettings="object DisplaySettings1: TDisplaySettings\n  ObjectsDisplay = [edoColumns, edoInhColumns, edoIndices, edoConstraints, edoTriggers, edoRules, edoColTypes, edoFKs, rdoRefName, spdoParameters, spdoResult, spdoParamTypes, spdoParamKind, vdoAttributes, vdoTargets, vdoRules]\n  Color = clWhite\n  ShowIcons = True\n  SnapGrid = True\n  DisplaySnap = True\n  SnapSize = 10\n  ShowPages = True\n  EntityFillColor = clWhite\n  EntityLineColor = clNavy\n  EntityFontColor = clBlack\n  SPFillColor = clCream\n  SPLineColor = clNavy\n  SPFontColor = clBlack\n  ViewFillColor = clMoneyGreen\n  ViewLineColor = clNavy\n  ViewFontColor = clBlack\n  RefNotation = 0\n  RefColor = clNavy\n  RefLabelColor = clWhite\n  RefLabelFontColor = clBlack\n  MinimapShapesStyle = mmssFillAndBorder\n  MinimapVisibleAreaStyle = mmvasBitmapShading\n  MinimapBackColor = clWhite\nend\n" DefaultDelete="3" DefaultUpdate="3" DefaultDataType="23" DefaultSchemaID="0" NamePatterns="Table=Table_,View=View_,SP=Procedure_,Reference=Ref_%FROMTABLE%_to_%TOTABLE%,FKColumn=%TOCOLUMN%" QueryDelimiter=";" DBQuoteCharacter="\A" EncloseNames="1" PKColumnsFirst="0" HPageCount="5" VPageCount="5" />
+
+<DATABASE Name="Database_1" CharacterSet="" Collate="" CType="" Tablespace="" Owner="" Template="" Comments="" Description="" Annotation="" BeginScript="" EndScript="" Generate="0" />
+
+<STAMPS>
+</STAMPS>
+
+<ROLES>
+</ROLES>
+
+<SCHEMAS>
+<SCHEMA ID="0" Name="public" Owner="" Generate="0" Comments="" System="1" ACL=""></SCHEMA>
+</SCHEMAS>
+
+<SEQUENCES>
+</SEQUENCES>
+
+<DOMAINS>
+</DOMAINS>
+
+<COMPOSITES>
+<COMPOSITE ID="10000" Name="news" SchemaName="public" OwnerName="" Comments="" MasterTableOID="1000">
+	<COLUMNS>
+	</COLUMNS>
+</COMPOSITE>
+<COMPOSITE ID="10001" Name="statuses" SchemaName="public" OwnerName="" Comments="" MasterTableOID="1007">
+	<COLUMNS>
+	</COLUMNS>
+</COMPOSITE>
+<COMPOSITE ID="10002" Name="categories" SchemaName="public" OwnerName="" Comments="" MasterTableOID="1017">
+	<COLUMNS>
+	</COLUMNS>
+</COMPOSITE>
+<COMPOSITE ID="10003" Name="tags" SchemaName="public" OwnerName="" Comments="" MasterTableOID="1033">
+	<COLUMNS>
+	</COLUMNS>
+</COMPOSITE>
+</COMPOSITES>
+
+<SCALARS>
+</SCALARS>
+
+<ENUMS>
+</ENUMS>
+
+<TABLESPACES>
+</TABLESPACES>
+
+<METADATA>
+<ENTITIES>
+<ENTITY ID="1000" Name="news" SchemaOID="0" SchemaName="public" OwnerID="0" OwnerName="" TablespaceID="0" XPos="80" YPos="30" Temporary="0" Unlogged="0" OnCommit="" Inherits="" FillColor="16777215" LineColor="8388608" FontColor="0" CharacterSet="" Collate="" Comments="" Description="" Annotation="" BeginScript="" EndScript="" Generate="1" ACL="" StorageParams="" >
+	<COLUMNS>
+		<COLUMN ID="6" Name="newsId" Pos="0" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="1" Collation="" PrimaryKey="1" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="id \043D\043E\0432\043E\0441\0442\0438"></COLUMN>
+		<COLUMN ID="7" Name="title" Pos="1" Datatype="1043" Type="varchar" Width="255" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="\0417\0430\0433\043E\043B\043E\0432\043E\043A \043D\043E\0432\043E\0441\0442\0438"></COLUMN>
+		<COLUMN ID="9" Name="preview" Pos="2" Datatype="1043" Type="varchar" Width="255" Prec="0" NotNull="0" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="\0421\0441\044B\043B\043A\0430 \043D\0430 \0444\043E\0442\043E-\043F\0440\0435\0432\044C\044E \043D\043E\0432\043E\0441\0442\0438"></COLUMN>
+		<COLUMN ID="8" Name="content" Pos="3" Datatype="25" Type="text" Width="0" Prec="0" NotNull="0" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="\041A\043E\043D\0442\0435\043D\0442 \043D\043E\0432\043E\0441\0442\0438"></COLUMN>
+		<COLUMN ID="21" Name="categoryId" Pos="4" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="1" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="11" Name="tagIds" Pos="5" Datatype="1007" Type="int4[]" Width="0" Prec="0" NotNull="0" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="14" Name="createdAt" Pos="6" Datatype="1184" Type="timestamp with time zone" Width="-1" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="NOW()" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="15" Name="publishedAt" Pos="7" Datatype="1184" Type="timestamp with time zone" Width="-1" Prec="0" NotNull="0" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="17" Name="statusId" Pos="8" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="1" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+	</COLUMNS>
+	<REFERENCES_END>
+		<REFERENCE_END ID="10" />
+		<REFERENCE_END ID="14" />
+	</REFERENCES_END>
+	<CONSTRAINTS>
+		<CONSTRAINT ID="2" Name="" Kind="2" Expression="" ReferenceIndex="1085" FillFactor="" Comments="" TablespaceID="0" Deferrable="0" Method="0">
+			<CONSTRAINTCOLUMNS COMMATEXT="6"></CONSTRAINTCOLUMNS>
+			<CONSTRAINTOPERATORS COMMATEXT=""></CONSTRAINTOPERATORS>
+		</CONSTRAINT>
+	</CONSTRAINTS>
+</ENTITY>
+
+<ENTITY ID="1007" Name="statuses" SchemaOID="0" SchemaName="public" OwnerID="0" OwnerName="" TablespaceID="0" XPos="470" YPos="100" Temporary="0" Unlogged="0" OnCommit="" Inherits="" FillColor="16777215" LineColor="8388608" FontColor="0" CharacterSet="" Collate="" Comments="" Description="" Annotation="" BeginScript="" EndScript="" Generate="1" ACL="" StorageParams="" >
+	<COLUMNS>
+		<COLUMN ID="16" Name="statusId" Pos="0" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="1" Collation="" PrimaryKey="1" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+	</COLUMNS>
+	<REFERENCES_BEGIN>
+		<REFERENCE_BEGIN ID="10" />
+		<REFERENCE_BEGIN ID="17" />
+		<REFERENCE_BEGIN ID="18" />
+	</REFERENCES_BEGIN>
+	<CONSTRAINTS>
+		<CONSTRAINT ID="7" Name="" Kind="2" Expression="" ReferenceIndex="1088" FillFactor="" Comments="" TablespaceID="0" Deferrable="0" Method="0">
+			<CONSTRAINTCOLUMNS COMMATEXT="16"></CONSTRAINTCOLUMNS>
+			<CONSTRAINTOPERATORS COMMATEXT=""></CONSTRAINTOPERATORS>
+		</CONSTRAINT>
+	</CONSTRAINTS>
+</ENTITY>
+
+<ENTITY ID="1017" Name="categories" SchemaOID="0" SchemaName="public" OwnerID="0" OwnerName="" TablespaceID="0" XPos="100" YPos="250" Temporary="0" Unlogged="0" OnCommit="" Inherits="" FillColor="16777215" LineColor="8388608" FontColor="0" CharacterSet="" Collate="" Comments="" Description="" Annotation="" BeginScript="" EndScript="" Generate="1" ACL="" StorageParams="" >
+	<COLUMNS>
+		<COLUMN ID="18" Name="categoryId" Pos="0" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="1" Collation="" PrimaryKey="1" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="19" Name="title" Pos="1" Datatype="1043" Type="varchar" Width="255" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="20" Name="orderNumber" Pos="2" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+		<COLUMN ID="24" Name="statusId" Pos="3" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="1" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+	</COLUMNS>
+	<REFERENCES_BEGIN>
+		<REFERENCE_BEGIN ID="14" />
+	</REFERENCES_BEGIN>
+	<REFERENCES_END>
+		<REFERENCE_END ID="17" />
+	</REFERENCES_END>
+	<CONSTRAINTS>
+		<CONSTRAINT ID="12" Name="" Kind="2" Expression="" ReferenceIndex="1087" FillFactor="" Comments="" TablespaceID="0" Deferrable="0" Method="0">
+			<CONSTRAINTCOLUMNS COMMATEXT="18"></CONSTRAINTCOLUMNS>
+			<CONSTRAINTOPERATORS COMMATEXT=""></CONSTRAINTOPERATORS>
+		</CONSTRAINT>
+	</CONSTRAINTS>
+</ENTITY>
+
+<ENTITY ID="1033" Name="tags" SchemaOID="0" SchemaName="public" OwnerID="0" OwnerName="" TablespaceID="0" XPos="450" YPos="260" Temporary="0" Unlogged="0" OnCommit="" Inherits="" FillColor="16777215" LineColor="8388608" FontColor="0" CharacterSet="" Collate="" Comments="" Description="" Annotation="" BeginScript="" EndScript="" Generate="1" ACL="" StorageParams="" >
+	<COLUMNS>
+		<COLUMN ID="22" Name="tagId" Pos="0" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="1" Collation="" PrimaryKey="1" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="id \0442\0435\0433\0430"></COLUMN>
+		<COLUMN ID="23" Name="title" Pos="1" Datatype="1043" Type="varchar" Width="255" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="0" DefaultValue="" QuoteDefault="0" Comments="\0422\0435\043A\0441\0442 \0442\0435\0433\0430"></COLUMN>
+		<COLUMN ID="25" Name="statusId" Pos="2" Datatype="23" Type="int4" Width="0" Prec="0" NotNull="1" AutoInc="0" Collation="" PrimaryKey="0" IsFKey="1" DefaultValue="" QuoteDefault="0" Comments=""></COLUMN>
+	</COLUMNS>
+	<REFERENCES_END>
+		<REFERENCE_END ID="18" />
+	</REFERENCES_END>
+	<CONSTRAINTS>
+		<CONSTRAINT ID="15" Name="" Kind="2" Expression="" ReferenceIndex="1089" FillFactor="" Comments="" TablespaceID="0" Deferrable="0" Method="0">
+			<CONSTRAINTCOLUMNS COMMATEXT="22"></CONSTRAINTCOLUMNS>
+			<CONSTRAINTOPERATORS COMMATEXT=""></CONSTRAINTOPERATORS>
+		</CONSTRAINT>
+	</CONSTRAINTS>
+</ENTITY>
+
+</ENTITIES>
+
+<REFERENCES>
+<REFERENCE ID="10" Name="Ref_news_to_statuses" SOURCE="1007" DESTINATION="1000" FKIDS="16=17\n" Direction="0" RefColor="8388608" RefLabelColor="16777215" RefLabelFontColor="0" OnDelete="3" OnUpdate="3" Deferrable="0" MatchType="0" Comments="" Description="" Annotation="" Generate="1" FKConstraint_ID="7" LabelPointNumber="2" LabelPosition="0.5" ManualStartTailPosition="0" ManualEndTailPosition="0" />
+	<USERPOINTS>
+	</USERPOINTS>
+</REFERENCE>
+<REFERENCE ID="14" Name="Ref_news_to_categories" SOURCE="1017" DESTINATION="1000" FKIDS="18=21\n" Direction="0" RefColor="8388608" RefLabelColor="16777215" RefLabelFontColor="0" OnDelete="3" OnUpdate="3" Deferrable="0" MatchType="0" Comments="" Description="" Annotation="" Generate="1" FKConstraint_ID="12" LabelPointNumber="2" LabelPosition="0.5" ManualStartTailPosition="0" ManualEndTailPosition="0" />
+	<USERPOINTS>
+	</USERPOINTS>
+</REFERENCE>
+<REFERENCE ID="17" Name="Ref_categories_to_statuses" SOURCE="1007" DESTINATION="1017" FKIDS="16=24\n" Direction="0" RefColor="8388608" RefLabelColor="16777215" RefLabelFontColor="0" OnDelete="3" OnUpdate="3" Deferrable="0" MatchType="0" Comments="" Description="" Annotation="" Generate="1" FKConstraint_ID="7" LabelPointNumber="2" LabelPosition="0.5" ManualStartTailPosition="0" ManualEndTailPosition="0" />
+	<USERPOINTS>
+	</USERPOINTS>
+</REFERENCE>
+<REFERENCE ID="18" Name="Ref_tags_to_statuses" SOURCE="1007" DESTINATION="1033" FKIDS="16=25\n" Direction="0" RefColor="8388608" RefLabelColor="16777215" RefLabelFontColor="0" OnDelete="3" OnUpdate="3" Deferrable="0" MatchType="0" Comments="" Description="" Annotation="" Generate="1" FKConstraint_ID="7" LabelPointNumber="2" LabelPosition="0.5" ManualStartTailPosition="0" ManualEndTailPosition="0" />
+	<USERPOINTS>
+	</USERPOINTS>
+</REFERENCE>
+</REFERENCES>
+
+<NOTES>
+</NOTES>
+
+<STOREDPROCES>
+</STOREDPROCES>
+
+<VIEWS>
+</VIEWS>
+
+</METADATA>
+</DBMODEL>

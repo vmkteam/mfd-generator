@@ -1,0 +1,101 @@
+<Translation xmlns:xsi="" xmlns:xsd="">
+    <Language>en</Language>
+    <Namespaces>
+        <Namespace Name="portal">
+            <Entities>
+                <Entity Name="Category" Key="category">
+                    <Crumbs>
+                        <categoryList>Categories</categoryList>
+                        <categoryAdd>Add</categoryAdd>
+                        <categoryEdit>Edit</categoryEdit>
+                    </Crumbs>
+                    <Form>
+                        <titleLabel>Title</titleLabel>
+                        <orderNumberLabel>Order Number</orderNumberLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Categories</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <title>Title</title>
+                            <orderNumber>Order Number</orderNumber>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <orderNumber>Order Number</orderNumber>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="News" Key="news">
+                    <Crumbs>
+                        <newsList>News</newsList>
+                        <newsAdd>Add</newsAdd>
+                        <newsEdit>Edit</newsEdit>
+                    </Crumbs>
+                    <Form>
+                        <titleLabel>Title</titleLabel>
+                        <previewLabel>Preview</previewLabel>
+                        <contentLabel>Content</contentLabel>
+                        <categoryIdLabel>Category</categoryIdLabel>
+                        <tagIdsLabel>Tags</tagIdsLabel>
+                        <publishedAtLabel>Published At</publishedAtLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>News</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <title>Title</title>
+                            <preview>Preview</preview>
+                            <content>Content</content>
+                            <categoryId>Category</categoryId>
+                            <createdAt>Created at</createdAt>
+                            <publishedAt>Published At</publishedAt>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <preview>Preview</preview>
+                            <content>Content</content>
+                            <category>Category</category>
+                            <publishedAt>Published At</publishedAt>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="Tag" Key="tag">
+                    <Crumbs>
+                        <tagList>Tags</tagList>
+                        <tagAdd>Add</tagAdd>
+                        <tagEdit>Edit</tagEdit>
+                    </Crumbs>
+                    <Form>
+                        <titleLabel>Title</titleLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Tags</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <title>Title</title>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
+    </Namespaces>
+</Translation>

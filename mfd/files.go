@@ -56,6 +56,7 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 	dir := filepath.Dir(filename)
 	for _, pf := range project.NamespaceNames {
 		ns, err := LoadNamespace(path.Join(dir, pf+".xml"))
+		//todo: maybe create xmls if not exists
 		if err != nil {
 			return nil, fmt.Errorf("read namespace error: %w", err)
 		}
