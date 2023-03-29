@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -43,6 +44,11 @@ func TestGenerator_Generate(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+
+				// cut first line with version from comparsion
+				_, content, _ = bytes.Cut(content, []byte{'\n'})
+				_, expectedContent, _ = bytes.Cut(expectedContent, []byte{'\n'})
+
 				So(content, ShouldResemble, expectedContent)
 			}
 		})

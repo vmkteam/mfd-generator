@@ -8,6 +8,38 @@ on:
 
 jobs:
 
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: newsportal
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.19
+
+    - uses: actions/checkout@v2
+
+    - name: Prepare test db
+      run: psql -d postgresql://postgres@localhost/newsportal < schema.sql
+      working-directory: ./generators/xml/testdata/
+      env:
+        PGPASSWORD: postgres
+
+    - name: Test
+      run: go test -v ./...
+
   build:
     runs-on: ubuntu-latest
     steps:
