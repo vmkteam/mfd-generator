@@ -31,14 +31,13 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Prepare test db
-      - run: |
+      run: |
           apt-get update
           apt-get install --yes --no-install-recommends postgresql-client
           createdb -E UTF-8 -O postgres -T template0 --lc-collate C --lc-ctype=ru_RU.UTF-8 newsportal
           psql newsportal < generators/xml/testdata/schema.sql
 
     - name: Test
-      run: go test -v ./...
       run: go test -v ./...
 
   build:
