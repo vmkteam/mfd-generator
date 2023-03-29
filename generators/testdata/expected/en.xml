@@ -5,9 +5,9 @@
             <Entities>
                 <Entity Name="Category" Key="category">
                     <Crumbs>
-                        <categoryList>Categories</categoryList>
                         <categoryAdd>Add</categoryAdd>
                         <categoryEdit>Edit</categoryEdit>
+                        <categoryList>Categories</categoryList>
                     </Crumbs>
                     <Form>
                         <titleLabel>Title</titleLabel>
@@ -33,9 +33,9 @@
                 </Entity>
                 <Entity Name="News" Key="news">
                     <Crumbs>
-                        <newsList>News</newsList>
                         <newsAdd>Add</newsAdd>
                         <newsEdit>Edit</newsEdit>
+                        <newsList>News</newsList>
                     </Crumbs>
                     <Form>
                         <titleLabel>Title</titleLabel>
@@ -72,9 +72,9 @@
                 </Entity>
                 <Entity Name="Tag" Key="tag">
                     <Crumbs>
-                        <tagList>Tags</tagList>
                         <tagAdd>Add</tagAdd>
                         <tagEdit>Edit</tagEdit>
+                        <tagList>Tags</tagList>
                     </Crumbs>
                     <Form>
                         <titleLabel>Title</titleLabel>

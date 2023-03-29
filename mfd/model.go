@@ -102,10 +102,11 @@ func NewProject(name string, goPGVer int) *Project {
 		Name:           name,
 		NamespaceNames: []string{},
 
-		GoPGVer: goPGVer,
+		GoPGVer:   goPGVer,
+		Languages: []string{EnLang},
 
-		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
-		XMLxsd: "http://www.w3.org/2001/XMLSchema",
+		XMLxsi: "",
+		XMLxsd: "",
 	}
 }
 
@@ -474,8 +475,8 @@ func NewNamespace(name string) *Namespace {
 	return &Namespace{
 		Name: name,
 
-		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
-		XMLxsd: "http://www.w3.org/2001/XMLSchema",
+		XMLxsi: "",
+		XMLxsd: "",
 	}
 }
 

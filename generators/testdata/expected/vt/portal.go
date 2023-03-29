@@ -3,12 +3,11 @@ package vt
 import (
 	"context"
 
-	""
 	"github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
+	"github.com/vmkteam/mfd-generator/generators/testdata/expected/embedlog"
 
 	"github.com/vmkteam/zenrpc/v2"
 )
-
 
 type CategoryService struct {
 	zenrpc.Service
@@ -18,7 +17,7 @@ type CategoryService struct {
 
 func NewCategoryService(dbo db.DB, logger embedlog.Logger) *CategoryService {
 	return &CategoryService{
-		Logger:   logger,
+		Logger:     logger,
 		portalRepo: db.NewPortalRepo(dbo),
 	}
 }
@@ -28,12 +27,12 @@ func (s CategoryService) dbSort(ops *ViewOps) db.OpFunc {
 	if ops == nil {
 		return v
 	}
-	
+
 	switch ops.SortColumn {
 	case db.Columns.Category.ID, db.Columns.Category.Title, db.Columns.Category.OrderNumber, db.Columns.Category.StatusID:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
-	
+
 	return v
 }
 
@@ -160,7 +159,7 @@ func (s CategoryService) Delete(ctx context.Context, id int) (bool, error) {
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
 func (s CategoryService) Validate(ctx context.Context, category Category) ([]FieldError, error) {
-	isUpdate :=  category.ID != 0 
+	isUpdate := category.ID != 0
 	if isUpdate {
 		_, err := s.byID(ctx, category.ID)
 		if err != nil {
@@ -183,13 +182,9 @@ func (s CategoryService) isValid(ctx context.Context, category Category, isUpdat
 		return v
 	}
 
-	
-
-	
 	//custom validation starts here
 	return v
 }
-
 
 type NewsService struct {
 	zenrpc.Service
@@ -199,7 +194,7 @@ type NewsService struct {
 
 func NewNewsService(dbo db.DB, logger embedlog.Logger) *NewsService {
 	return &NewsService{
-		Logger:   logger,
+		Logger:     logger,
 		portalRepo: db.NewPortalRepo(dbo),
 	}
 }
@@ -209,12 +204,12 @@ func (s NewsService) dbSort(ops *ViewOps) db.OpFunc {
 	if ops == nil {
 		return v
 	}
-	
+
 	switch ops.SortColumn {
 	case db.Columns.News.ID, db.Columns.News.Title, db.Columns.News.Preview, db.Columns.News.Content, db.Columns.News.CategoryID, db.Columns.News.CreatedAt, db.Columns.News.PublishedAt, db.Columns.News.StatusID:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
-	
+
 	return v
 }
 
@@ -341,7 +336,7 @@ func (s NewsService) Delete(ctx context.Context, id int) (bool, error) {
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
 func (s NewsService) Validate(ctx context.Context, news News) ([]FieldError, error) {
-	isUpdate :=  news.ID != 0 
+	isUpdate := news.ID != 0
 	if isUpdate {
 		_, err := s.byID(ctx, news.ID)
 		if err != nil {
@@ -364,9 +359,6 @@ func (s NewsService) isValid(ctx context.Context, news News, isUpdate bool) Vali
 		return v
 	}
 
-	
-
-	
 	// check fks
 	if news.CategoryID != 0 {
 		item, err := s.portalRepo.CategoryByID(ctx, news.CategoryID)
@@ -376,9 +368,9 @@ func (s NewsService) isValid(ctx context.Context, news News, isUpdate bool) Vali
 			v.Append("categoryId", FieldErrorIncorrect)
 		}
 	}
-	
-		if len(news.TagIDs) != 0 {
-		items, err := s.portalRepo.TagsByFilters(ctx, &db.TagSearch{IDs:news.TagIDs},db.PagerNoLimit)
+
+	if len(news.TagIDs) != 0 {
+		items, err := s.portalRepo.TagsByFilters(ctx, &db.TagSearch{IDs: news.TagIDs}, db.PagerNoLimit)
 		if err != nil {
 			v.SetInternalError(err)
 		} else if len(items) != len(news.TagIDs) {
@@ -389,7 +381,6 @@ func (s NewsService) isValid(ctx context.Context, news News, isUpdate bool) Vali
 	return v
 }
 
-
 type TagService struct {
 	zenrpc.Service
 	embedlog.Logger
@@ -398,7 +389,7 @@ type TagService struct {
 
 func NewTagService(dbo db.DB, logger embedlog.Logger) *TagService {
 	return &TagService{
-		Logger:   logger,
+		Logger:     logger,
 		portalRepo: db.NewPortalRepo(dbo),
 	}
 }
@@ -408,12 +399,12 @@ func (s TagService) dbSort(ops *ViewOps) db.OpFunc {
 	if ops == nil {
 		return v
 	}
-	
+
 	switch ops.SortColumn {
 	case db.Columns.Tag.ID, db.Columns.Tag.Title, db.Columns.Tag.StatusID:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
-	
+
 	return v
 }
 
@@ -540,7 +531,7 @@ func (s TagService) Delete(ctx context.Context, id int) (bool, error) {
 //zenrpc:return []FieldError
 //zenrpc:500 Internal Error
 func (s TagService) Validate(ctx context.Context, tag Tag) ([]FieldError, error) {
-	isUpdate :=  tag.ID != 0 
+	isUpdate := tag.ID != 0
 	if isUpdate {
 		_, err := s.byID(ctx, tag.ID)
 		if err != nil {
@@ -563,10 +554,6 @@ func (s TagService) isValid(ctx context.Context, tag Tag, isUpdate bool) Validat
 		return v
 	}
 
-	
-
-	
 	//custom validation starts here
 	return v
 }
-

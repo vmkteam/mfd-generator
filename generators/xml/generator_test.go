@@ -10,7 +10,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// todo: fail if ../testdata/actual/*.mfd,*.xml exists,
 // todo: panic if ../testdata/actual/*.mfd exists and xml not exist
 func TestGenerator_Generate(t *testing.T) {
 	// Store the PATH environment variable in a variable

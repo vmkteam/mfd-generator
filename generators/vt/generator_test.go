@@ -21,11 +21,11 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Package = testdata.PackageVT
 			generator.options.Namespaces = []string{"portal"}
 			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
+			generator.options.EmbedLogPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/embedlog"
 
 			t.Log("Generate vt")
-			_ = generator.Generate()
-			//todo: failed, because portal.go generate import with empty quotes. Run test and check "generators/testdata/actual/vt/portal.go"
-			//So(err, ShouldBeNil)
+			err := generator.Generate()
+			So(err, ShouldBeNil)
 		})
 
 		Convey("Check generated files", func() {

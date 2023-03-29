@@ -283,7 +283,7 @@ export default class MultiListFilters extends EntityListFilters {
       values: null,
       settings: {
         placeholder: '',
-        [[- if or .IsCheckBox ( eq .SearchType "select") ]]
+        [[- if and (or .IsCheckBox ( eq .SearchType "select")) (not .IsFK) ]]
         itemText: 'text',
         itemValue: 'value',
         [[- end ]]

@@ -58,8 +58,6 @@ export default class MultiListFilters extends EntityListFilters {
       values: null,
       settings: {
         placeholder: '',
-        itemText: 'text',
-        itemValue: 'value',
         entity: 'category',
         searchBy: 'title',
         async: true,

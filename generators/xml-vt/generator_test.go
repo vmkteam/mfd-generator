@@ -10,7 +10,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// todo: fail after rerun because invalid generate "xmlns:xsi="
 func TestGenerator_Generate(t *testing.T) {
 	err := prepareFiles()
 	if err != nil {

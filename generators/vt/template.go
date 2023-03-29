@@ -131,7 +131,7 @@ import (
 	"github.com/vmkteam/zenrpc/v2"
 )
 
-{{range $model := .Entities}}
+{{- range $model := .Entities }}
 type {{.Name}}Service struct {
 	zenrpc.Service
 	embedlog.Logger
@@ -164,12 +164,12 @@ func (s {{.Name}}Service) dbSort(ops *ViewOps) db.OpFunc {
 	if ops == nil {
 		return v
 	}{{if .HasSortColumns}}
-	
+
 	switch ops.SortColumn {
 	case {{range $i, $e := .SortColumns}}{{if $i}}, {{end}}db.Columns.{{$model.Name}}.{{.}}{{end}}:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
-	{{end}}
+{{end}}
 	return v
 }
 
@@ -333,7 +333,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} {{.Name}}, i
 	}
 	{{end}}
 
-	{{if .HasRelations}}
+{{if .HasRelations}}
 	// check fks{{range .Relations}}{{if .IsArray}}
 		if len({{$model.VarName}}.{{.Name}}) != 0 {
 		items, err := s.{{.NameSpace}}Repo.{{.PluralFK}}ByFilters(ctx, &db.{{.FK}}Search{IDs:{{$model.VarName}}.{{.Name}}},db.PagerNoLimit)

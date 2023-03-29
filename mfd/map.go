@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"sort"
 )
 
 type XMLMap struct {
@@ -20,8 +21,14 @@ func NewXMLMap(init map[string]string) *XMLMap {
 		elements: []xmlMapElement{},
 	}
 
-	for key, value := range init {
-		xmlMap.Append(key, value)
+	keys := make([]string, 0, len(init))
+	for k := range init {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		xmlMap.Append(k, init[k])
 	}
 
 	return xmlMap

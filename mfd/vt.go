@@ -80,8 +80,8 @@ type VTNamespace struct {
 
 func NewVTNamespace(namespace string) *VTNamespace {
 	return &VTNamespace{
-		XMLxsi: "http://www.w3.org/2001/XMLSchema-instance",
-		XMLxsd: "http://www.w3.org/2001/XMLSchema",
+		XMLxsi: "",
+		XMLxsd: "",
 
 		Name: namespace,
 
