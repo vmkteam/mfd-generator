@@ -17,6 +17,7 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: newsportal
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -31,11 +32,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Prepare test db
-      run: |
-          apt-get update
-          apt-get install --yes --no-install-recommends postgresql-client
-          createdb -E UTF-8 -O postgres -T template0 --lc-collate C --lc-ctype=ru_RU.UTF-8 newsportal
-          psql newsportal < generators/xml/testdata/schema.sql
+      run: psql newsportal < schema.sql
+      working-directory: ./generators/xml/testdata/
 
     - name: Test
       run: go test -v ./...
