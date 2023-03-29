@@ -32,8 +32,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Prepare test db
-      run: psql newsportal < schema.sql
+      run: psql -d postgresql://postgres@localhost/newsportal < schema.sql
       working-directory: ./generators/xml/testdata/
+      env:
+        PGPASSWORD: postgres
 
     - name: Test
       run: go test -v ./...
