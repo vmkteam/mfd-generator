@@ -53,7 +53,7 @@ export default class MultiListFilters extends EntityListFilters {
       }
     },
     {
-      id: 'divider'
+      type: 'divider'
     },
     {
       id: 'ids',
