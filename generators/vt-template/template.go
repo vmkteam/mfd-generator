@@ -272,7 +272,7 @@ export default class MultiListFilters extends EntityListFilters {
 [[- range $i, $e := .FilterColumns ]]
     [[- if (isLast $i $filtersLen) ]]
     {
-      id: 'divider'
+      type: 'divider'
     },
     [[- end ]]
     {
