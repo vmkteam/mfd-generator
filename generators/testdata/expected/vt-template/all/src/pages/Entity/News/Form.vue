@@ -127,6 +127,7 @@
                     :disabled="store.isLoading"
                     placeholder=""
                     clearable
+                    iso
                   /><vt-form-field
                     v-model="store.model.statusId"
                     component="vt-status-select"
