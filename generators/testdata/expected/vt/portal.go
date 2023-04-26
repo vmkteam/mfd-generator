@@ -63,7 +63,7 @@ func (s CategoryService) Get(ctx context.Context, search *CategorySearch, viewOp
 	categories := make([]CategorySummary, 0, len(list))
 	for i := 0; i < len(list); i++ {
 		if category := NewCategorySummary(&list[i]); category != nil {
-			categories = append(categories, *NewCategorySummary(&list[i]))
+			categories = append(categories, *category)
 		}
 	}
 	return categories, nil
@@ -240,7 +240,7 @@ func (s NewsService) Get(ctx context.Context, search *NewsSearch, viewOps *ViewO
 	newsList := make([]NewsSummary, 0, len(list))
 	for i := 0; i < len(list); i++ {
 		if news := NewNewsSummary(&list[i]); news != nil {
-			newsList = append(newsList, *NewNewsSummary(&list[i]))
+			newsList = append(newsList, *news)
 		}
 	}
 	return newsList, nil
@@ -435,7 +435,7 @@ func (s TagService) Get(ctx context.Context, search *TagSearch, viewOps *ViewOps
 	tags := make([]TagSummary, 0, len(list))
 	for i := 0; i < len(list); i++ {
 		if tag := NewTagSummary(&list[i]); tag != nil {
-			tags = append(tags, *NewTagSummary(&list[i]))
+			tags = append(tags, *tag)
 		}
 	}
 	return tags, nil
