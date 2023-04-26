@@ -403,7 +403,8 @@ const formDefaultTemplate = `<template>
                     :disabled="store.isLoading"
                     placeholder=""[[if .Required]]
                     required[[else]]
-                    clearable[[end]][[range .Params]]
+                    clearable[[end]][[if eq .Component "vt-datetime-picker"]]
+                    iso[[end]][[range .Params]]
                     [[.]][[end]]
                   />[[end]][[end]][[raw "<!--  end generated part -->"]]
                 </v-tab-item>
