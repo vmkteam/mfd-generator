@@ -200,7 +200,7 @@ func (s {{.Name}}Service) Get(ctx context.Context, search *{{.Name}}Search, view
 	{{.VarNamePlural}} := make([]{{.Name}}Summary, 0, len(list))
 	for i := 0; i {{$.Raw "<"}} len(list); i++ {
 		if {{.VarName}} := New{{.Name}}Summary(&list[i]); {{.VarName}} != nil {
-			{{.VarNamePlural}} = append({{.VarNamePlural}}, *New{{.Name}}Summary(&list[i]))
+			{{.VarNamePlural}} = append({{.VarNamePlural}}, *{{.VarName}})
 		}
 	}
 	return {{.VarNamePlural}}, nil
