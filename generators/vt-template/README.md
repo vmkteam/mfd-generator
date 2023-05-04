@@ -33,7 +33,7 @@ Flags:
 
 Значение Mode vt-сущности в vt.xml определяет какие файлы будут сгенерировны.
 - "Full" - все файлы
-- "ReadOnlyWithTemplates" - все файлы в read-only нежиме, Form.vue генерироваться не будет
+- "ReadOnlyWithTemplates" - все файлы в read-only режиме, Form.vue генерироваться не будет
 - "ReadOnly" - файлы генерироваться не будут
 - "None" -  файлы генерироваться не будут
 

@@ -55,7 +55,7 @@ rpc.RegisterAll(map[string]zenrpc.Invoker{
 
 Значение Mode vt-сущности в vt.xml определяет какие файлы будут сгенерировны.  
 - "Full" - все файлы
-- "ReadOnlyWithTemplates" - все файлы в read-only нежиме
+- "ReadOnlyWithTemplates" - все файлы в read-only режиме
 - "ReadOnly" - только модели model.go
 - "None" -  файлы генерироваться не будут
 
