@@ -10,7 +10,7 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
-const Version = "v0.4.1"
+var Version = "unknown"
 
 // go-pg versions
 const (
