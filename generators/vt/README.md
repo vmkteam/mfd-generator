@@ -38,14 +38,14 @@ const (
         
         NSPost = "post"   // на vt-сущность создаётся свой неймспейс в zenrpc
         NSTag = "tag"     // будут перечислены только те vt-сущности, которые попадают в vt-неймспейсы, 
-        NSUser = "user"   // указанные в соотвествуюем параметре --namespaces
+        NSUser = "user"   // указанные в соответствующем параметре --namespaces
 )
 
 // services
 rpc.RegisterAll(map[string]zenrpc.Invoker{
         NSAuth: NewAuthService(dbo, logger),
         
-        NSPost: NewPostService(dbo, logger), // каждая сущность регистрируется в zen-rpc
+        NSPost: NewPostService(dbo, logger), // каждая сущность регистрируется в zenrpc
         NSTag: NewTagService(dbo, logger),
         NSUser: NewUserService(dbo, logger),
 })
@@ -53,11 +53,11 @@ rpc.RegisterAll(map[string]zenrpc.Invoker{
 
 #### MODE
 
-Значение Mode vt-сущности в vt.xml определяет какие файлы будут сгенерировны.  
+Значение Mode vt-сущности в *.vt.xml определяет какие файлы будут сгенерированы.  
 - "Full" - все файлы
 - "ReadOnlyWithTemplates" - все файлы в read-only режиме
 - "ReadOnly" - только модели model.go
-- "None" -  файлы генерироваться не будут
+- "None" - файлы генерироваться не будут
 
 #### namespace_model.go
 
@@ -71,10 +71,10 @@ import (
 	"apisrv/db"  // значение параметра -x --model
 )
 
-// каждая vt-сущность генерирует свою структуру. структура используется для общения с интерфейсоной частью.
+// каждая vt-сущность генерирует свою структуру. структура используется для общения с интерфейсной частью.
 type Post struct {
     // здесь перечислены только те vt-атрибуты, которые имеют не пустое значение AttrName
-    // ID - Name vt-атрибута, тип берется из соотвествующего атрибута и поля GoType
+    // ID - Name vt-атрибута, тип берется из соответствующего атрибута и поля GoType
 	ID        int       `json:"id"`                                      
 	Alias     string    `json:"alias" validate:"required,alias,max=255"` // опции валидации добавляются в аннотации
 	Title     string    `json:"title" validate:"required,max=255"`       // json имя - Name vt-атрибута с маленькой буквы
@@ -85,11 +85,11 @@ type Post struct {
 	TagIDs    []int     `json:"tagIds"`                                   
 	StatusID  int       `json:"statusId" validate:"required,status"`
 
-	User   *User   `json:"user"`   // дополнительно сгенерируется список внешних vt-моделей, которые указаны в параметре FK соотвествующего атрибута 
+	User   *User   `json:"user"`   // дополнительно сгенерируется список внешних vt-моделей, которые указаны в параметре FK соответствующего атрибута 
 	Status *Status `json:"status"` // и поле Status если есть vt-атрибут StatusID
 }
 
-// конвертер из vt-модели модель базы данных. используется для выполнения действий над данными в бд
+// конвертер из vt-модели в модель базы данных. используется для выполнения действий над данными в бд
 func (p *Post) ToDB() *db.Post {
 	if p == nil {
 		return nil
@@ -117,10 +117,10 @@ func (p *Post) ToDB() *db.Post {
 	return post
 }
 
-// каждая vt-сущность генерирует свою структуру для поиска. структура используется для общения с интерфейсоной частью.
+// каждая vt-сущность генерирует свою структуру для поиска. структура используется для общения с интерфейсной частью.
 type PostSearch struct {
     // vt-атрибуты у которых указано Search=true попадут в структуру
-    // ID - Name vt-атрибута, тип берется из соотвествующего атрибута и поля GoType
+    // ID - Name vt-атрибута, тип берется из соответствующего атрибута и поля GoType
 	ID        *int       `json:"id"`     // к каждому типу, кроме массивов будет добавлен указатель
 	Alias     *string    `json:"alias"`  // таким образом поиск будет учитываться только для полей != nil в этой структуре
 	Title     *string    `json:"title"`  // json имя - Name vt-атрибута с маленькой буквы
@@ -155,10 +155,10 @@ func (ps *PostSearch) ToDB() *db.PostSearch {
 	}
 }
 
-// каждая vt-сущность генерирует свою структуру для вывода в списке. структура используется для общения с интерфейсоной частью.
+// каждая vt-сущность генерирует свою структуру для вывода в списке. структура используется для общения с интерфейсной частью.
 type PostSummary struct {
     // vt-атрибуты у которых указано Summary=true попадут в структуру
-    // ID - Name vt-атрибута, тип берется из соотвествующего атрибута и поля GoType
+    // ID - Name vt-атрибута, тип берется из соответствующего атрибута и поля GoType
 	ID        int       `json:"id"` // json имя - Name vt-атрибута с маленькой буквы
 	Alias     string    `json:"alias"`
 	Title     string    `json:"title"`
@@ -182,7 +182,7 @@ import (
 	"apisrv/db"  // значение параметра -x --model
 )
 
-// каждая vt-сущность генерирует свою функцию - конструктор из соотвествующей сущности 
+// каждая vt-сущность генерирует свою функцию-конструктор из соответствующей сущности
 func NewPost(in *db.Post) *Post {
 	if in == nil {
 		return nil
@@ -208,14 +208,14 @@ func NewPost(in *db.Post) *Post {
 	return post
 }
 
-// каждая vt-сущность генерирует свою функцию - конструктор summary (для показа в листах)
+// каждая vt-сущность генерирует свою функцию-конструктор summary (для показа в списках)
 func NewPostSummary(in *db.Post) *PostSummary {
 	if in == nil {
 		return nil
 	}
 
 	return &PostSummary{
-        // здесь перечислены только те vt-атрибуты у корорых Summary=true
+        // здесь перечислены только те vt-атрибуты у которых Summary=true
 		ID:        in.ID,
 		Alias:     in.Alias,
 		Title:     in.Title,
@@ -224,7 +224,7 @@ func NewPostSummary(in *db.Post) *PostSummary {
 		CreatedAt: in.CreatedAt,
 		UserID:    in.UserID,
 
-        // для внешних vt-сущностей генерируются соответвующие конструкторы
+        // для внешних vt-сущностей генерируются соответствующие конструкторы
 		User:   NewUserSummary(in.User),
 		Status: NewStatus(in.StatusID),
 	}
@@ -250,7 +250,7 @@ import (
 type PostService struct {
 	zenrpc.Service
 	embedlog.Logger
-    // ссылка на соотвествующий репозиторий
+    // ссылка на соответствующий репозиторий
 	blogRepo db.BlogRepo
 }
 
@@ -269,7 +269,7 @@ func (s PostService) dbSort(ops *ViewOps) db.OpFunc {
 	}
 
 	switch ops.SortColumn {
-    // Здесь перечислены vt-атрибуты, кроме массиов, у которых Summary=trueж
+    // Здесь перечислены vt-атрибуты, кроме массивов, у которых Summary=trueж
 	case db.Columns.Post.ID, db.Columns.Post.Alias, db.Columns.Post.Title, db.Columns.Post.Text, db.Columns.Post.Views, db.Columns.Post.CreatedAt, db.Columns.Post.UserID, db.Columns.Post.StatusID:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
@@ -331,9 +331,9 @@ func (s PostService) byID(ctx context.Context, id int) (*db.Post, error) {
 	return db, nil
 }
 
-// Функции ниже не генерируеются для Mode=ReadOnlyWithTemplates
+// Функции ниже не генерируются для Mode=ReadOnlyWithTemplates
 
-// Add a Post from from the query
+// Add a Post from the query
 //zenrpc:post Post
 //zenrpc:return Post
 //zenrpc:500 Internal Error
@@ -442,7 +442,7 @@ func (s PostService) isValid(ctx context.Context, post *Post, isUpdate bool) Val
 			v.Append("userId", FieldErrorIncorrect)
 		}
 	}
-    // для vt-атрибутов с внешними ключами в виде массов
+    // для vt-атрибутов с внешними ключами в виде массивов
 	if len(post.TagIDs) != 0 {
 		items, err := s.blogRepo.TagsByFilters(ctx, &db.TagSearch{IDs: post.TagIDs}, db.PagerNoLimit)
 		if err != nil {
