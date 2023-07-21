@@ -121,6 +121,7 @@ type InputData struct {
 
 	IsArray    bool
 	IsCheckBox bool
+	IsNumber   bool
 	Params     []template.HTML
 }
 
@@ -154,6 +155,10 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 
 	if tmpl.Form == mfd.TypeHTMLCheckbox || tmpl.Search == mfd.TypeHTMLCheckbox {
 		inp.IsCheckBox = true
+	}
+
+	if mfd.MakeJSType(tmpl.VTAttribute.Attribute.GoType, tmpl.VTAttribute.Attribute.IsArray) == "number" {
+		inp.IsNumber = true
 	}
 
 	if strings.EqualFold(tmpl.Name, "alias") {
