@@ -36,6 +36,7 @@ export default class MultiListFilters extends EntityListFilters {
       values: null,
       settings: {
         placeholder: '',
+        type: 'number',
         component: 'v-text-field'
       }
     },
