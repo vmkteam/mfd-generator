@@ -149,6 +149,10 @@ func updateable(column model.Column) *bool {
 		result = false
 	}
 
+	if column.IsPK {
+		result = false
+	}
+
 	return &result
 }
 

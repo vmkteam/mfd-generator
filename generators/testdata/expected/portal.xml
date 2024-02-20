@@ -3,7 +3,7 @@
     <Entities>
         <Entity Name="Category" Namespace="portal" Table="categories">
             <Attributes>
-                <Attribute Name="ID" DBName="categoryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="categoryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
                 <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
@@ -15,7 +15,7 @@
         </Entity>
         <Entity Name="News" Namespace="portal" Table="news">
             <Attributes>
-                <Attribute Name="ID" DBName="newsId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="newsId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
                 <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="Preview" DBName="preview" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="Content" DBName="content" DBType="text" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
@@ -34,7 +34,7 @@
         </Entity>
         <Entity Name="Tag" Namespace="portal" Table="tags">
             <Attributes>
-                <Attribute Name="ID" DBName="tagId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="tagId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
                 <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
             </Attributes>

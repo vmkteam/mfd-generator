@@ -110,6 +110,9 @@ func (pr PortalRepo) AddCategory(ctx context.Context, category *Category, ops ..
 // UpdateCategory updates Category in DB.
 func (pr PortalRepo) UpdateCategory(ctx context.Context, category *Category, ops ...OpFunc) (bool, error) {
 	q := pr.db.ModelContext(ctx, category).WherePK()
+	if len(ops) == 0 {
+		q = q.ExcludeColumn(Columns.Category.ID)
+	}
 	applyOps(q, ops...)
 	res, err := q.Update()
 	if err != nil {
@@ -184,7 +187,7 @@ func (pr PortalRepo) AddNews(ctx context.Context, news *News, ops ...OpFunc) (*N
 func (pr PortalRepo) UpdateNews(ctx context.Context, news *News, ops ...OpFunc) (bool, error) {
 	q := pr.db.ModelContext(ctx, news).WherePK()
 	if len(ops) == 0 {
-		q = q.ExcludeColumn(Columns.News.CreatedAt)
+		q = q.ExcludeColumn(Columns.News.ID, Columns.News.CreatedAt)
 	}
 	applyOps(q, ops...)
 	res, err := q.Update()
@@ -256,6 +259,9 @@ func (pr PortalRepo) AddTag(ctx context.Context, tag *Tag, ops ...OpFunc) (*Tag,
 // UpdateTag updates Tag in DB.
 func (pr PortalRepo) UpdateTag(ctx context.Context, tag *Tag, ops ...OpFunc) (bool, error) {
 	q := pr.db.ModelContext(ctx, tag).WherePK()
+	if len(ops) == 0 {
+		q = q.ExcludeColumn(Columns.Tag.ID)
+	}
 	applyOps(q, ops...)
 	res, err := q.Update()
 	if err != nil {
