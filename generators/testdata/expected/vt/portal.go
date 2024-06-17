@@ -182,7 +182,7 @@ func (s CategoryService) isValid(ctx context.Context, category Category, isUpdat
 		return v
 	}
 
-	//custom validation starts here
+	// custom validation starts here
 	return v
 }
 
@@ -377,7 +377,7 @@ func (s NewsService) isValid(ctx context.Context, news News, isUpdate bool) Vali
 			v.Append("tagIds", FieldErrorIncorrect)
 		}
 	}
-	//custom validation starts here
+	// custom validation starts here
 	return v
 }
 
@@ -554,6 +554,6 @@ func (s TagService) isValid(ctx context.Context, tag Tag, isUpdate bool) Validat
 		return v
 	}
 
-	//custom validation starts here
+	// custom validation starts here
 	return v
 }

@@ -125,7 +125,7 @@ func nullable(column model.Column) string {
 	switch {
 	case column.IsPK || column.Nullable:
 		return mfd.NullableYes
-	//case column.GoType == model.TypeString || column.IsFK:
+	// case column.GoType == model.TypeString || column.IsFK:
 	//	return mfd.NullableEmpty
 	default:
 		return mfd.NullableNo

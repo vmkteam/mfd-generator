@@ -262,8 +262,7 @@ func (c *Client) addModel(dc dartClass) {
 	if len(dc.Parameters) == 0 {
 		return
 	}
-	switch dc.Name {
-	case "AnyCustomType":
+	if dc.Name == "AnyCustomType" {
 		return
 	}
 
@@ -285,8 +284,7 @@ func (c *Client) convertScalar(t, description string) string {
 	case "boolean":
 		return "bool"
 	default:
-		switch description {
-		case "AnyCustomType":
+		if description == "AnyCustomType" {
 			return "DateTime"
 		}
 		return ""

@@ -234,15 +234,15 @@ func (g *Generator) Generate() (err error) {
 			case quietAll:
 				if exiting != nil {
 					namespace = exiting.Namespace
-					break //case
+					break // case
 				}
-				continue //loop
+				continue // loop
 			case quietNew:
 				if exiting != nil {
 					namespace = exiting.Namespace
-					break //case
+					break // case
 				}
-				fallthrough //to default
+				fallthrough // to default
 			default:
 				// asking namespace from prompt
 				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
@@ -251,7 +251,7 @@ func (g *Generator) Generate() (err error) {
 				}
 				// if user choose to skip
 				if namespace == "skip" {
-					continue //loop
+					continue // loop
 				}
 			}
 

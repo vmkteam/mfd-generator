@@ -48,7 +48,7 @@ func (p *Project) AddVTNamespace(namespace string) *VTNamespace {
 	return ns
 }
 
-// AddEntity adds entity to namespace
+// AddVTEntity adds entity to namespace
 func (p *Project) AddVTEntity(namespace string, entity *VTEntity) *VTEntity {
 	ns := p.VTNamespace(namespace)
 	if ns == nil {
@@ -201,7 +201,7 @@ type VTAttribute struct {
 
 // Merge fills attribute (from db) values from old (in file) attribute
 func (a *VTAttribute) Merge(with *VTAttribute) *VTAttribute {
-	//a.SearchName = with.SearchName
+	// a.SearchName = with.SearchName
 
 	if a.Validate == "" {
 		a.Validate = with.Validate

@@ -38,7 +38,7 @@ func TestGenerator_Generate(t *testing.T) {
 				filepath.Join("Category", "Form.vue"):                           {},
 				filepath.Join("News", "components", "MultiListFilters.vue"):     {},
 				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
-				filepath.Join("routes.ts"):                                      {},
+				"routes.ts": {},
 			}
 
 			for f := range expectedFilenames {
@@ -73,7 +73,7 @@ func TestGenerator_Generate(t *testing.T) {
 				filepath.Join("Tag", "List.vue"):                                {},
 				filepath.Join("Category", "Form.vue"):                           {},
 				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
-				filepath.Join("routes.ts"):                                      {},
+				"routes.ts": {},
 			}
 
 			Convey("Check content", func() {

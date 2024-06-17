@@ -320,7 +320,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} {{.Name}}, i
 	}
 
 	{{if .HasAlias}}
-	//check alias unique
+	// check alias unique
 	search := &db.{{.Name}}Search{ 
 		{{.AliasArg}}: &{{$model.VarName}}.{{.AliasField}},{{range .PKSearches}}
 		{{.Arg}}: &{{$model.VarName}}.{{.Field}},{{end}}
@@ -352,7 +352,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} {{.Name}}, i
 		}
 	}
 	{{end}}{{end}}{{end}}
-	//custom validation starts here
+	// custom validation starts here
 	return v
 }
 
