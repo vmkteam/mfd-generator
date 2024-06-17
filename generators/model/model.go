@@ -140,7 +140,7 @@ type AttributeData struct {
 	mfd.Attribute
 
 	Name string
-	//Type   string
+	// Type   string
 	Import string
 
 	Tag     template.HTML

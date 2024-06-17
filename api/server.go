@@ -87,7 +87,7 @@ func (s *Server) Serve() error {
 	rpc.Register(projectNS, NewProjectService(store))
 	rpc.Register(xmlNS, NewXMLService(store))
 	rpc.Register(xmlVtNS, NewXMLVTService(store))
-	//rpc.Register(xmlLangNS, NewXMLLangService(store))
+	// rpc.Register(xmlLangNS, NewXMLLangService(store))
 
 	rpc.Use(ProjectMiddleware(store))
 

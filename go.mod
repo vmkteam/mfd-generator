@@ -1,6 +1,6 @@
 module github.com/vmkteam/mfd-generator
 
-go 1.20
+go 1.22
 
 require (
 	github.com/dizzyfool/genna v1.2.0
@@ -9,8 +9,8 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v1.1.3
-	github.com/vmkteam/zenrpc/v2 v2.2.9
-	golang.org/x/text v0.4.0
+	github.com/vmkteam/zenrpc/v2 v2.2.11
+	golang.org/x/text v0.10.0
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )
