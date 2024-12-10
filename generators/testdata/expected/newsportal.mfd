@@ -8,4 +8,30 @@
     </Languages>
     <GoPGVer>10</GoPGVer>
     <CustomTypes></CustomTypes>
+    <Dict>
+        <actions>Действия</actions>
+        <add>Добавить</add>
+        <alias>Системное имя</alias>
+        <categories>Категории</categories>
+        <category>Категория</category>
+        <content>Содержание</content>
+        <createdAt>Создано</createdAt>
+        <delete>Удалить</delete>
+        <deletedAt>Удалено</deletedAt>
+        <description>Описание</description>
+        <edit>Редактировать</edit>
+        <email>Email</email>
+        <foreword>Краткое содержание</foreword>
+        <image>Изображение</image>
+        <login>Логин</login>
+        <modifiedAt>Изменено</modifiedAt>
+        <password>Пароль</password>
+        <status>Статус</status>
+        <statusId>Статус</statusId>
+        <tag>Тег</tag>
+        <tags>Теги</tags>
+        <title>Название</title>
+        <user>Пользователь</user>
+        <users>Пользователи</users>
+    </Dict>
 </Project>

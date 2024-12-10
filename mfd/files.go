@@ -52,6 +52,7 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 
 	project.Namespaces = []*Namespace{}
 	project.VTNamespaces = []*VTNamespace{}
+	project.Dict = NewDict()
 
 	dir := filepath.Dir(filename)
 	for _, pf := range project.NamespaceNames {

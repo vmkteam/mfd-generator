@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/dizzyfool/genna/model"
@@ -91,10 +92,45 @@ type Project struct {
 	Languages      []string    `xml:"Languages>string" json:"languages"`
 	GoPGVer        int         `xml:"GoPGVer" json:"goPGVer"`
 	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
+	Dict           *Dict       `xml:"Dict" json:"dict,omitempty"`
 
 	Namespaces   []*Namespace   `xml:"-" json:"-"`
 	VTNamespaces []*VTNamespace `xml:"-" json:"-"`
 	NSMapping    []NSMapping    `xml:"-" json:"namespaces"`
+}
+
+type Dict struct {
+	Entries []Entry `xml:",any"`
+}
+
+type Entry struct {
+	XMLName xml.Name
+	Value   string `xml:",chardata"`
+}
+
+func NewDict() *Dict {
+	return &Dict{Entries: NewEntries()}
+}
+
+func NewEntries() []Entry {
+	var entries []Entry
+
+	d := presetsTranslations[RuLang]
+	kk := make([]string, 0, len(d))
+	for k := range d {
+		kk = append(kk, k)
+	}
+
+	// так как map не упорядочен в go, будем сортировать ключи по алфавиту
+	sort.Strings(kk)
+	for _, k := range kk {
+		entries = append(entries, Entry{
+			XMLName: xml.Name{Local: k},
+			Value:   d[k],
+		})
+	}
+
+	return entries
 }
 
 func NewProject(name string, goPGVer int) *Project {
@@ -103,6 +139,7 @@ func NewProject(name string, goPGVer int) *Project {
 		NamespaceNames: []string{},
 
 		GoPGVer:   goPGVer,
+		Dict:      NewDict(),
 		Languages: []string{EnLang},
 
 		XMLxsi: "",
