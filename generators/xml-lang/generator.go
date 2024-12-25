@@ -89,6 +89,7 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.VTNamespaceNames()
 	}
 
+	mfd.AddedCustomTranslations(project.Dict)
 	langs := mergeLangs(project.Languages, g.options.Languages)
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, langs)

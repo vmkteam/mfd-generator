@@ -52,7 +52,6 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 
 	project.Namespaces = []*Namespace{}
 	project.VTNamespaces = []*VTNamespace{}
-	project.Dict = NewDict()
 
 	dir := filepath.Dir(filename)
 	for _, pf := range project.NamespaceNames {
@@ -273,4 +272,12 @@ func LoadTemplate(path, def string) (string, error) {
 	}
 
 	return string(contents), nil
+}
+
+func AddedCustomTranslations(d *Dict) {
+	if d != nil {
+		for _, e := range d.Entries {
+			presetsTranslations[RuLang][e.XMLName.Local] = e.Value
+		}
+	}
 }

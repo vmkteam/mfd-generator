@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/dizzyfool/genna/model"
@@ -108,38 +107,12 @@ type Entry struct {
 	Value   string `xml:",chardata"`
 }
 
-func NewDict() *Dict {
-	return &Dict{Entries: NewEntries()}
-}
-
-func NewEntries() []Entry {
-	var entries []Entry
-
-	d := presetsTranslations[RuLang]
-	kk := make([]string, 0, len(d))
-	for k := range d {
-		kk = append(kk, k)
-	}
-
-	// так как map не упорядочен в go, будем сортировать ключи по алфавиту
-	sort.Strings(kk)
-	for _, k := range kk {
-		entries = append(entries, Entry{
-			XMLName: xml.Name{Local: k},
-			Value:   d[k],
-		})
-	}
-
-	return entries
-}
-
 func NewProject(name string, goPGVer int) *Project {
 	return &Project{
 		Name:           name,
 		NamespaceNames: []string{},
 
 		GoPGVer:   goPGVer,
-		Dict:      NewDict(),
 		Languages: []string{EnLang},
 
 		XMLxsi: "",
