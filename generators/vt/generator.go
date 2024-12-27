@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -19,6 +20,7 @@ const (
 	modelPkgFlag = "model"
 	nsFlag       = "namespaces"
 	embedLogFlag = "embedlog-pkg"
+	entityFlag   = "entities"
 
 	modelTemplateFlag     = "model-tmpl"
 	converterTemplateFlag = "converter-tmpl"
@@ -66,6 +68,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringP(pkgFlag, "p", "", "package name that will be used in golang files. if not set - last element of output path will be used")
 
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
+	flags.StringSliceP(entityFlag, "e", []string{}, "entities to generate. separate by comma\n")
 
 	flags.String(modelTemplateFlag, "", "path to model custom template")
 	flags.String(converterTemplateFlag, "", "path to converter custom template")
@@ -104,6 +107,10 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.Namespaces, err = flags.GetStringSlice(nsFlag); err != nil {
+		return err
+	}
+
+	if g.options.Entities, err = flags.GetStringSlice(entityFlag); err != nil {
 		return err
 	}
 
@@ -169,6 +176,10 @@ func (g *Generator) Generate() error {
 		return fmt.Errorf("load server template error: %w", err)
 	}
 
+	if len(g.options.Entities) > 0 {
+		return g.PartialUpdate(project, modelTemplate, converterTemplate, serviceTemplate)
+	}
+
 	for _, namespace := range g.options.Namespaces {
 		ns := project.VTNamespace(namespace)
 		if ns == nil {
@@ -229,4 +240,92 @@ func PrintServer(namespaces []*mfd.VTNamespace, tmpl string, options Options) er
 
 	fmt.Print(buffer.String())
 	return nil
+}
+
+func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converterTemplate, serviceTemplate string) error {
+	for _, namespace := range g.options.Namespaces {
+		ns := project.VTNamespace(namespace)
+		if ns == nil {
+			return fmt.Errorf("namespace %s not found in project", namespace)
+		}
+
+		serviceData := PackServiceNamespace(ns, g.options)
+
+		ee, err := g.TargetServiceEntityData(serviceData)
+		if err != nil {
+			return err
+		}
+
+		modelData, err := PackNamespace(ns, g.options)
+		if err != nil {
+			return fmt.Errorf("generate vt model error: %w", err)
+		}
+
+		eem, err := g.TargetModelEntityData(modelData)
+
+		baseName := mfd.GoFileName(ns.Name)
+
+		for _, e := range ee {
+			// generate service file
+			output := path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
+			serviceData.Entities = []ServiceEntityData{e}
+			if _, err := mfd.UpdateFile(serviceData, output, serviceTemplate, StructPattern); err != nil {
+				return fmt.Errorf("generate service %s error: %w", namespace, err)
+			}
+		}
+
+		for _, entity := range eem {
+			// generate model file
+			output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
+			modelData.Entities = []EntityData{entity}
+			if _, err := mfd.UpdateFile(modelData, output, modelTemplate, StructPattern); err != nil {
+				return fmt.Errorf("generate vt model error: %w", err)
+			}
+			// generate converter file
+			output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
+			if _, err := mfd.UpdateFile(modelData, output, converterTemplate, FuncPattern); err != nil {
+				return fmt.Errorf("generate vt converter error: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// TargetServiceEntityData validate contains entities in ns
+func (g *Generator) TargetServiceEntityData(s ServiceNamespaceData) ([]ServiceEntityData, error) {
+	var ee []ServiceEntityData
+	le := len(g.options.Entities)
+	for _, e := range s.Entities {
+		if slices.Contains(g.options.Entities, e.VarName) {
+			ee = append(ee, e)
+		}
+	}
+	if len(ee) == 0 && le > 0 {
+		return nil, fmt.Errorf("namespace %s contains entities but no entity found", s.Name)
+	}
+	if len(ee) < le {
+		return nil, fmt.Errorf("namespace %s contains entities but not all located in thes namespace", s.Name)
+	}
+
+	return ee, nil
+}
+
+// TargetModelEntityData validate contains entities in modelData
+func (g *Generator) TargetModelEntityData(s NamespaceData) ([]EntityData, error) {
+	var ee []EntityData
+	le := len(g.options.Entities)
+	for _, e := range s.Entities {
+		if slices.Contains(g.options.Entities, e.VarName) {
+			ee = append(ee, e)
+		}
+	}
+	if len(ee) == 0 && le > 0 {
+		return nil, fmt.Errorf("namespace %s contains entities but no entity found", s.ModelPackage)
+	}
+	if len(ee) < le {
+		return nil, fmt.Errorf("namespace %s contains entities but not all located in thes namespace", s.ModelPackage)
+	}
+
+	return ee, nil
 }

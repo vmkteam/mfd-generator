@@ -378,3 +378,7 @@ const serverDefaultTemplate = `
 		NS{{.Name}}: New{{.Name}}Service(dbo, logger),{{end}}
 	})
 `
+
+const StructPattern = `type (\w+) struct {`
+
+const FuncPattern = `func (\w+)`

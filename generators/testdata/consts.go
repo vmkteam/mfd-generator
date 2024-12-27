@@ -21,12 +21,14 @@ const (
 var (
 	PathActual   = filepath.Join(DirParent, DirTestdata, "actual")
 	PathExpected = filepath.Join(DirParent, DirTestdata, "expected")
+	PathUpdated  = filepath.Join(DirParent, DirTestdata, "updated")
 
 	PathActualMFD                = filepath.Join(PathActual, FilenameMFD)
 	PathExpectedMFD              = filepath.Join(PathExpected, FilenameMFD)
 	PathActualDB                 = filepath.Join(PathActual, PackageDB)
 	PathExpectedDB               = filepath.Join(PathExpected, PackageDB)
 	PathActualVT                 = filepath.Join(PathActual, PackageVT)
+	PathUpdatedVT                = filepath.Join(PathUpdated, PackageVT)
 	PathExpectedVT               = filepath.Join(PathExpected, PackageVT)
 	PathActualVTTemplateAll      = filepath.Join(PathActual, PackageVTTemplate, PrefixAll)
 	PathExpectedVTTemplateAll    = filepath.Join(PathExpected, PackageVTTemplate, PrefixAll)

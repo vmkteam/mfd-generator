@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
@@ -182,14 +183,9 @@ func MarshalToFile(filename string, v interface{}) error {
 }
 
 func FormatAndSave(data interface{}, output, tmpl string, format bool) (bool, error) {
-	parsed, err := template.New("base").Funcs(TemplateFunctions).Parse(tmpl)
+	buffer, err := renderTemplate(data, tmpl)
 	if err != nil {
-		return false, fmt.Errorf("parsing template error: %w", err)
-	}
-
-	var buffer bytes.Buffer
-	if err := parsed.ExecuteTemplate(&buffer, "base", data); err != nil {
-		return false, fmt.Errorf("processing model template error: %w", err)
+		return false, fmt.Errorf("generating data error: %w", err)
 	}
 
 	if format {
@@ -197,6 +193,134 @@ func FormatAndSave(data interface{}, output, tmpl string, format bool) (bool, er
 	}
 
 	return Save(buffer.Bytes(), output)
+}
+
+func renderTemplate(data interface{}, tmpl string) (bytes.Buffer, error) {
+	var buffer bytes.Buffer
+	parsed, err := template.New("base").Funcs(TemplateFunctions).Parse(tmpl)
+	if err != nil {
+		return buffer, fmt.Errorf("parsing template error: %w", err)
+	}
+
+	if err := parsed.ExecuteTemplate(&buffer, "base", data); err != nil {
+		return buffer, fmt.Errorf("processing model template error: %w", err)
+	}
+	return buffer, nil
+}
+
+func replaceFragmentInFile(output, findData, newData, pattern string) (bool, error) {
+	content, err := os.ReadFile(output)
+	if err != nil {
+		return false, fmt.Errorf("read file err: %w", err)
+	}
+
+	lines := strings.Split(string(content), "\n")
+
+	ff, err := extractFragments(pattern, lines)
+
+	if err != nil {
+		return false, fmt.Errorf("extract fragments error: %w", err)
+	}
+
+	var newlines []string
+	for _, fragment := range ff {
+		s, end := fragment[0], fragment[1]
+		extractedFragment := lines[s:end]
+		for _, extline := range extractedFragment {
+			if strings.Contains(extline, findData) {
+				newlines = append(newlines, lines[:s]...)
+				newlines = append(newlines, strings.Split(newData, "\n")...)
+				newlines = append(newlines, lines[end:]...)
+				break
+			}
+		}
+	}
+
+	if len(newlines) == 0 {
+		newlines = append(lines, strings.Split(newData, "\n")...)
+	}
+
+	newContent := strings.Join(newlines, "\n")
+
+	err = os.WriteFile(output, []byte(newContent), 0644)
+	if err != nil {
+		return false, fmt.Errorf("err write in file: %w", err)
+	}
+
+	return true, nil
+}
+
+func extractFragments(pattern string, lines []string) ([][]int, error) {
+	var (
+		reFragments [][]int
+		ff          [][]int
+		start       = -1
+	)
+
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("regexp error: %w", err)
+	}
+	for i, line := range lines {
+		if re.MatchString(line) {
+			if start != -1 {
+				reFragments = append(reFragments, []int{start, i})
+			}
+			start = i
+		}
+	}
+
+	if start != -1 {
+		reFragments = append(reFragments, []int{start, len(lines)})
+	}
+
+	if len(reFragments) == 0 {
+		return nil, fmt.Errorf("no reFragments found with pattern: %s", pattern)
+	}
+
+	// split big fragment
+	for _, fragment := range reFragments {
+		ll := lines[fragment[0]:fragment[1]]
+		var subStart = fragment[0]
+
+		for i, line := range ll {
+			if line == "}" {
+				ff = append(ff, []int{subStart, fragment[0] + i + 1})
+				subStart = fragment[0] + i + 1
+			}
+		}
+	}
+
+	return ff, nil
+}
+
+func UpdateFile(data interface{}, output, tmpl, pattern string) (bool, error) {
+	buffer, err := renderTemplate(data, tmpl)
+	if err != nil {
+		return false, fmt.Errorf("generating data error: %w", err)
+	}
+
+	lines := strings.Split(buffer.String(), "\n")
+
+	fragments, err := extractFragments(pattern, lines)
+
+	for _, fragment := range fragments {
+		var filePart []string
+		var findRow string
+
+		filePart = append(filePart, lines[fragment[0]:fragment[1]]...)
+		for _, part := range filePart {
+			if strings.Contains(part, "func") || strings.Contains(part, "struct {") {
+				findRow = part
+				break
+			}
+		}
+		if _, err := replaceFragmentInFile(output, strings.TrimSuffix(findRow, " "), strings.Join(filePart, "\n"), pattern); err != nil {
+			return false, fmt.Errorf("replace fragment error: %w", err)
+		}
+	}
+
+	return true, nil
 }
 
 func GoFileName(namespace string) string {
