@@ -246,7 +246,7 @@ func replaceFragmentInFile(output, findData, newData, pattern string) (bool, err
 }
 
 // extractFragments returned array with coordinates start and end text
-func extractFragments(pattern string, lines []string) ([][]int, error) {
+func extractFragments(pattern string, lines []string) ([][2]int, error) {
 	var (
 		reFragments [][2]int
 		start       = -1
@@ -273,7 +273,7 @@ func extractFragments(pattern string, lines []string) ([][]int, error) {
 		return nil, fmt.Errorf("no reFragments found with pattern: %s", pattern)
 	}
 
-	var ff [][]int
+	var ff [][2]int
 
 	// split big fragment
 	for _, fragment := range reFragments {
@@ -282,7 +282,7 @@ func extractFragments(pattern string, lines []string) ([][]int, error) {
 
 		for i, line := range ll {
 			if line == "}" {
-				ff = append(ff, []int{subStart, fragment[0] + i + 1})
+				ff = append(ff, [2]int{subStart, fragment[0] + i + 1})
 				subStart = fragment[0] + i + 1
 			}
 		}
