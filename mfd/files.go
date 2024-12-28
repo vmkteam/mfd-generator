@@ -242,18 +242,13 @@ func replaceFragmentInFile(output, findData, newData, pattern string) (bool, err
 
 	newContent := strings.Join(newlines, "\n")
 
-	err = os.WriteFile(output, []byte(newContent), 0644)
-	if err != nil {
-		return false, fmt.Errorf("err write in file: %w", err)
-	}
-
-	return true, nil
+	return util.FmtAndSave([]byte(newContent), output)
 }
 
+// extractFragments returned array with coordinates start and end text
 func extractFragments(pattern string, lines []string) ([][]int, error) {
 	var (
-		reFragments [][]int
-		ff          [][]int
+		reFragments [][2]int
 		start       = -1
 	)
 
@@ -264,19 +259,21 @@ func extractFragments(pattern string, lines []string) ([][]int, error) {
 	for i, line := range lines {
 		if re.MatchString(line) {
 			if start != -1 {
-				reFragments = append(reFragments, []int{start, i})
+				reFragments = append(reFragments, [2]int{start, i})
 			}
 			start = i
 		}
 	}
 
 	if start != -1 {
-		reFragments = append(reFragments, []int{start, len(lines)})
+		reFragments = append(reFragments, [2]int{start, len(lines)})
 	}
 
 	if len(reFragments) == 0 {
 		return nil, fmt.Errorf("no reFragments found with pattern: %s", pattern)
 	}
+
+	var ff [][]int
 
 	// split big fragment
 	for _, fragment := range reFragments {
@@ -310,7 +307,7 @@ func UpdateFile(data interface{}, output, tmpl, pattern string) (bool, error) {
 
 		filePart = append(filePart, lines[fragment[0]:fragment[1]]...)
 		for _, part := range filePart {
-			if strings.Contains(part, "func") || strings.Contains(part, "struct {") {
+			if isStartedRow(part) {
 				findRow = part
 				break
 			}
@@ -321,6 +318,14 @@ func UpdateFile(data interface{}, output, tmpl, pattern string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// isStartedRow find row where start function or structure
+func isStartedRow(row string) bool {
+	if strings.Contains(row, "func") || strings.Contains(row, "struct") {
+		return true
+	}
+	return false
 }
 
 func GoFileName(namespace string) string {
