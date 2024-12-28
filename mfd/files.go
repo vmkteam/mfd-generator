@@ -208,7 +208,7 @@ func renderTemplate(data interface{}, tmpl string) (bytes.Buffer, error) {
 	return buffer, nil
 }
 
-func replaceFragmentInFile(output, findData, newData, pattern string) (bool, error) {
+func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Regexp) (bool, error) {
 	content, err := os.ReadFile(output)
 	if err != nil {
 		return false, fmt.Errorf("read file err: %w", err)
@@ -246,16 +246,12 @@ func replaceFragmentInFile(output, findData, newData, pattern string) (bool, err
 }
 
 // extractFragments returned array with coordinates start and end text
-func extractFragments(pattern string, lines []string) ([][2]int, error) {
+func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
 	var (
 		reFragments [][2]int
 		start       = -1
 	)
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return nil, fmt.Errorf("regexp error: %w", err)
-	}
 	for i, line := range lines {
 		if re.MatchString(line) {
 			if start != -1 {
@@ -270,7 +266,7 @@ func extractFragments(pattern string, lines []string) ([][2]int, error) {
 	}
 
 	if len(reFragments) == 0 {
-		return nil, fmt.Errorf("no reFragments found with pattern: %s", pattern)
+		return nil, fmt.Errorf("no reFragments found with pattern")
 	}
 
 	var ff [][2]int
@@ -291,7 +287,7 @@ func extractFragments(pattern string, lines []string) ([][2]int, error) {
 	return ff, nil
 }
 
-func UpdateFile(data interface{}, output, tmpl, pattern string) (bool, error) {
+func UpdateFile(data interface{}, output, tmpl string, pattern *regexp.Regexp) (bool, error) {
 	buffer, err := renderTemplate(data, tmpl)
 	if err != nil {
 		return false, fmt.Errorf("generating data error: %w", err)

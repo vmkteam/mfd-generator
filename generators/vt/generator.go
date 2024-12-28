@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -265,11 +266,15 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 
 		baseName := mfd.GoFileName(ns.Name)
 
+		// precompile regexp
+		funcRe := regexp.MustCompile(FuncPattern)
+		structRe := regexp.MustCompile(StructPattern)
+
 		for _, e := range ee {
 			// generate service file
 			output := path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
 			serviceData.Entities = []ServiceEntityData{e}
-			if _, err := mfd.UpdateFile(serviceData, output, serviceTemplate, StructPattern); err != nil {
+			if _, err := mfd.UpdateFile(serviceData, output, serviceTemplate, structRe); err != nil {
 				return fmt.Errorf("generate service %s error: %w", namespace, err)
 			}
 		}
@@ -278,12 +283,12 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			// generate model file
 			output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
 			modelData.Entities = []EntityData{entity}
-			if _, err := mfd.UpdateFile(modelData, output, modelTemplate, StructPattern); err != nil {
+			if _, err := mfd.UpdateFile(modelData, output, modelTemplate, structRe); err != nil {
 				return fmt.Errorf("generate vt model error: %w", err)
 			}
 			// generate converter file
 			output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
-			if _, err := mfd.UpdateFile(modelData, output, converterTemplate, FuncPattern); err != nil {
+			if _, err := mfd.UpdateFile(modelData, output, converterTemplate, funcRe); err != nil {
 				return fmt.Errorf("generate vt converter error: %w", err)
 			}
 		}
