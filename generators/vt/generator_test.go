@@ -32,10 +32,18 @@ func getDataCommentCount(path string) int {
 
 // returnTestData function prepare test data
 func returnTestData() (err error) {
+	folderPath := testdata.PathActual + "/vt-updated/"
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		err := os.Mkdir(folderPath, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	ff := make(map[string]string)
-	ff[testdata.PathUpdated+"/vt/portal_actual.txt"] = testdata.PathUpdated + "/vt/portal.go"
-	ff[testdata.PathUpdated+"/vt/portal_model_actual.txt"] = testdata.PathUpdated + "/vt/portal_model.go"
-	ff[testdata.PathUpdated+"/vt/portal_converter_actual.txt"] = testdata.PathUpdated + "/vt/portal_converter.go"
+	ff[testdata.PathExpected+"/vt-updated/portal_actual.txt"] = testdata.PathExpected + "/vt-updated/portal.go"
+	ff[testdata.PathExpected+"/vt-updated/portal_model_actual.txt"] = testdata.PathExpected + "/vt-updated/portal_model.go"
+	ff[testdata.PathExpected+"/vt-updated/portal_converter_actual.txt"] = testdata.PathExpected + "/vt-updated/portal_converter.go"
 
 	for srcPath, destPath := range ff {
 		srcFile, err := os.Open(srcPath)
@@ -76,16 +84,17 @@ func TestGenerator_Generate(t *testing.T) {
 			_ = returnTestData()
 
 			// get count comment before used generator
-			startCountServiceComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal.go")
-			startCountModelComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal_model.go")
-			startCountConvertComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal_converter.go")
+			startCountServiceComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal.go")
+			startCountModelComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal_model.go")
+			startCountConvertComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal_converter.go")
 
+			// generate
 			generator := New()
 
 			generator.options.Def()
 			generator.options.Output = testdata.PathUpdatedVT
 			generator.options.MFDPath = testdata.PathExpectedMFD
-			generator.options.Package = testdata.PackageVT
+			generator.options.Package = testdata.PackageVTUpdated
 			generator.options.Namespaces = []string{"portal"}
 
 			// added entity what need updated
@@ -98,9 +107,9 @@ func TestGenerator_Generate(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// get count comment after used generator
-			endCountServiceComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal.go")
-			endCountModelComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal_model.go")
-			endCountConvertComment := getDataCommentCount(testdata.PathUpdated + "/vt/portal_converter.go")
+			endCountServiceComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal.go")
+			endCountModelComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal_model.go")
+			endCountConvertComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal_converter.go")
 
 			// checked that after generate struct or function rewrite but not all
 			So(startCountServiceComment, ShouldNotEqual, endCountServiceComment)

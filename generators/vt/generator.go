@@ -243,6 +243,27 @@ func PrintServer(namespaces []*mfd.VTNamespace, tmpl string, options Options) er
 	return nil
 }
 
+// PartialUpdate updates parts of the project by generating model, converter, and service files based on specified templates.
+//
+// Parameters:
+//   - project: a pointer to the mfd.Project to be updated.
+//   - modelTemplate: the path to the model template file.
+//   - converterTemplate: the path to the converter template file.
+//   - serviceTemplate: the path to the service template file.
+//
+// Returns:
+//   - error: an error if there was an issue updating the files or at other stages.
+//
+// Example usage:
+//
+//		project := ... // initialize the project
+//		modelTemplate := "path/to/model_template.tmpl"
+//		converterTemplate := "path/to/converter_template.tmpl"
+//		serviceTemplate := "path/to/service_template.tmpl"
+//		err := g.PartialUpdate(project, modelTemplate, converterTemplate, serviceTemplate)
+//		if err != nil {
+//	    log.Fatal(err)
+//		}
 func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converterTemplate, serviceTemplate string) error {
 	for _, namespace := range g.options.Namespaces {
 		ns := project.VTNamespace(namespace)
@@ -297,7 +318,14 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 	return nil
 }
 
-// TargetServiceEntityData validate contains entities in ns
+// TargetServiceEntityData filters and returns the model entity data that are located in the specified namespace.
+//
+// Parameters:
+//   - s: a ServiceNamespaceData object containing information about the namespace and its entities.
+//
+// Returns:
+//   - [ ] ServiceEntityData: an array of entity data that are located in the specified namespace.
+//   - error: an error if no entities were found or if some entities were not found in the specified namespace.
 func (g *Generator) TargetServiceEntityData(s ServiceNamespaceData) ([]ServiceEntityData, error) {
 	var ee []ServiceEntityData
 	le := len(g.options.Entities)
@@ -316,7 +344,14 @@ func (g *Generator) TargetServiceEntityData(s ServiceNamespaceData) ([]ServiceEn
 	return ee, nil
 }
 
-// TargetModelEntityData validate contains entities in modelData
+// TargetModelEntityData filters and returns the model entity data that are located in the specified namespace.
+//
+// Parameters:
+//   - s: a NamespaceData object containing information about the namespace and its entities.
+//
+// Returns:
+//   - [ ] EntityData: an array of entity data that are located in the specified namespace.
+//   - error: an error if no entities were found or if some entities were not found in the specified namespace.
 func (g *Generator) TargetModelEntityData(s NamespaceData) ([]EntityData, error) {
 	var ee []EntityData
 	le := len(g.options.Entities)

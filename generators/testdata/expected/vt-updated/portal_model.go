@@ -33,6 +33,7 @@ func (n *News) ToDB() *db.News {
 		StatusID:    n.StatusID,
 	}
 
+	//data
 	return news
 }
 
@@ -94,6 +95,7 @@ type News struct {
 
 	Category *CategorySummary `json:"category"`
 	Status   *Status          `json:"status"`
+	//data
 }
 
 func (ns *NewsSearch) ToDB() *db.NewsSearch {
@@ -112,6 +114,7 @@ func (ns *NewsSearch) ToDB() *db.NewsSearch {
 		StatusID:     ns.StatusID,
 		IDs:          ns.IDs,
 	}
+	//data
 }
 
 type NewsSearch struct {

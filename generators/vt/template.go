@@ -380,5 +380,4 @@ const serverDefaultTemplate = `
 `
 
 const StructPattern = `type (\w+) struct {`
-
-const FuncPattern = `func (\w+)`
+const FuncPattern = `^func (\w+)`
