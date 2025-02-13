@@ -19,6 +19,30 @@ func TestGenerator_Generate(t *testing.T) {
 	}
 
 	Convey("TestGenerator_Generate", t, func() {
+		Convey("Generate with Entity flag", func() {
+
+			generator := New()
+
+			generator.options.MFDPath = filepath.Join(testdata.PathActualMFD)
+			generator.options.Entities = []string{"category"}
+
+			t.Log("Generate only entity news xml-vt")
+			err = generator.Generate()
+			So(err, ShouldBeNil)
+
+			t.Logf("Check %s file", "en-one-entity.xml")
+			content, err := os.ReadFile(filepath.Join(testdata.PathActual, "en.xml"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, "en-one-entity.xml"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			So(content, ShouldResemble, expectedContent)
+
+		})
+
 		Convey("Check correct generate", func() {
 			generator := New()
 
@@ -51,7 +75,13 @@ func TestGenerator_Generate(t *testing.T) {
 }
 
 func prepareFiles() error {
-	err := os.MkdirAll(testdata.PathActual, 0775)
+	// clearing actual test data
+	err := os.RemoveAll(testdata.PathActual)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(testdata.PathActual, 0775)
 	if err != nil {
 		return err
 	}

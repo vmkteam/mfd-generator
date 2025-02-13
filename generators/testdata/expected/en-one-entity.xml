@@ -1,0 +1,37 @@
+<Translation xmlns:xsi="" xmlns:xsd="">
+    <Language>en</Language>
+    <Namespaces>
+        <Namespace Name="portal">
+            <Entities>
+                <Entity Name="Category" Key="category">
+                    <Crumbs>
+                        <categoryAdd>Add</categoryAdd>
+                        <categoryEdit>Edit</categoryEdit>
+                        <categoryList>Categories</categoryList>
+                    </Crumbs>
+                    <Form>
+                        <titleLabel>Title</titleLabel>
+                        <orderNumberLabel>Order Number</orderNumberLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Categories</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <title>Title</title>
+                            <orderNumber>Order Number</orderNumber>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <orderNumber>Order Number</orderNumber>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
+    </Namespaces>
+</Translation>
