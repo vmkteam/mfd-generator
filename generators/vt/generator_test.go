@@ -48,29 +48,29 @@ func returnTestData() (err error) {
 	for srcPath, destPath := range ff {
 		srcFile, err := os.Open(srcPath)
 		if err != nil {
-			return fmt.Errorf("cannot opent file: %v", err)
+			return fmt.Errorf("cannot opent file: %w", err)
 		}
 		defer func(srcFile *os.File) {
 			errFile := srcFile.Close()
 			if errFile != nil {
-				err = fmt.Errorf("cannot close file: %v", errFile)
+				err = fmt.Errorf("cannot close file: %w", errFile)
 			}
 		}(srcFile)
 
 		destFile, err := os.Create(destPath)
 		if err != nil {
-			return fmt.Errorf("cannot rewrite file: %v", err)
+			return fmt.Errorf("cannot rewrite file: %w", err)
 		}
 		defer func() {
 			errFile := destFile.Close()
 			if errFile != nil {
-				err = fmt.Errorf("cannot close file: %v", errFile)
+				err = fmt.Errorf("cannot close file: %w", errFile)
 			}
 		}()
 
 		_, err = io.Copy(destFile, srcFile)
 		if err != nil {
-			return fmt.Errorf("cannot copy: %v", err)
+			return fmt.Errorf("cannot copy: %w", err)
 		}
 
 	}
