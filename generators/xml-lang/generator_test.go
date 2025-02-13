@@ -20,9 +20,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Generate with Entity flag", func() {
-
 			generator := New()
-
 			generator.options.MFDPath = filepath.Join(testdata.PathActualMFD)
 			generator.options.Entities = []string{"category"}
 
@@ -32,20 +30,15 @@ func TestGenerator_Generate(t *testing.T) {
 
 			t.Logf("Check %s file", "en-one-entity.xml")
 			content, err := os.ReadFile(filepath.Join(testdata.PathActual, "en.xml"))
-			if err != nil {
-				t.Fatal(err)
-			}
+			So(err, ShouldBeNil)
 			expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, "en-one-entity.xml"))
-			if err != nil {
-				t.Fatal(err)
-			}
+			So(err, ShouldBeNil)
 			So(content, ShouldResemble, expectedContent)
 
 		})
 
 		Convey("Check correct generate", func() {
 			generator := New()
-
 			generator.options.MFDPath = testdata.PathActualMFD
 
 			t.Log("Generate xml-vt")
@@ -61,13 +54,9 @@ func TestGenerator_Generate(t *testing.T) {
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
 				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
-				if err != nil {
-					t.Fatal(err)
-				}
+				So(err, ShouldBeNil)
 				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, f))
-				if err != nil {
-					t.Fatal(err)
-				}
+				So(err, ShouldBeNil)
 				So(content, ShouldResemble, expectedContent)
 			}
 		})
