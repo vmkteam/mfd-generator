@@ -28,7 +28,7 @@ func TestTranslate(t *testing.T) {
 	}
 }
 
-func TestAddedCustomTranslations(t *testing.T) {
+func TestAddCustomTranslations(t *testing.T) {
 	var testCases = []struct {
 		name string
 		in   string
@@ -72,7 +72,7 @@ func TestAddedCustomTranslations(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		old := Translate(RuLang, tt.in)
-		AddedCustomTranslations(tt.dict)
+		AddCustomTranslations(tt.dict)
 		updated := Translate(RuLang, tt.in)
 		if updated != tt.want {
 			t.Errorf("%v: got %q, want %q", tt.in, old, tt.want)

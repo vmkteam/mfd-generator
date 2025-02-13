@@ -274,7 +274,7 @@ func LoadTemplate(path, def string) (string, error) {
 	return string(contents), nil
 }
 
-func AddedCustomTranslations(d *Dict) {
+func AddCustomTranslations(d *Dict) {
 	if d != nil {
 		for _, e := range d.Entries {
 			presetsTranslations[RuLang][e.XMLName.Local] = e.Value
