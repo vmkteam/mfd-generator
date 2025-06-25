@@ -29,33 +29,77 @@ const (
 // vfsFile entity name
 const (
 	VfsFile      = "VfsFile"
-	JsonFieldSep = "->"
+	JSONFieldSep = "->"
 )
 
-// TODO Refactor
-// search types
+type SearchType string
+
 const (
-	SearchEquals               = "SEARCHTYPE_EQUALS"
-	SearchNotEquals            = "SEARCHTYPE_NOT_EQUALS"
-	SearchNull                 = "SEARCHTYPE_NULL"
-	SearchNotNull              = "SEARCHTYPE_NOT_NULL"
-	SearchGE                   = "SEARCHTYPE_GE"
-	SearchLE                   = "SEARCHTYPE_LE"
-	SearchG                    = "SEARCHTYPE_G"
-	SearchL                    = "SEARCHTYPE_L"
-	SearchLeftLike             = "SEARCHTYPE_LEFT_LIKE"
-	SearchLeftILike            = "SEARCHTYPE_LEFT_ILIKE"
-	SearchRightLike            = "SEARCHTYPE_RIGHT_LIKE"
-	SearchRightILike           = "SEARCHTYPE_RIGHT_ILIKE"
-	SearchLike                 = "SEARCHTYPE_LIKE"
-	SearchILike                = "SEARCHTYPE_ILIKE"
-	SearchArray                = "SEARCHTYPE_ARRAY"
-	SearchNotArray             = "SEARCHTYPE_NOT_INARRAY"
-	SearchTypeArrayContains    = "SEARCHTYPE_ARRAY_CONTAINS"
-	SearchTypeArrayNotContains = "SEARCHTYPE_ARRAY_NOT_CONTAINS"
-	SearchTypeArrayContained   = "SEARCHTYPE_ARRAY_CONTAINED"
-	SearchTypeArrayIntersect   = "SEARCHTYPE_ARRAY_INTERSECT"
-	SearchTypeJsonbPath        = "SEARCHTYPE_JSONB_PATH"
+	SearchEquals               SearchType = "SEARCHTYPE_EQUALS"
+	SearchNotEquals            SearchType = "SEARCHTYPE_NOT_EQUALS"
+	SearchNull                 SearchType = "SEARCHTYPE_NULL"
+	SearchNotNull              SearchType = "SEARCHTYPE_NOT_NULL"
+	SearchGE                   SearchType = "SEARCHTYPE_GE"
+	SearchLE                   SearchType = "SEARCHTYPE_LE"
+	SearchG                    SearchType = "SEARCHTYPE_G"
+	SearchL                    SearchType = "SEARCHTYPE_L"
+	SearchLeftLike             SearchType = "SEARCHTYPE_LEFT_LIKE"
+	SearchLeftILike            SearchType = "SEARCHTYPE_LEFT_ILIKE"
+	SearchRightLike            SearchType = "SEARCHTYPE_RIGHT_LIKE"
+	SearchRightILike           SearchType = "SEARCHTYPE_RIGHT_ILIKE"
+	SearchLike                 SearchType = "SEARCHTYPE_LIKE"
+	SearchILike                SearchType = "SEARCHTYPE_ILIKE"
+	SearchArray                SearchType = "SEARCHTYPE_ARRAY"
+	SearchNotArray             SearchType = "SEARCHTYPE_NOT_INARRAY"
+	SearchTypeArrayContains    SearchType = "SEARCHTYPE_ARRAY_CONTAINS"
+	SearchTypeArrayNotContains SearchType = "SEARCHTYPE_ARRAY_NOT_CONTAINS"
+	SearchTypeArrayContained   SearchType = "SEARCHTYPE_ARRAY_CONTAINED"
+	SearchTypeArrayIntersect   SearchType = "SEARCHTYPE_ARRAY_INTERSECT"
+	SearchTypeJsonbPath        SearchType = "SEARCHTYPE_JSONB_PATH"
+)
+
+func (si SearchType) String() string {
+	return string(si)
+}
+
+func (si SearchType) IsArraySearch() bool {
+	return si == SearchArray || si == SearchNotArray
+}
+
+type FilterType struct {
+	Name    string
+	Exclude bool
+	IsArray bool
+}
+
+func (ft FilterType) ExcludeString() string {
+	return boolAsString(ft.Exclude)
+}
+
+var (
+	FilterTypeBySearchType = map[SearchType]FilterType{
+		SearchEquals:               {Name: "SearchTypeEquals"},
+		SearchNotEquals:            {Name: "SearchTypeEquals", Exclude: true},
+		SearchNull:                 {Name: "SearchTypeNull"},
+		SearchNotNull:              {Name: "SearchTypeNull", Exclude: true},
+		SearchGE:                   {Name: "SearchTypeGE"},
+		SearchLE:                   {Name: "SearchTypeLE"},
+		SearchG:                    {Name: "SearchTypeGreater"},
+		SearchL:                    {Name: "SearchTypeLess"},
+		SearchLeftLike:             {Name: "SearchTypeLLike"},
+		SearchLeftILike:            {Name: "SearchTypeLILike"},
+		SearchRightLike:            {Name: "SearchTypeRLike"},
+		SearchRightILike:           {Name: "SearchTypeRILike"},
+		SearchLike:                 {Name: "SearchTypeLike"},
+		SearchILike:                {Name: "SearchTypeILike"},
+		SearchArray:                {Name: "SearchTypeArray", IsArray: true},
+		SearchNotArray:             {Name: "SearchTypeArray", Exclude: true, IsArray: true},
+		SearchTypeArrayContains:    {Name: "SearchTypeArrayContains"},
+		SearchTypeArrayNotContains: {Name: "SearchTypeArrayContains", Exclude: true},
+		SearchTypeArrayContained:   {Name: "SearchTypeArrayContained", IsArray: true},
+		SearchTypeArrayIntersect:   {Name: "SearchTypeArrayIntersect", IsArray: true},
+		SearchTypeJsonbPath:        {Name: "SearchTypeJsonbPath"},
+	}
 )
 
 type CustomType struct {
@@ -301,12 +345,7 @@ func (p *Project) UpdateLinks() {
 	for _, namespace := range p.Namespaces {
 		for _, entity := range namespace.Entities {
 			// making fk links
-			for _, attr := range entity.Attributes {
-				if foreign := p.Entity(attr.ForeignKey); foreign != nil {
-					attr.ForeignEntity = foreign
-				}
-			}
-
+			p.updateForeignAttr(entity)
 			// making search links
 			p.updateSearchLinks(entity)
 		}
@@ -327,21 +366,20 @@ func (p *Project) UpdateLinks() {
 
 			if entity := p.Entity(vtEntity.Name); entity != nil {
 				vtEntity.Entity = entity
-				for _, vtAttribute := range vtEntity.Attributes {
-					if vtAttribute.AttrName != "" {
-						vtAttribute.Attribute = entity.AttributeByName(vtAttribute.AttrName)
-					}
-					if vtAttribute.SearchName != "" {
-						if search := entity.SearchByName(vtAttribute.SearchName); search != nil {
-							vtAttribute.Attribute = search.Attribute
-						}
-					}
-				}
+				vtEntity.Attributes.updateAttr(entity)
 			}
 
 			for _, tmpl := range vtEntity.TmplAttributes {
 				tmpl.VTAttribute = vtEntity.Attribute(tmpl.AttrName)
 			}
+		}
+	}
+}
+
+func (p *Project) updateForeignAttr(entity *Entity) {
+	for _, attr := range entity.Attributes {
+		if foreign := p.Entity(attr.ForeignKey); foreign != nil {
+			attr.ForeignEntity = foreign
 		}
 	}
 }
@@ -546,8 +584,8 @@ type Entity struct {
 
 // AttributeByName gets mfd.Attribute by its name
 func (e *Entity) AttributeByName(name string) *Attribute {
-	if IsJson(name) {
-		s := strings.Split(name, JsonFieldSep)
+	if IsJSON(name) {
+		s := strings.Split(name, JSONFieldSep)
 		name = s[0]
 	}
 	for _, a := range e.Attributes {
@@ -582,7 +620,7 @@ func (e *Entity) SearchByName(name string) *Search {
 }
 
 // SearchByAttrName gets mfd.Search by its attribute and searchType
-func (e *Entity) SearchByAttrName(attrName, searchType string) *Search {
+func (e *Entity) SearchByAttrName(attrName string, searchType SearchType) *Search {
 	for _, s := range e.Searches {
 		if s.AttrName == attrName && s.SearchType == searchType {
 			return s
@@ -724,11 +762,11 @@ func (a *Attribute) IsIDsArray() bool {
 
 // Search is xml element
 type Search struct {
-	XMLName    xml.Name `xml:"Search" json:"-"`
-	Name       string   `xml:"Name,attr" json:"name"`
-	AttrName   string   `xml:"AttrName,attr" json:"attrName"`
-	SearchType string   `xml:"SearchType,attr" json:"searchType"`
-	GoType     string   `xml:"GoType,attr,omitempty" json:"goType"`
+	XMLName    xml.Name   `xml:"Search" json:"-"`
+	Name       string     `xml:"Name,attr" json:"name"`
+	AttrName   string     `xml:"AttrName,attr" json:"attrName"`
+	SearchType SearchType `xml:"SearchType,attr" json:"searchType"`
+	GoType     string     `xml:"GoType,attr,omitempty" json:"goType"`
 
 	Attribute *Attribute `xml:"-" json:"-"`
 	Entity    *Entity    `xml:"-" json:"-"`
@@ -745,10 +783,6 @@ func (s *Search) ForeignAttribute() (entity, attribute string) {
 
 func IsStatus(name string) bool {
 	return strings.EqualFold(name, "statusid") || strings.EqualFold(name, "status_id")
-}
-
-func IsArraySearch(search string) bool {
-	return search == SearchArray || search == SearchNotArray
 }
 
 type Searches []*Search
@@ -777,4 +811,17 @@ func (a Attributes) Merge(attr *Attribute, overwriteGoType bool) (Attributes, *A
 	}
 
 	return append(a, attr), attr
+}
+
+const (
+	trueS  = "true"
+	falseS = "false"
+)
+
+func boolAsString(b bool) string {
+	if b {
+		return trueS
+	}
+
+	return falseS
 }

@@ -39,7 +39,6 @@ func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 			for _, imp := range mdl.Imports {
 				imports.Add(imp)
 			}
-
 		}
 	}
 
@@ -83,8 +82,8 @@ type EntityData struct {
 // PackEntity creates an entity for template
 func PackEntity(entity mfd.Entity, options Options) EntityData {
 	imports := mfd.NewSet()
-	var columns []AttributeData
-	var relations []RelationData
+	columns := make([]AttributeData, 0, len(entity.Attributes))
+	relations := make([]RelationData, 0, len(entity.Attributes))
 
 	// adding columns
 	for _, attribute := range entity.Attributes {

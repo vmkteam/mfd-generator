@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
 	"github.com/vmkteam/mfd-generator/api"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/generators/repo"
@@ -15,6 +13,8 @@ import (
 	xmllang "github.com/vmkteam/mfd-generator/generators/xml-lang"
 	xmlvt "github.com/vmkteam/mfd-generator/generators/xml-vt"
 	"github.com/vmkteam/mfd-generator/mfd"
+
+	"github.com/spf13/cobra"
 )
 
 var root = &cobra.Command{

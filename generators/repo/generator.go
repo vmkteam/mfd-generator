@@ -53,7 +53,6 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
 
 	flags.String(repoTemplateFlag, "", "path to repo custom template\n")
-
 }
 
 // ReadFlags read flags from command

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 
 	xmlvt "github.com/vmkteam/mfd-generator/generators/xml-vt"
@@ -34,7 +35,7 @@ func (s XMLVTService) GenerateEntity(namespace, entity string) (*mfd.VTEntity, e
 
 	base := ns.Entity(entity)
 	if base == nil {
-		return nil, fmt.Errorf("table not found in database")
+		return nil, errors.New("table not found in database")
 	}
 
 	existing := s.CurrentProject.VTEntity(entity)

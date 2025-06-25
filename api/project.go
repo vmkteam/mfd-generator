@@ -94,7 +94,7 @@ func (s ProjectService) Tables() ([]string, error) {
 		return nil, err
 	}
 
-	var filter []string
+	filter := make([]string, 0, len(schemas))
 	for _, schema := range schemas {
 		if strings.HasPrefix(schema, "pg_") || schema == "information_schema" {
 			continue

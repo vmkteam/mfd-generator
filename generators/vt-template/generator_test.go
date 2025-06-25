@@ -21,8 +21,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 		Convey("Check correct generate", func() {
 			t.Log("Generate vt-template")
-			err := generator.Generate()
-			So(err, ShouldBeNil)
+			So(generator.Generate(), ShouldBeNil)
 		})
 
 		filePrefix := filepath.Join("src", "pages", "Entity")
@@ -45,14 +44,10 @@ func TestGenerator_Generate(t *testing.T) {
 				filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateAll, filePrefix, f)
 				t.Logf("Check %s file", filenameWithFullPath)
 				content, err := os.ReadFile(filenameWithFullPath)
-				if err != nil {
-					t.Fatal(err)
-				}
+				So(err, ShouldBeNil)
 				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateAll, filePrefix, f))
-				if err != nil {
-					t.Fatal(err)
-				}
-				So(content, ShouldResemble, expectedContent)
+				So(err, ShouldBeNil)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 
@@ -81,22 +76,16 @@ func TestGenerator_Generate(t *testing.T) {
 					filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateEntity, filePrefix, f)
 					t.Logf("Check %s file", filenameWithFullPath)
 					content, err := os.ReadFile(filenameWithFullPath)
-					if err != nil {
-						t.Fatal(err)
-					}
+					So(err, ShouldBeNil)
 					expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateEntity, filePrefix, f))
-					if err != nil {
-						t.Fatal(err)
-					}
-					So(content, ShouldResemble, expectedContent)
+					So(err, ShouldBeNil)
+					So(string(content), ShouldResemble, string(expectedContent))
 				}
 			})
 
 			Convey("Check filenames", func() {
 				actualFiles, err := fullFilesPaths(testdata.PathExpectedVTTemplateEntity)
-				if err != nil {
-					t.Fatal(err)
-				}
+				So(err, ShouldBeNil)
 
 				for _, a := range actualFiles {
 					shortPath := strings.ReplaceAll(a, filepath.Join(testdata.PathExpectedVTTemplateEntity, filePrefix)+string(os.PathSeparator), "")

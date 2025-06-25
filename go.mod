@@ -1,6 +1,6 @@
 module github.com/vmkteam/mfd-generator
 
-go 1.22
+go 1.24
 
 require (
 	github.com/dizzyfool/genna v1.2.0

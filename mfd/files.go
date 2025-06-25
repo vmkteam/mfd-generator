@@ -39,7 +39,7 @@ var TemplateFunctions = template.FuncMap{
 
 type Packer func(*Namespace) (interface{}, error)
 
-// Load MFD Project from File
+// LoadProject Loads MFD Project from File
 func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 	if _, err := os.Stat(filename); create && os.IsNotExist(err) {
 		return NewProject(filepath.Base(filename), goPGVer), nil

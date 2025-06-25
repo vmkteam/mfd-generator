@@ -115,8 +115,7 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	var pks []PKPair
 
 	imports := mfd.NewSet()
-	var relations []string
-	var columns []AttributeData
+	columns := make([]AttributeData, 0, len(te.Columns))
 
 	for _, column := range te.Columns {
 		// if has status - generate soft delete
@@ -159,9 +158,10 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 		})
 	}
 
-	// store all relations for join field
-	for _, relation := range te.Relations {
-		relations = append(relations, relation.Name)
+	// store all relation names for join field
+	relNames := make([]string, len(te.Relations))
+	for i := range te.Relations {
+		relNames[i] = te.Relations[i].Name
 	}
 
 	// getting default sorts
@@ -193,8 +193,8 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 		SortField: sortField,
 		SortDir:   sortDir,
 
-		Relations:    relations,
-		HasRelations: len(relations) > 0,
+		Relations:    relNames,
+		HasRelations: len(relNames) > 0,
 
 		Columns:       columns,
 		HasNotAddable: hasNotAddable,

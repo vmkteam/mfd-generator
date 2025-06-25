@@ -19,7 +19,7 @@ func PackVTEntity(entity *mfd.Entity, existing *mfd.VTEntity) *mfd.VTEntity {
 	// making copy
 	vtEntity := mfd.VTEntity{
 		Name:         entity.Name,
-		TerminalPath: mfd.UrlName(mfd.MakePlural(entity.Name)),
+		TerminalPath: mfd.URLName(mfd.MakePlural(entity.Name)),
 		Attributes:   mfd.VTAttributes{},
 		Mode:         mfd.ModeFull,
 	}
@@ -87,22 +87,21 @@ func newVTAttribute(attr mfd.Attribute, search *mfd.Search) *mfd.VTAttribute {
 }
 
 func newVTSearch(search mfd.Search) *mfd.VTAttribute {
-	max, min := 0, 0
-	if search.Attribute != nil {
-		max, min = search.Attribute.Max, search.Attribute.Min
-	}
-
-	return &mfd.VTAttribute{
+	res := &mfd.VTAttribute{
 		Name:       search.Name,
 		SearchName: search.Name,
 
-		Summary: false,
-		Search:  true,
-
-		MaxValue: max,
-		MinValue: min,
+		Summary:  false,
+		Search:   true,
 		Required: false,
 	}
+
+	if search.Attribute != nil {
+		res.MaxValue = search.Attribute.Max
+		res.MinValue = search.Attribute.Min
+	}
+
+	return res
 }
 
 func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) mfd.TmplAttributes {
@@ -157,7 +156,7 @@ func PackTemplate(entity *mfd.Entity, vt *mfd.VTEntity, existing *mfd.VTEntity) 
 
 		// adding search
 		if search := entity.SearchByName(vtAttr.SearchName); search != nil {
-			if mfd.IsArraySearch(search.SearchType) {
+			if search.SearchType.IsArraySearch() {
 				tmpl.Search = mfd.TypeHTMLSelect
 			} else {
 				tmpl.Search = inputType(*search.Attribute, true)
