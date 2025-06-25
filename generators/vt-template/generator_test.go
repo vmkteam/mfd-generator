@@ -29,13 +29,16 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
 				filepath.Join("Category", "List.vue"):                           {},
-				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
-				filepath.Join("News", "Form.vue"):                               {},
-				filepath.Join("News", "List.vue"):                               {},
-				filepath.Join("Tag", "Form.vue"):                                {},
-				filepath.Join("Tag", "List.vue"):                                {},
 				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Category", "en.json"):                            {},
+				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
+				filepath.Join("News", "List.vue"):                               {},
+				filepath.Join("News", "Form.vue"):                               {},
+				filepath.Join("News", "en.json"):                                {},
 				filepath.Join("News", "components", "MultiListFilters.vue"):     {},
+				filepath.Join("Tag", "List.vue"):                                {},
+				filepath.Join("Tag", "Form.vue"):                                {},
+				filepath.Join("Tag", "en.json"):                                 {},
 				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
 				"routes.ts": {},
 			}
@@ -63,10 +66,12 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files with entities", func() {
 			expectedFilenames := map[string]struct{}{
 				filepath.Join("Category", "List.vue"):                           {},
+				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Category", "en.json"):                            {},
 				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
 				filepath.Join("Tag", "Form.vue"):                                {},
 				filepath.Join("Tag", "List.vue"):                                {},
-				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Tag", "en.json"):                                 {},
 				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
 				"routes.ts": {},
 			}

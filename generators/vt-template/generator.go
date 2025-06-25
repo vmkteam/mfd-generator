@@ -189,10 +189,8 @@ func (g *Generator) Generate() error {
 
 			// saving translations
 			for lang, translation := range translations {
-				if tre := translation.Entity(ns.Name, entity.Name); tre != nil {
-					if err := mfd.MarshalJSONToFile(lang+".json", tre.ToJSONMap()); err != nil {
-						return fmt.Errorf("save translation lang %s error=%w", lang, err)
-					}
+				if err := g.SaveLang(translation.Entity(ns.Name, entity.Name), lang); err != nil {
+					return fmt.Errorf("save translation lang %s error: %w", lang, err)
 				}
 			}
 		}
@@ -240,4 +238,17 @@ func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string) (bool
 	}
 
 	return mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity/routes.ts"))
+}
+
+func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
+	if entity == nil {
+		return nil
+	}
+
+	output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
+	if err := mfd.MarshalJSONToFile(output, entity.ToJSONMap()); err != nil {
+		return fmt.Errorf("save translation lang %s error: %w", lang, err)
+	}
+
+	return nil
 }
