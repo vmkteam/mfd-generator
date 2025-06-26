@@ -207,7 +207,7 @@ func (g *Generator) Generate() (err error) {
 	// reading tables from db
 	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer, project.CustomTypeMapping())
 	if err != nil {
-		return fmt.Errorf("read database error: %w", err)
+		return fmt.Errorf("read database, err=%w", err)
 	}
 
 	set := mfd.NewSet()
@@ -248,7 +248,7 @@ func (g *Generator) Generate() (err error) {
 				// asking namespace from prompt
 				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
 					// may happen only in ctrl+c
-					return fmt.Errorf("prompt namespace error: %w", err)
+					return fmt.Errorf("prompt namespace, err=%w", err)
 				}
 				// if user choose to skip
 				if namespace == "skip" {
