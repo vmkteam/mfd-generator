@@ -32,13 +32,13 @@ func TestAddCustomTranslations(t *testing.T) {
 	var testCases = []struct {
 		name string
 		in   string
-		dict *Dict
+		dict *Dictionary
 		want string
 	}{
 		{
 			"with updated word",
 			"user",
-			&Dict{
+			&Dictionary{
 				Entries: []Entry{
 					{XMLName: xml.Name{Local: "user"}, Value: "Пользователь (Обновленный)"},
 				},
@@ -48,7 +48,7 @@ func TestAddCustomTranslations(t *testing.T) {
 		{
 			"with new word",
 			"newKey",
-			&Dict{
+			&Dictionary{
 				Entries: []Entry{
 					{XMLName: xml.Name{Local: "newKey"}, Value: "Изображение (Обновленное)"},
 				},
@@ -58,7 +58,7 @@ func TestAddCustomTranslations(t *testing.T) {
 		{
 			"with empty dict",
 			"",
-			&Dict{
+			&Dictionary{
 				Entries: []Entry{},
 			},
 			"",
