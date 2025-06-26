@@ -197,6 +197,7 @@ func (g *Generator) Generate() (err error) {
 
 	// printing namespaces string
 	if g.printNamespaces {
+		//nolint:forbidigo
 		fmt.Print(PrintNamespaces(project))
 		return nil
 	}

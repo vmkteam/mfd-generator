@@ -227,6 +227,7 @@ func PrintServer(namespaces []*mfd.VTNamespace, tmpl string, options Options) er
 		return fmt.Errorf("processing model template error: %w", err)
 	}
 
+	//nolint:forbidigo
 	fmt.Print(buffer.String())
 	return nil
 }

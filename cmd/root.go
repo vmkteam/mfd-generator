@@ -37,6 +37,7 @@ var root = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use: "version",
 	Run: func(cmd *cobra.Command, args []string) {
+		//nolint:forbidigo
 		fmt.Println("MFD Generator", mfd.Version)
 	},
 }
