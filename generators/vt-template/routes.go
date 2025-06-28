@@ -48,7 +48,7 @@ func PackRoutesNamespace(namespaces []*mfd.VTNamespace) (RoutesNamespaceData, er
 	}, nil
 }
 
-// EntityData stores struct info
+// RoutesEntityData stores routes struct info
 type RoutesEntityData struct {
 	vt.EntityData
 
@@ -70,7 +70,7 @@ type RoutesEntityData struct {
 	ReadOnly bool
 }
 
-// PackEntity creates an entity for template
+// PackRoutesEntity creates an entity for routes template
 func PackRoutesEntity(base vt.EntityData) (RoutesEntityData, error) {
 	entity := RoutesEntityData{
 		EntityData: base,
@@ -113,7 +113,7 @@ func PackRoutesEntity(base vt.EntityData) (RoutesEntityData, error) {
 	return entity, nil
 }
 
-// AttributeData stores column info
+// RoutesAttributeData stores column info with attributes
 type RoutesAttributeData struct {
 	vt.AttributeData
 
@@ -137,7 +137,7 @@ func PackRoutesAttribute(base vt.AttributeData, entity RoutesEntityData) RoutesA
 	}
 }
 
-// RelationData stores relation info
+// RoutesRelationData stores relation info with attributes
 type RoutesRelationData struct {
 	vt.RelationData
 

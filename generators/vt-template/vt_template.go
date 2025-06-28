@@ -27,24 +27,22 @@ type EntityData struct {
 
 // PackEntity packs mfd vt entity to template data
 func PackEntity(vtEntity mfd.VTEntity) EntityData {
-	var pks []PKPair
-	for _, pk := range vtEntity.Entity.PKs() {
-		pks = append(pks, PKPair{
-			JSName: mfd.VarName(pk.Name),
-		})
-	}
-	quickFilter := ""
-	if title := vtEntity.Entity.TitleAttribute(); title != nil {
-		quickFilter = mfd.VarName(title.Name)
+	pks := vtEntity.Entity.PKs()
+	pkPairs := make([]PKPair, len(pks))
+	for i := range pks {
+		pkPairs[i] = PKPair{JSName: mfd.VarName(pks[i].Name)}
 	}
 
 	tmpl := EntityData{
-		Name:           vtEntity.Name,
-		JSName:         mfd.VarName(vtEntity.Name),
-		HasQuickFilter: quickFilter != "", // TODO remove
-		TitleField:     quickFilter,       // TODO remove
-		PKs:            pks,
-		ReadOnly:       vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
+		Name:     vtEntity.Name,
+		JSName:   mfd.VarName(vtEntity.Name),
+		PKs:      pkPairs,
+		ReadOnly: vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
+	}
+
+	if title := vtEntity.Entity.TitleAttribute(); title != nil {
+		tmpl.HasQuickFilter = true
+		tmpl.TitleField = mfd.VarName(title.Name)
 	}
 
 	for _, attr := range vtEntity.TmplAttributes {

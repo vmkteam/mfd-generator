@@ -1,0 +1,41 @@
+{
+    "breadcrumbs": {
+        "newsAdd": "Add",
+        "newsEdit": "Edit",
+        "newsList": "News"
+    },
+    "news": {
+        "form": {
+            "categoryIdLabel": "Category",
+            "contentLabel": "Content",
+            "previewLabel": "Preview",
+            "publishedAtLabel": "Published At",
+            "statusIdLabel": "Status",
+            "tagIdsLabel": "Tags",
+            "titleLabel": "Title"
+        },
+        "list": {
+            "title": "News",
+            "filter": {
+                "categoryId": "Category",
+                "content": "Content",
+                "createdAt": "Created at",
+                "ids": "Ids",
+                "preview": "Preview",
+                "publishedAt": "Published At",
+                "quickFilterPlaceholder": "",
+                "statusId": "Status",
+                "title": "Title"
+            },
+            "headers": {
+                "actions": "Actions",
+                "category": "Category",
+                "content": "Content",
+                "preview": "Preview",
+                "publishedAt": "Published At",
+                "status": "Status",
+                "title": "Title"
+            }
+        }
+    }
+}

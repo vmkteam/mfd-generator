@@ -3,6 +3,7 @@ package mfd
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"sort"
 )
@@ -88,7 +89,7 @@ func (m *XMLMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	for _, element := range m.elements {
-		e.Encode(element)
+		_ = e.Encode(element)
 	}
 
 	return e.EncodeToken(start.End())
@@ -109,10 +110,11 @@ func (m *XMLMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	for {
 		var e xmlMapElement
 
-		err := d.Decode(&e)
-		if err == io.EOF {
-			break
-		} else if err != nil {
+		if err := d.Decode(&e); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
 			return err
 		}
 

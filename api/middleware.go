@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/vmkteam/mfd-generator/mfd"
+
 	genna "github.com/dizzyfool/genna/lib"
 	"github.com/vmkteam/zenrpc/v2"
-
-	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 type Store struct {

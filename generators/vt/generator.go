@@ -151,22 +151,22 @@ func (g *Generator) Generate() error {
 
 	modelTemplate, err := mfd.LoadTemplate(g.options.ModelTemplatePath, modelDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load model template error: %w", err)
+		return fmt.Errorf("load model template, err=%w", err)
 	}
 
 	converterTemplate, err := mfd.LoadTemplate(g.options.ConverterTemplatePath, converterDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load converter template error: %w", err)
+		return fmt.Errorf("load converter template, err=%w", err)
 	}
 
 	serviceTemplate, err := mfd.LoadTemplate(g.options.ServiceTemplatePath, serviceDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load service template error: %w", err)
+		return fmt.Errorf("load service template, err=%w", err)
 	}
 
 	serverTemplate, err := mfd.LoadTemplate(g.options.ServerTemplatePath, serverDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load server template error: %w", err)
+		return fmt.Errorf("load server template, err=%w", err)
 	}
 
 	for _, namespace := range g.options.Namespaces {
@@ -180,32 +180,32 @@ func (g *Generator) Generate() error {
 
 		modelData, err := PackNamespace(ns, g.options)
 		if err != nil {
-			return fmt.Errorf("generate vt model error: %w", err)
+			return fmt.Errorf("generate vt model, err=%w", err)
 		}
 
 		// generate model file
 		output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
 		if _, err := mfd.FormatAndSave(modelData, output, modelTemplate, true); err != nil {
-			return fmt.Errorf("generate vt model error: %w", err)
+			return fmt.Errorf("generate vt model, err=%w", err)
 		}
 
 		// generate converter file
 		output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
 		if _, err := mfd.FormatAndSave(modelData, output, converterTemplate, true); err != nil {
-			return fmt.Errorf("generate vt converter error: %w", err)
+			return fmt.Errorf("generate vt converter, err=%w", err)
 		}
 
 		// generate service file
 		output = path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
 		serviceData := PackServiceNamespace(ns, g.options)
 		if _, err := mfd.FormatAndSave(serviceData, output, serviceTemplate, true); err != nil {
-			return fmt.Errorf("generate service %s error: %w", namespace, err)
+			return fmt.Errorf("generate service %s, err=%w", namespace, err)
 		}
 	}
 
 	// printing zenrpc server code
 	if err := PrintServer(project.VTNamespaces, serverTemplate, g.options); err != nil {
-		return fmt.Errorf("generate vt server error: %w", err)
+		return fmt.Errorf("generate vt server, err=%w", err)
 	}
 
 	return nil
@@ -214,19 +214,20 @@ func (g *Generator) Generate() error {
 func PrintServer(namespaces []*mfd.VTNamespace, tmpl string, options Options) error {
 	parsed, err := template.New("base").Parse(tmpl)
 	if err != nil {
-		return fmt.Errorf("parsing template error: %w", err)
+		return fmt.Errorf("parsing template, err=%w", err)
 	}
 
 	pack, err := PackServerNamespaces(namespaces, options)
 	if err != nil {
-		return fmt.Errorf("packing data error: %w", err)
+		return fmt.Errorf("packing data, err=%w", err)
 	}
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", pack); err != nil {
-		return fmt.Errorf("processing model template error: %w", err)
+		return fmt.Errorf("processing model template, err=%w", err)
 	}
 
+	//nolint:forbidigo
 	fmt.Print(buffer.String())
 	return nil
 }

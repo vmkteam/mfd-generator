@@ -8,10 +8,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/api/dartclient"
+
 	"github.com/spf13/cobra"
 	"github.com/vmkteam/zenrpc/v2"
-
-	"github.com/vmkteam/mfd-generator/api/dartclient"
 )
 
 const (
@@ -100,7 +100,7 @@ func (s *Server) Serve() error {
 		if err != nil {
 			panic(err)
 		}
-		rw.Write(resp)
+		_, _ = rw.Write(resp)
 	}))
 
 	parts := strings.Split(s.addr, ":")

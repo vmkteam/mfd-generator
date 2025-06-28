@@ -28,8 +28,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags")
 
 			t.Log("Generate xml")
-			err := generator.Generate()
-			So(err, ShouldBeNil)
+			So(generator.Generate(), ShouldBeNil)
 		})
 
 		Convey("Check generated files", func() {
@@ -48,7 +47,7 @@ func TestGenerator_Generate(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				So(content, ShouldResemble, expectedContent)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 	})
