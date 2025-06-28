@@ -273,3 +273,11 @@ func LoadTemplate(path, def string) (string, error) {
 
 	return string(contents), nil
 }
+
+func AddCustomTranslations(d *Dictionary) {
+	if d != nil {
+		for _, e := range d.Entries {
+			presetsTranslations[RuLang][e.XMLName.Local] = e.Value
+		}
+	}
+}

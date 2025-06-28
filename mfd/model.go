@@ -91,10 +91,20 @@ type Project struct {
 	Languages      []string    `xml:"Languages>string" json:"languages"`
 	GoPGVer        int         `xml:"GoPGVer" json:"goPGVer"`
 	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
+	Dictionary     *Dictionary `xml:"Dictionary" json:"dict,omitempty"`
 
 	Namespaces   []*Namespace   `xml:"-" json:"-"`
 	VTNamespaces []*VTNamespace `xml:"-" json:"-"`
 	NSMapping    []NSMapping    `xml:"-" json:"namespaces"`
+}
+
+type Dictionary struct {
+	Entries []Entry `xml:",any"`
+}
+
+type Entry struct {
+	XMLName xml.Name
+	Value   string `xml:",chardata"`
 }
 
 func NewProject(name string, goPGVer int) *Project {
