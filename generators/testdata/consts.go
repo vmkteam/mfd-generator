@@ -28,7 +28,7 @@ var (
 	PathActualDB                 = filepath.Join(PathActual, PackageDB)
 	PathExpectedDB               = filepath.Join(PathExpected, PackageDB)
 	PathActualVT                 = filepath.Join(PathActual, PackageVT)
-	PathUpdatedVT                = filepath.Join(PathActual, PackageVTUpdated)
+	PathUpdatedVT                = filepath.Join(PathExpected, PackageVTUpdated)
 	PathExpectedVT               = filepath.Join(PathExpected, PackageVT)
 	PathActualVTTemplateAll      = filepath.Join(PathActual, PackageVTTemplate, PrefixAll)
 	PathExpectedVTTemplateAll    = filepath.Join(PathExpected, PackageVTTemplate, PrefixAll)
