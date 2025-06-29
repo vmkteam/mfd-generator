@@ -31,13 +31,11 @@ func getDataCommentCount(path string) int {
 }
 
 // returnTestData function prepare test data
-func returnTestData() (err error) {
+func returnTestData() error {
 	folderPath := testdata.PathActual + "/vt-updated/"
-	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		err := os.Mkdir(folderPath, 0755)
-		if err != nil {
-			return err
-		}
+
+	if err := os.MkdirAll(folderPath, 0755); err != nil {
+		return fmt.Errorf("cannot create directory %s: %w", folderPath, err)
 	}
 
 	ff := make(map[string]string)
@@ -48,32 +46,28 @@ func returnTestData() (err error) {
 	for srcPath, destPath := range ff {
 		srcFile, err := os.Open(srcPath)
 		if err != nil {
-			return fmt.Errorf("cannot opent file: %w", err)
+			return fmt.Errorf("cannot open source file %s: %w", srcPath, err)
 		}
-		defer func(srcFile *os.File) {
-			errFile := srcFile.Close()
-			if errFile != nil {
-				err = fmt.Errorf("cannot close file: %w", errFile)
-			}
-		}(srcFile)
 
 		destFile, err := os.Create(destPath)
 		if err != nil {
-			return fmt.Errorf("cannot rewrite file: %w", err)
-		}
-		defer func() {
-			errFile := destFile.Close()
-			if errFile != nil {
-				err = fmt.Errorf("cannot close file: %w", errFile)
-			}
-		}()
-
-		_, err = io.Copy(destFile, srcFile)
-		if err != nil {
-			return fmt.Errorf("cannot copy: %w", err)
+			srcFile.Close()
+			return fmt.Errorf("cannot create destination file %s: %w", destPath, err)
 		}
 
+		_, copyErr := io.Copy(destFile, srcFile)
+
+		srcFile.Close()
+		closeErr := destFile.Close()
+
+		if copyErr != nil {
+			return fmt.Errorf("cannot copy from %s to %s: %w", srcPath, destPath, copyErr)
+		}
+		if closeErr != nil {
+			return fmt.Errorf("error closing destination file %s: %w", destPath, closeErr)
+		}
 	}
+
 	return nil
 }
 

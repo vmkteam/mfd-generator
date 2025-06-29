@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"html/template"
 	"os"
@@ -260,33 +261,37 @@ func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Reg
 	}
 
 	lines := strings.Split(string(content), "\n")
-
 	ff, err := extractFragments(pattern, lines)
-
 	if err != nil {
 		return false, fmt.Errorf("extract fragments error: %w", err)
 	}
 
-	var newlines []string
+	var replaced bool
 	for _, fragment := range ff {
 		s, end := fragment[0], fragment[1]
 		extractedFragment := lines[s:end]
 		for _, extline := range extractedFragment {
 			if strings.Contains(extline, findData) {
-				newlines = append(newlines, lines[:s]...)
-				newlines = append(newlines, strings.Split(newData, "\n")...)
-				newlines = append(newlines, lines[end:]...)
+				var resultLines []string
+				resultLines = append(resultLines, lines[:s]...)
+				resultLines = append(resultLines, strings.Split(newData, "\n")...)
+				resultLines = append(resultLines, lines[end:]...)
+
+				lines = resultLines
+				replaced = true
 				break
 			}
 		}
+		if replaced {
+			break
+		}
 	}
 
-	if len(newlines) == 0 {
-		newlines = append(lines, strings.Split(newData, "\n")...)
+	if !replaced {
+		lines = append(lines, strings.Split(newData, "\n")...)
 	}
 
-	newContent := strings.Join(newlines, "\n")
-
+	newContent := strings.Join(lines, "\n")
 	return util.FmtAndSave([]byte(newContent), output)
 }
 
@@ -339,7 +344,7 @@ func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
 	}
 
 	if len(reFragments) == 0 {
-		return nil, fmt.Errorf("no reFragments found with pattern")
+		return nil, errors.New("no reFragments found with pattern")
 	}
 
 	var ff [][2]int
@@ -395,6 +400,9 @@ func UpdateFile(data interface{}, output, tmpl string, pattern *regexp.Regexp) (
 
 	// search fragment from our template
 	fragments, err := extractFragments(pattern, lines)
+	if err != nil {
+		return false, fmt.Errorf("extract fragments err=%w", err)
+	}
 
 	for _, fragment := range fragments {
 		var filePart []string

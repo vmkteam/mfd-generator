@@ -281,10 +281,13 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 
 		modelData, err := PackNamespace(ns, g.options)
 		if err != nil {
-			return fmt.Errorf("generate vt model error: %w", err)
+			return fmt.Errorf("generate vt model,err=%w", err)
 		}
 
 		eem, err := g.TargetModelEntityData(modelData)
+		if err != nil {
+			return err
+		}
 
 		baseName := mfd.GoFileName(ns.Name)
 
