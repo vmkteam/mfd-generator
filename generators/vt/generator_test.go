@@ -135,8 +135,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.EmbedLogPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/embedlog"
 
 			t.Log("Generate vt")
-			err := generator.Generate()
-			So(err, ShouldBeNil)
+			So(generator.Generate(), ShouldBeNil)
 		})
 
 		Convey("Check generated files", func() {
@@ -156,7 +155,7 @@ func TestGenerator_Generate(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				So(content, ShouldResemble, expectedContent)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 	})

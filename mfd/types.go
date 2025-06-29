@@ -7,7 +7,7 @@ import (
 	"github.com/dizzyfool/genna/model"
 )
 
-func MakeSearchType(typ, searchType string) string {
+func MakeSearchType(typ string, searchType SearchType) string {
 	if typ[0] == '*' {
 		typ = typ[1:]
 	}
@@ -58,8 +58,8 @@ func IsArray(typ string) (string, bool) {
 	return typ, false
 }
 
-func IsJson(typ string) bool {
-	return strings.Contains(typ, JsonFieldSep)
+func IsJSON(typ string) bool {
+	return strings.Contains(typ, JSONFieldSep)
 }
 
 func MakeZeroValue(typ string) string {
@@ -86,7 +86,7 @@ func MakeJSType(typ string, isArray bool) string {
 		typ = typ[1:]
 	}
 
-	jsType := ""
+	var jsType string
 	switch typ {
 	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
 		jsType = "number"
@@ -108,7 +108,7 @@ func MakeJSZero(typ string, isArray bool) string {
 		typ = typ[1:]
 	}
 
-	jsZero := ""
+	var jsZero string
 	switch typ {
 	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
 		jsZero = "0"

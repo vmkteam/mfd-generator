@@ -1,10 +1,18 @@
 PKG := `go list -f {{.Dir}} ./...`
 
+LINT_VERSION := v2.1.6
+
+
+tools:
+	@curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${LINT_VERSION}
+
 fmt:
-	@goimports -local "github.com/vmkteam/mfd-generator" -l -w $(PKG)
+	@golangci-lint fmt
 
 lint:
-	@golangci-lint run -c .golangci.yml
+	@golangci-lint version
+	@golangci-lint config verify
+	@golangci-lint run
 
 test:
 	@go test -v ./...

@@ -114,11 +114,11 @@ func (g *Generator) Generate() error {
 	modelData := PackNamespace(project.Namespaces, g.options)
 	modelTemplate, err := mfd.LoadTemplate(g.options.ModelTemplatePath, modelDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load model template error: %w", err)
+		return fmt.Errorf("load model template, err=%w", err)
 	}
 
 	if _, err := mfd.FormatAndSave(modelData, output, modelTemplate, true); err != nil {
-		return fmt.Errorf("generate project model error: %w", err)
+		return fmt.Errorf("generate project model, err=%w", err)
 	}
 
 	// generating search
@@ -126,11 +126,11 @@ func (g *Generator) Generate() error {
 	searchData := PackSearchNamespace(project.Namespaces, g.options)
 	searchTemplate, err := mfd.LoadTemplate(g.options.SearchTemplatePath, searchDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load model template error: %w", err)
+		return fmt.Errorf("load model template, err=%w", err)
 	}
 
 	if _, err := mfd.FormatAndSave(searchData, output, searchTemplate, true); err != nil {
-		return fmt.Errorf("generate project search error: %w", err)
+		return fmt.Errorf("generate project search, err=%w", err)
 	}
 
 	// generating validate
@@ -138,17 +138,17 @@ func (g *Generator) Generate() error {
 	validateDate := PackValidateNamespace(project.Namespaces, g.options)
 	validateTemplate, err := mfd.LoadTemplate(g.options.ValidateTemplatePath, validateDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load model template error: %w", err)
+		return fmt.Errorf("load model template, err=%w", err)
 	}
 
 	if _, err := mfd.FormatAndSave(validateDate, output, validateTemplate, true); err != nil {
-		return fmt.Errorf("generate project validate error: %w", err)
+		return fmt.Errorf("generate project validate, err=%w", err)
 	}
 
 	// generating params
 	output = path.Join(g.options.Output, "model_params.go")
 	if _, err := GenerateParams(project.Namespaces, output, g.options); err != nil {
-		return fmt.Errorf("generate project params error: %w", err)
+		return fmt.Errorf("generate project params, err=%w", err)
 	}
 
 	return nil

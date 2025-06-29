@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"text/template"
@@ -47,7 +48,7 @@ func (s XMLService) GenerateEntity(table, namespace string) (*mfd.Entity, error)
 		return entity, nil
 	}
 
-	return nil, fmt.Errorf("table not found in database")
+	return nil, errors.New("table not found in database")
 }
 
 // LoadEntity returns selected entity from project.

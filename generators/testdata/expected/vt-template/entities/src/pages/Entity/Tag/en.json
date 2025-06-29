@@ -1,0 +1,27 @@
+{
+    "breadcrumbs": {
+        "tagAdd": "Add",
+        "tagEdit": "Edit",
+        "tagList": "Tags"
+    },
+    "tag": {
+        "form": {
+            "statusIdLabel": "Status",
+            "titleLabel": "Title"
+        },
+        "list": {
+            "title": "Tags",
+            "filter": {
+                "ids": "Ids",
+                "quickFilterPlaceholder": "",
+                "statusId": "Status",
+                "title": "Title"
+            },
+            "headers": {
+                "actions": "Actions",
+                "status": "Status",
+                "title": "Title"
+            }
+        }
+    }
+}

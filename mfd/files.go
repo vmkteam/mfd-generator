@@ -40,7 +40,7 @@ var TemplateFunctions = template.FuncMap{
 
 type Packer func(*Namespace) (interface{}, error)
 
-// Load MFD Project from File
+// LoadProject Loads MFD Project from File
 func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 	if _, err := os.Stat(filename); create && os.IsNotExist(err) {
 		return NewProject(filepath.Base(filename), goPGVer), nil
@@ -48,7 +48,7 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 
 	project := &Project{}
 	if err := UnmarshalFile(filename, project); err != nil {
-		return nil, fmt.Errorf("read project error: %w", err)
+		return nil, fmt.Errorf("read project, err=%w", err)
 	}
 
 	project.Namespaces = []*Namespace{}
@@ -59,12 +59,12 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 		ns, err := LoadNamespace(path.Join(dir, pf+".xml"))
 		//todo: maybe create xmls if not exists
 		if err != nil {
-			return nil, fmt.Errorf("read namespace error: %w", err)
+			return nil, fmt.Errorf("read namespace, err=%w", err)
 		}
 
 		vtns, err := LoadVTNamespace(path.Join(dir, pf+".vt.xml"))
 		if err != nil {
-			return nil, fmt.Errorf("read vt vtns error: %w", err)
+			return nil, fmt.Errorf("read vt vtns, err=%w", err)
 		}
 
 		if len(ns.Entities) != 0 {
@@ -121,11 +121,11 @@ func LoadVTNamespace(filename string) (*VTNamespace, error) {
 func UnmarshalFile(filename string, v interface{}) (err error) {
 	var bytes []byte
 	if bytes, err = os.ReadFile(filename); err != nil {
-		return fmt.Errorf("read file error: %w", err)
+		return fmt.Errorf("read file, err=%w", err)
 	}
 
 	if err := xml.Unmarshal(bytes, v); err != nil {
-		return fmt.Errorf("unmarshal error: %w", err)
+		return fmt.Errorf("unmarshal, err=%w", err)
 	}
 
 	return nil
@@ -133,7 +133,7 @@ func UnmarshalFile(filename string, v interface{}) (err error) {
 
 func SaveMFD(filename string, p *Project) error {
 	if err := MarshalToFile(filename, p); err != nil {
-		return fmt.Errorf("save project error: %w", err)
+		return fmt.Errorf("save project, err=%w", err)
 	}
 
 	return nil
@@ -143,7 +143,7 @@ func SaveProjectXML(filename string, p *Project) error {
 	for _, namespace := range p.Namespaces {
 		file := path.Join(filepath.Dir(filename), namespace.Name+".xml")
 		if err := MarshalToFile(file, namespace); err != nil {
-			return fmt.Errorf("save namespace %s error: %w", namespace.Name, err)
+			return fmt.Errorf("save namespace %s, err=%w", namespace.Name, err)
 		}
 	}
 
@@ -154,7 +154,7 @@ func SaveProjectVT(filename string, p *Project) error {
 	for _, namespace := range p.VTNamespaces {
 		file := path.Join(filepath.Dir(filename), namespace.Name+".vt.xml")
 		if err := MarshalToFile(file, namespace); err != nil {
-			return fmt.Errorf("save namespace vt entites %s error: %w", namespace.Name, err)
+			return fmt.Errorf("save namespace vt entites %s, err=%w", namespace.Name, err)
 		}
 	}
 
@@ -164,7 +164,7 @@ func SaveProjectVT(filename string, p *Project) error {
 func MarshalToFile(filename string, v interface{}) error {
 	b, err := xml.MarshalIndent(v, "", "    ")
 	if err != nil {
-		return fmt.Errorf("marshal data error: %w", err)
+		return fmt.Errorf("marshal data, err=%w", err)
 	}
 
 	// need for json searching rules
@@ -176,7 +176,7 @@ func MarshalToFile(filename string, v interface{}) error {
 	}
 
 	if _, err = Save(b, filename); err != nil {
-		return fmt.Errorf("write file error: %w", err)
+		return fmt.Errorf("write file, err=%w", err)
 	}
 
 	return nil
@@ -434,11 +434,11 @@ func GoFileName(namespace string) string {
 func Save(content []byte, filename string) (bool, error) {
 	file, err := util.File(filename)
 	if err != nil {
-		return false, fmt.Errorf("open model file error: %w", err)
+		return false, fmt.Errorf("open model file, err=%w", err)
 	}
 
 	if _, err := file.Write(content); err != nil {
-		return false, fmt.Errorf("writing content to file error: %w", err)
+		return false, fmt.Errorf("writing content to file, err=%w", err)
 	}
 
 	return true, nil
@@ -476,7 +476,7 @@ func SaveTranslation(translation Translation, project, language string) error {
 func MarshalJSONToFile(filename string, v interface{}) error {
 	bytes, err := json.MarshalIndent(v, "", "    ")
 	if err != nil {
-		return fmt.Errorf("marshal data error: %w", err)
+		return fmt.Errorf("marshal data, err=%w", err)
 	}
 
 	if _, err := Save(bytes, filename); err != nil {
@@ -496,4 +496,12 @@ func LoadTemplate(path, def string) (string, error) {
 	}
 
 	return string(contents), nil
+}
+
+func AddCustomTranslations(d *Dictionary) {
+	if d != nil {
+		for _, e := range d.Entries {
+			presetsTranslations[RuLang][e.XMLName.Local] = e.Value
+		}
+	}
 }

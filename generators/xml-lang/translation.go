@@ -31,75 +31,13 @@ func Translate(ns *mfd.VTNamespace, translation mfd.Translation, entities []stri
 		}
 
 		if entity == nil {
-			key := mfd.VarName(e.Name)
-			entity = &mfd.TranslationEntity{
-				Name: e.Name,
-				Key:  key,
-				Form: mfd.NewXMLMap(nil),
-				List: &mfd.TranslationList{
-					Title:   mfd.Translate(language, mfd.MakePlural(key)),
-					Filter:  mfd.NewXMLMap(map[string]string{"quickFilterPlaceholder": ""}),
-					Headers: mfd.NewXMLMap(nil),
-				},
-				Crumbs: mfd.NewXMLMap(map[string]string{
-					key + "List": mfd.Translate(language, mfd.MakePlural(key)),
-					key + "Add":  mfd.Translate(language, "add"),
-					key + "Edit": mfd.Translate(language, "edit"),
-				}),
-			}
+			entity = mfd.NewTranslationEntity(e.Name, language)
 		}
 
 		// fix empty fields
 		fixup(entity)
 
-		for _, a := range e.TmplAttributes {
-			key := mfd.VarName(a.Name)
-
-			trs := mfd.Translate(language, key)
-
-			// deleting unused translations
-			if emptyOrNone(a.Form) || e.Mode == mfd.ModeReadOnlyWithTemplates {
-				entity.Form.Delete(key + "Label")
-			}
-
-			if !emptyOrNone(a.Form) && e.Mode == mfd.ModeFull {
-				entity.Form.Append(key+"Label", trs)
-			}
-
-			if emptyOrNone(a.Search) && entity.List.Filter != nil {
-				entity.List.Filter.Delete(key)
-			}
-
-			if !emptyOrNone(a.Search) {
-				entity.List.Filter.Append(key, trs)
-			}
-
-			if a.List {
-				// override statusId key because headers for summary, and summary have Status object
-				if mfd.IsStatus(key) {
-					key = "status"
-				}
-
-				entity.List.Headers.Append(key, trs)
-			} else {
-				// override statusId key because headers for summary, and summary have Status object
-				if mfd.IsStatus(key) {
-					key = "status"
-				}
-
-				entity.List.Headers.Delete(key)
-			}
-		}
-
-		switch e.Mode {
-		case mfd.ModeFull:
-			entity.List.Headers.Append("actions", mfd.Translate(language, "actions"))
-		case mfd.ModeReadOnlyWithTemplates:
-			entity.List.Headers.Delete("actions")
-
-			entity.Crumbs.Delete(entity.Key + "Add")
-			entity.Crumbs.Delete(entity.Key + "Edit")
-		}
+		entity.FillByVTEntity(e, language)
 
 		namespace.AddEntity(entity)
 	}
@@ -109,10 +47,6 @@ func Translate(ns *mfd.VTNamespace, translation mfd.Translation, entities []stri
 	}
 
 	return translation
-}
-
-func emptyOrNone(val string) bool {
-	return val == "" || val == mfd.TypeHTMLNone
 }
 
 func fixup(entity *mfd.TranslationEntity) {

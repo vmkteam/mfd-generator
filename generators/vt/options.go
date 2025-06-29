@@ -3,9 +3,9 @@ package vt
 import (
 	"strings"
 
-	"github.com/dizzyfool/genna/util"
-
 	"github.com/vmkteam/mfd-generator/mfd"
+
+	"github.com/dizzyfool/genna/util"
 )
 
 // Options stores generator options

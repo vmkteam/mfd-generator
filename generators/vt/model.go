@@ -34,7 +34,7 @@ type NamespaceData struct {
 func PackNamespace(vtNamespace *mfd.VTNamespace, options Options) (NamespaceData, error) {
 	imports := mfd.NewSet()
 
-	var models []EntityData
+	models := make([]EntityData, 0, len(vtNamespace.Entities))
 	for _, entity := range vtNamespace.Entities {
 		if entity.Mode == mfd.ModeNone {
 			continue
@@ -379,7 +379,7 @@ type ParamsData struct {
 	FieldName    string
 }
 
-// PackNamespace packs mfd vt attribute to vt params template data
+// PackParams packs mfd vt attribute to vt params template data
 func PackParams(vtAttr *mfd.VTAttribute) ParamsData {
 	name := vtAttr.Attribute.GoType
 	if name[0] == '*' {
@@ -395,7 +395,7 @@ func PackParams(vtAttr *mfd.VTAttribute) ParamsData {
 
 func customToIPConverter(name, entityShortName string, nullable bool) (template.HTML, template.HTML) {
 	cVar := mfd.VarName(name) + "Field"
-	tmpl := ""
+	var tmpl string
 
 	if nullable {
 		tmpl = fmt.Sprintf(`
@@ -416,7 +416,7 @@ func customToIPConverter(name, entityShortName string, nullable bool) (template.
 
 func customFromIPConverter(name string, nullable bool) (template.HTML, template.HTML) {
 	cVar := mfd.VarName(name) + "Field"
-	tmpl := ""
+	var tmpl string
 
 	if nullable {
 		tmpl = fmt.Sprintf(`

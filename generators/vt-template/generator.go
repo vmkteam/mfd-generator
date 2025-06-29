@@ -101,6 +101,8 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 }
 
 // Generate runs generator
+//
+//nolint:gocognit // the func is not as complicated as the linter says
 func (g *Generator) Generate() error {
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false, 0)
@@ -120,33 +122,32 @@ func (g *Generator) Generate() error {
 	// loading templates
 	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, routesDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load routes template error: %w", err)
+		return fmt.Errorf("load routes template, err=%w", err)
 	}
 
 	listTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, listDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load list template error: %w", err)
+		return fmt.Errorf("load list template, err=%w", err)
 	}
 
 	filterTemplate, err := mfd.LoadTemplate(g.options.FiltersTemplatePath, filterDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load filter template error: %w", err)
+		return fmt.Errorf("load filter template, err=%w", err)
 	}
 
 	formTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, formDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load form template error: %w", err)
+		return fmt.Errorf("load form template, err=%w", err)
 	}
 
 	// generating routes for all namespaces
-	output := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
-	if _, err := SaveRoutes(project.VTNamespaces, output, routesTemplate); err != nil {
-		return fmt.Errorf("generate routes error: %w", err)
+	if _, err := g.SaveRoutes(project.VTNamespaces, routesTemplate); err != nil {
+		return fmt.Errorf("generate routes, err=%w", err)
 	}
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, project.Languages)
 	if err != nil {
-		return fmt.Errorf("read translation error: %w", err)
+		return fmt.Errorf("read translation, err=%w", err)
 	}
 
 	for _, namespace := range g.options.Namespaces {
@@ -171,31 +172,25 @@ func (g *Generator) Generate() error {
 				continue
 			}
 
-			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "List.vue")
-			if err := SaveEntity(*entity, output, listTemplate); err != nil {
-				return fmt.Errorf("generate entity %s list error: %w", entity.Name, err)
+			if err := g.SaveEntity(*entity, "List.vue", listTemplate); err != nil {
+				return fmt.Errorf("generate entity %s list, err=%w", entity.Name, err)
 			}
 
-			output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "components/MultiListFilters.vue")
-			if err := SaveEntity(*entity, output, filterTemplate); err != nil {
-				return fmt.Errorf("generate entity %s filters  error: %w", entity.Name, err)
+			if err := g.SaveEntity(*entity, "components/MultiListFilters.vue", filterTemplate); err != nil {
+				return fmt.Errorf("generate entity %s filters, err=%w", entity.Name, err)
 			}
 
 			// do not generate form on
 			if entity.Mode != mfd.ModeReadOnlyWithTemplates {
-				output = path.Join(g.options.Output, "src/pages/Entity", entity.Name, "Form.vue")
-				if err := SaveEntity(*entity, output, formTemplate); err != nil {
-					return fmt.Errorf("generate entity %s form  error: %w", entity.Name, err)
+				if err := g.SaveEntity(*entity, "Form.vue", formTemplate); err != nil {
+					return fmt.Errorf("generate entity %s form, err=%w", entity.Name, err)
 				}
 			}
 
 			// saving translations
 			for lang, translation := range translations {
-				output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
-				if tre := translation.Entity(ns.Name, entity.Name); tre != nil {
-					if err := mfd.MarshalJSONToFile(output, tre.ToJSONMap()); err != nil {
-						return fmt.Errorf("save translation lang %s error: %w", lang, err)
-					}
+				if err := g.SaveLang(translation.Entity(ns.Name, entity.Name), lang); err != nil {
+					return fmt.Errorf("save translation lang %s, err=%w", lang, err)
 				}
 			}
 		}
@@ -205,42 +200,55 @@ func (g *Generator) Generate() error {
 }
 
 // SaveEntity saves vt entity to template with special delims
-func SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
+func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 	parsed, err := template.New("base").
 		Delims("[[", "]]").
 		Funcs(mfd.TemplateFunctions).
 		Parse(tmpl)
 	if err != nil {
-		return fmt.Errorf("parsing template error: %w", err)
+		return fmt.Errorf("parsing template, err=%w", err)
 	}
 
 	packed := PackEntity(entity)
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", packed); err != nil {
-		return fmt.Errorf("processing model template error: %w", err)
+		return fmt.Errorf("processing model template, err=%w", err)
 	}
 
-	_, err = mfd.Save(buffer.Bytes(), output)
+	_, err = mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity", entity.Name, output))
 	return err
 }
 
 // SaveRoutes saves all vt namespaces to routes file
-func SaveRoutes(namespaces []*mfd.VTNamespace, output, tmpl string) (bool, error) {
+func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string) (bool, error) {
 	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
 	if err != nil {
-		return false, fmt.Errorf("parsing template error: %w", err)
+		return false, fmt.Errorf("parsing template, err=%w", err)
 	}
 
 	pack, err := PackRoutesNamespace(namespaces)
 	if err != nil {
-		return false, fmt.Errorf("packing data error: %w", err)
+		return false, fmt.Errorf("packing data, err=%w", err)
 	}
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", pack); err != nil {
-		return false, fmt.Errorf("processing model template error: %w", err)
+		return false, fmt.Errorf("processing model template, err=%w", err)
 	}
 
-	return mfd.Save(buffer.Bytes(), output)
+	return mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity/routes.ts"))
+}
+
+func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
+	if entity == nil {
+		return nil
+	}
+
+	output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
+	if err := mfd.MarshalJSONToFile(output, entity.ToJSONMap()); err != nil {
+		return fmt.Errorf("save translation lang %s, err=%w", lang, err)
+	}
+
+	return nil
 }

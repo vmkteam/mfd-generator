@@ -58,14 +58,14 @@ func (p *Project) AddVTEntity(namespace string, entity *VTEntity) *VTEntity {
 	return ns.AddVTEntity(entity)
 }
 
-// EntityNames returns every entity in project
+// VTNamespaceNames returns every vt namespaces
 func (p *Project) VTNamespaceNames() []string {
-	var result []string
-	for _, ns := range p.VTNamespaces {
-		result = append(result, ns.Name)
+	res := make([]string, len(p.VTNamespaces))
+	for i := range p.VTNamespaces {
+		res[i] = p.VTNamespaces[i].Name
 	}
 
-	return result
+	return res
 }
 
 // VTNamespace is xml element
@@ -111,7 +111,7 @@ func (n *VTNamespace) VTEntityIndex(entity string) int {
 	return -1
 }
 
-// AddEntity adds entity to namespace
+// AddVTEntity adds vt entity to namespace
 func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
 	if index := n.VTEntityIndex(entity.Name); index != -1 {
 		n.Entities[index] = entity
@@ -124,12 +124,12 @@ func (n *VTNamespace) AddVTEntity(entity *VTEntity) *VTEntity {
 
 // VTEntityNames returns every entity in project.
 func (n *VTNamespace) VTEntityNames() []string {
-	var result []string
-	for _, entity := range n.Entities {
-		result = append(result, entity.Name)
+	res := make([]string, len(n.Entities))
+	for i := range n.Entities {
+		res[i] = n.Entities[i].Name
 	}
 
-	return result
+	return res
 }
 
 // VTEntity is xml element
@@ -248,6 +248,19 @@ func (a VTAttributes) Merge(attr *VTAttribute) (VTAttributes, *VTAttribute) {
 	}
 
 	return append(a, attr), attr
+}
+
+func (a VTAttributes) updateAttr(entity *Entity) {
+	for _, vtAttribute := range a {
+		if vtAttribute.AttrName != "" {
+			vtAttribute.Attribute = entity.AttributeByName(vtAttribute.AttrName)
+		}
+		if vtAttribute.SearchName != "" {
+			if search := entity.SearchByName(vtAttribute.SearchName); search != nil {
+				vtAttribute.Attribute = search.Attribute
+			}
+		}
+	}
 }
 
 type TmplAttributes []*TmplAttribute

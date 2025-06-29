@@ -197,6 +197,7 @@ func (g *Generator) Generate() (err error) {
 
 	// printing namespaces string
 	if g.printNamespaces {
+		//nolint:forbidigo
 		fmt.Print(PrintNamespaces(project))
 		return nil
 	}
@@ -206,7 +207,7 @@ func (g *Generator) Generate() (err error) {
 	// reading tables from db
 	entities, err := genna.Read(g.options.Tables, false, false, project.GoPGVer, project.CustomTypeMapping())
 	if err != nil {
-		return fmt.Errorf("read database error: %w", err)
+		return fmt.Errorf("read database, err=%w", err)
 	}
 
 	set := mfd.NewSet()
@@ -247,14 +248,13 @@ func (g *Generator) Generate() (err error) {
 				// asking namespace from prompt
 				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
 					// may happen only in ctrl+c
-					return fmt.Errorf("prompt namespace error: %w", err)
+					return fmt.Errorf("prompt namespace, err=%w", err)
 				}
 				// if user choose to skip
 				if namespace == "skip" {
 					continue // loop
 				}
 			}
-
 		}
 
 		// adding to set
@@ -304,14 +304,14 @@ func (g *Generator) PromptNS(table string, namespaces []string) (result string, 
 }
 
 func PrintNamespaces(project *mfd.Project) string {
-	var formats []string
-
-	for _, namespace := range project.Namespaces {
-		var format []string
-		for _, entity := range namespace.Entities {
-			format = append(format, entity.Table)
+	formats := make([]string, len(project.Namespaces))
+	for i := range project.Namespaces {
+		format := make([]string, len(project.Namespaces[i].Entities))
+		for j := range project.Namespaces[i].Entities {
+			format[j] = project.Namespaces[i].Entities[j].Table
 		}
-		formats = append(formats, fmt.Sprintf("%s:%s", namespace.Name, strings.Join(format, ",")))
+
+		formats[i] = fmt.Sprintf("%s:%s", project.Namespaces[i].Name, strings.Join(format, ","))
 	}
 
 	return strings.Join(formats, ";")
