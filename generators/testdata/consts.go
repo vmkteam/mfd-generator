@@ -13,6 +13,7 @@ const (
 	PackageDB         = "db"
 	PackageVT         = "vt"
 	PackageVTTemplate = "vt-template"
+	PackageVTUpdated  = "vt-updated"
 
 	PrefixAll    = "all"
 	PrefixEntity = "entities"
@@ -27,6 +28,7 @@ var (
 	PathActualDB                 = filepath.Join(PathActual, PackageDB)
 	PathExpectedDB               = filepath.Join(PathExpected, PackageDB)
 	PathActualVT                 = filepath.Join(PathActual, PackageVT)
+	PathUpdatedVT                = filepath.Join(PathExpected, PackageVTUpdated)
 	PathExpectedVT               = filepath.Join(PathExpected, PackageVT)
 	PathActualVTTemplateAll      = filepath.Join(PathActual, PackageVTTemplate, PrefixAll)
 	PathExpectedVTTemplateAll    = filepath.Join(PathExpected, PackageVTTemplate, PrefixAll)

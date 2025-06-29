@@ -95,4 +95,5 @@ Temporary Items
 *.out
 
 generators/testdata/actual/
+generators/testdata/updated/
 
