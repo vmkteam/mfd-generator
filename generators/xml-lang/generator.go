@@ -89,11 +89,12 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.VTNamespaceNames()
 	}
 
+	mfd.AddCustomTranslations(project.Dictionary)
 	langs := mergeLangs(project.Languages, g.options.Languages)
 
 	translations, err := mfd.LoadTranslations(g.options.MFDPath, langs)
 	if err != nil {
-		return fmt.Errorf("read translations error: %w", err)
+		return fmt.Errorf("read translations, err=%w", err)
 	}
 
 	for lang, translation := range translations {
@@ -111,7 +112,7 @@ func (g *Generator) Generate() error {
 			translation = Translate(ns, translation, entities, lang)
 
 			if err := mfd.SaveTranslation(translation, g.options.MFDPath, lang); err != nil {
-				return fmt.Errorf("save translation lang %s error: %w", lang, err)
+				return fmt.Errorf("save translation lang %s, err=%w", lang, err)
 			}
 		}
 	}

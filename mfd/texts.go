@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/dizzyfool/genna/util"
-
 	"github.com/jinzhu/inflection"
 )
 
@@ -21,7 +20,7 @@ var mfdReserved = map[string]struct{}{
 	"OpFunc":        {},
 }
 
-func MakeSearchName(name, searchType string) string {
+func MakeSearchName(name string, searchType SearchType) string {
 	switch searchType {
 	case SearchEquals:
 		return fmt.Sprintf("%sEq", name)
@@ -107,7 +106,7 @@ func ShortVarName(name string) string {
 	return VarName(name)
 }
 
-func UrlName(name string) string {
+func URLName(name string) string {
 	return strings.ReplaceAll(util.Underscore(name), "_", "-")
 }
 

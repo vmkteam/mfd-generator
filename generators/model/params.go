@@ -44,16 +44,16 @@ func ReadParamsFile(filename, pack string) (*ParamsFile, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		src := fmt.Sprintf("package %s", pack)
 		if err := os.WriteFile(filename, []byte(src), 0644); err != nil {
-			return nil, fmt.Errorf("write file error: %w", err)
+			return nil, fmt.Errorf("write file, err=%w", err)
 		}
 	} else if err != nil {
-		return nil, fmt.Errorf("open file error: %w", err)
+		return nil, fmt.Errorf("open file, err=%w", err)
 	}
 
 	set := token.NewFileSet()
 	file, err := parser.ParseFile(set, filename, nil, parser.ParseComments)
 	if err != nil {
-		return nil, fmt.Errorf("open file error: %w", err)
+		return nil, fmt.Errorf("open file, err=%w", err)
 	}
 
 	return &ParamsFile{set: set, file: file}, nil
@@ -108,7 +108,7 @@ func (p *ParamsFile) Add(name string) bool {
 func (p *ParamsFile) Save(filename string) (bool, error) {
 	var buffer bytes.Buffer
 	if err := printer.Fprint(&buffer, p.set, p.file); err != nil {
-		return false, fmt.Errorf("dump ast to file error: %w", err)
+		return false, fmt.Errorf("dump ast to file, err=%w", err)
 	}
 
 	return util.FmtAndSave(buffer.Bytes(), filename)

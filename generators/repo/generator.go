@@ -53,7 +53,6 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
 
 	flags.String(repoTemplateFlag, "", "path to repo custom template\n")
-
 }
 
 // ReadFlags read flags from command
@@ -113,7 +112,7 @@ func (g *Generator) Generate() error {
 
 	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoDefaultTemplate)
 	if err != nil {
-		return fmt.Errorf("load repo template error: %w", err)
+		return fmt.Errorf("load repo template, err=%w", err)
 	}
 
 	for _, namespace := range g.options.Namespaces {
@@ -123,7 +122,7 @@ func (g *Generator) Generate() error {
 			output := path.Join(g.options.Output, mfd.GoFileName(namespace)+".go")
 			data := PackNamespace(ns, g.options)
 			if _, err := mfd.FormatAndSave(data, output, repoTemplate, true); err != nil {
-				return fmt.Errorf("generate repo %s error: %w", namespace, err)
+				return fmt.Errorf("generate repo %s, err=%w", namespace, err)
 			}
 		}
 	}

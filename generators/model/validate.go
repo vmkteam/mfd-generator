@@ -77,7 +77,7 @@ type ValidateEntityData struct {
 func PackValidateEntity(entity mfd.Entity, options Options) ValidateEntityData {
 	imports := mfd.NewSet()
 
-	var columns []ValidateAttributeData
+	columns := make([]ValidateAttributeData, 0, len(entity.Attributes))
 	for _, attribute := range entity.Attributes {
 		// if field can be validated
 		if !isValidatable(*attribute) {

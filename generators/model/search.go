@@ -7,18 +7,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/mfd"
+
 	"github.com/dizzyfool/genna/model"
 	"github.com/dizzyfool/genna/util"
-
-	"github.com/vmkteam/mfd-generator/mfd"
 )
 
 var templates *template.Template
-
-var (
-	searchExcluded = "true"
-	searchIncluded = "false"
-)
 
 func init() {
 	var err error
@@ -39,7 +34,7 @@ type filterData struct {
 	NoPointer    bool
 }
 
-// NamespaceData stores namespace info for template
+// SearchNamespaceData stores namespace info for search template
 type SearchNamespaceData struct {
 	GeneratorVersion string
 	Package          string
@@ -103,8 +98,7 @@ type SearchEntityData struct {
 func PackSearchEntity(entity mfd.Entity, options Options) SearchEntityData {
 	imports := util.NewSet()
 
-	var columns []SearchAttributeData
-
+	columns := make([]SearchAttributeData, 0, len(entity.Attributes))
 	// adding search
 	for _, attribute := range entity.Attributes {
 		if attribute.IsArray || attribute.IsJSON() || attribute.IsMap() {
@@ -154,7 +148,7 @@ func PackSearchAttribute(entity mfd.Entity, attribute mfd.Attribute, options Opt
 	}
 }
 
-// PackSearchAttribute packs mfd attribute to search template data
+// CustomSearchAttribute applies custom search filters by attributes
 func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options) SearchAttributeData {
 	// use default templateColumn as base
 	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
@@ -167,69 +161,20 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	} else {
 		templateColumn.GoType = mfd.MakeSearchType(templateColumn.GoType, search.SearchType)
 	}
-	// TODO Refactor
-	var filterType, exclude string
-	switch search.SearchType {
-	case mfd.SearchEquals:
-		filterType, exclude = "SearchTypeEquals", searchIncluded
-	case mfd.SearchArray:
-		filterType, exclude = "SearchTypeArray", searchIncluded
-		templateColumn.IsArray = true
-	case mfd.SearchG:
-		filterType, exclude = "SearchTypeGreater", searchIncluded
-	case mfd.SearchGE:
-		filterType, exclude = "SearchTypeGE", searchIncluded
-	case mfd.SearchL:
-		filterType, exclude = "SearchTypeLess", searchIncluded
-	case mfd.SearchLE:
-		filterType, exclude = "SearchTypeLE", searchIncluded
-	case mfd.SearchILike:
-		filterType, exclude = "SearchTypeILike", searchIncluded
-	case mfd.SearchLike:
-		filterType, exclude = "SearchTypeLike", searchIncluded
-	case mfd.SearchLeftILike:
-		filterType, exclude = "SearchTypeLILike", searchIncluded
-	case mfd.SearchLeftLike:
-		filterType, exclude = "SearchTypeLLike", searchIncluded
-	case mfd.SearchRightILike:
-		filterType, exclude = "SearchTypeRILike", searchIncluded
-	case mfd.SearchRightLike:
-		filterType, exclude = "SearchTypeRLike", searchIncluded
-	case mfd.SearchNotArray:
-		filterType, exclude = "SearchTypeArray", searchExcluded
-		templateColumn.IsArray = true
-	case mfd.SearchNotEquals:
-		filterType, exclude = "SearchTypeEquals", searchExcluded
-	case mfd.SearchNull:
-		filterType, exclude = "SearchTypeNull", searchIncluded
-	case mfd.SearchNotNull:
-		filterType, exclude = "SearchTypeNull", searchExcluded
-	case mfd.SearchTypeArrayContains:
-		filterType, exclude = "SearchTypeArrayContains", searchIncluded
-		templateColumn.IsArray = false
-	case mfd.SearchTypeArrayNotContains:
-		filterType, exclude = "SearchTypeArrayContains", searchExcluded
-		templateColumn.IsArray = false
-	case mfd.SearchTypeArrayContained:
-		filterType, exclude = "SearchTypeArrayContained", searchIncluded
-		templateColumn.IsArray = true
-	case mfd.SearchTypeArrayIntersect:
-		filterType, exclude = "SearchTypeArrayIntersect", searchIncluded
-		templateColumn.IsArray = true
-	case mfd.SearchTypeJsonbPath:
-		filterType, exclude = "SearchTypeJsonbPath", searchIncluded
-	}
+
+	filterType := mfd.FilterTypeBySearchType[search.SearchType]
+	templateColumn.IsArray = filterType.IsArray
 
 	// rendering custom template
 	var buffer bytes.Buffer
 	// should not fail
-	templates.Execute(&buffer, filterData{
+	_ = templates.Execute(&buffer, filterData{
 		Table:        entity.Name,
 		ShortVarName: mfd.ShortVarName(entity.Name),
 		Column:       template.HTML(columnRef(entity, search)),
 		Value:        templateColumn.Name,
-		SearchType:   filterType,
-		Exclude:      exclude,
+		SearchType:   filterType.Name,
+		Exclude:      filterType.ExcludeString(),
 		NoPointer:    templateColumn.IsArray,
 	})
 
@@ -245,9 +190,9 @@ func columnRef(entity mfd.Entity, search mfd.Search) string {
 		return fmt.Sprintf(`"%s.%s"`, util.Underscore(parts[0]), search.Attribute.DBName)
 	}
 
-	if mfd.IsJson(search.AttrName) {
-		parts := strings.Split(search.AttrName, mfd.JsonFieldSep)
-		return strconv.Quote(search.Attribute.DBName + mfd.JsonFieldSep + strings.Join(parts[1:], mfd.JsonFieldSep))
+	if mfd.IsJSON(search.AttrName) {
+		parts := strings.Split(search.AttrName, mfd.JSONFieldSep)
+		return strconv.Quote(search.Attribute.DBName + mfd.JSONFieldSep + strings.Join(parts[1:], mfd.JSONFieldSep))
 	}
 
 	return fmt.Sprintf("Columns.%s.%s", entity.Name, search.AttrName)

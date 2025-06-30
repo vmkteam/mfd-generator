@@ -28,7 +28,7 @@ type ServiceNamespaceData struct {
 // PackServiceNamespace packs mfd vt namespace to template data
 func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNamespaceData {
 	imports := mfd.NewSet()
-	var entities []ServiceEntityData
+	entities := make([]ServiceEntityData, 0, len(namespace.Entities))
 	for _, entity := range namespace.Entities {
 		if entity.Mode == mfd.ModeNone {
 			continue

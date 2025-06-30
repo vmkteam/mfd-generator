@@ -103,14 +103,14 @@ func newAttribute(entity model.Entity, column model.Column) *mfd.Attribute {
 		ForeignKey: fkModel,
 
 		Addable:   addable(column),
-		Updatable: updateable(column),
+		Updatable: updatable(column),
 		Null:      nullable(column),
 		Min:       0,
 		Max:       column.MaxLen,
 	}
 }
 
-func newSearch(attribute mfd.Attribute, searchType string) *mfd.Search {
+func newSearch(attribute mfd.Attribute, searchType mfd.SearchType) *mfd.Search {
 	return &mfd.Search{
 		Name:       util.ColumnName(mfd.MakeSearchName(attribute.Name, searchType)),
 		AttrName:   attribute.Name,
@@ -134,26 +134,24 @@ func nullable(column model.Column) string {
 
 // addable attribute logic here
 func addable(column model.Column) *bool {
-	result := true
 	if column.PGName == "createdAt" || column.PGName == "modifiedAt" {
-		result = false
+		return ptr(false)
 	}
 
-	return &result
+	return ptr(true)
 }
 
-// updateable attribute logic here
-func updateable(column model.Column) *bool {
-	result := true
+// updatable attribute logic here
+func updatable(column model.Column) *bool {
 	if column.PGName == "createdAt" || column.PGName == "modifiedAt" {
-		result = false
+		return ptr(false)
 	}
 
 	if column.IsPK {
-		result = false
+		return ptr(false)
 	}
 
-	return &result
+	return ptr(true)
 }
 
 // default status column
@@ -173,4 +171,8 @@ func newStatusAttribute(column model.Column) *mfd.Attribute {
 		Addable:    &addable,
 		Updatable:  &updatable,
 	}
+}
+
+func ptr[T comparable](t T) *T {
+	return &t
 }
