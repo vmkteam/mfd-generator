@@ -14,12 +14,18 @@ Usage:
   mfd xml-lang [flags]
 
 Flags:
-  -m, --mfd string      mfd file path
-  -l, --langs strings   languages to generate, use two letters code, eg. ru,en,de. separate by comma
-  -h, --help            help for xml-lang
+  -m, --mfd string           mfd file path
+  -l, --langs strings        languages to generate, use two letters code, eg. ru,en,de. separate by comma
+  -h, --help                 help for xml-lang
+  -n, --namespaces strings   namespaces to generate, must be in mfd file. separate by comma
+  -e, --entities strings     entities to generate, must be in vt.xml file. separate by comma
 ```
 
-`-l, --langs` - генерировать только из перечисленных vt-неймспейсов. Через запятую. Указанные языки будут добавлены в mfd файл
+`-l, --langs` - генерировать только из перечисленных языков. Через запятую. Указанные языки будут добавлены в mfd файл
+
+`-n, --namespaces` - генерировать только из перечесиленных vt-неймспейсов. Через запятую.
+
+`-e, --entities` - генерировать только из перечисленных сущностей. Можно использовать с флагом (`-n`)
 
 #### lang файл
 
