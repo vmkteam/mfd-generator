@@ -21,7 +21,7 @@ func TestGenerator_Generate(t *testing.T) {
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Generate with Entity flag", func() {
 			generator := New()
-			generator.options.MFDPath = filepath.Join(testdata.PathActualMFD)
+			generator.options.MFDPath = testdata.PathActualMFD
 			generator.options.Entities = []string{"category"}
 
 			t.Log("Generate only entity news xml-vt")
@@ -34,7 +34,6 @@ func TestGenerator_Generate(t *testing.T) {
 			expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, "en-one-entity.xml"))
 			So(err, ShouldBeNil)
 			So(content, ShouldResemble, expectedContent)
-
 		})
 
 		Convey("Check correct generate", func() {
