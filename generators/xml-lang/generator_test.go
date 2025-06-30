@@ -13,15 +13,17 @@ import (
 // todo: add generator.options.Output for generate to actual directory. Now it generate in expected dir where located .mfd
 // todo: not generate if *.vt.xml not exists, but err == nil
 func TestGenerator_Generate(t *testing.T) {
-	err := prepareFiles()
+	actualDir := t.TempDir()
+	err := prepareFiles(actualDir)
 	if err != nil {
 		t.Fatal(err)
 	}
+	mfdPathInActual := filepath.Join(actualDir, filepath.Base(testdata.PathExpectedMFD))
 
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Generate with Entity flag", func() {
 			generator := New()
-			generator.options.MFDPath = testdata.PathActualMFD
+			generator.options.MFDPath = mfdPathInActual
 			generator.options.Entities = []string{"category"}
 
 			t.Log("Generate only entity news xml-vt")
@@ -29,7 +31,7 @@ func TestGenerator_Generate(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			t.Logf("Check %s file", "en-one-entity.xml")
-			content, err := os.ReadFile(filepath.Join(testdata.PathActual, "en.xml"))
+			content, err := os.ReadFile(filepath.Join(actualDir, "en.xml"))
 			So(err, ShouldBeNil)
 			expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, "en-one-entity.xml"))
 			So(err, ShouldBeNil)
@@ -38,7 +40,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 		Convey("Check correct generate", func() {
 			generator := New()
-			generator.options.MFDPath = testdata.PathActualMFD
+			generator.options.MFDPath = mfdPathInActual
 
 			t.Log("Generate xml-vt")
 			err = generator.Generate()
@@ -52,7 +54,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				So(err, ShouldBeNil)
 				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, f))
 				So(err, ShouldBeNil)
@@ -62,29 +64,18 @@ func TestGenerator_Generate(t *testing.T) {
 	})
 }
 
-func prepareFiles() error {
-	// clearing actual test data
-	err := os.RemoveAll(testdata.PathActual)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(testdata.PathActual, 0775)
-	if err != nil {
-		return err
-	}
-
-	err = os.Link(testdata.PathExpectedMFD, testdata.PathActualMFD)
+func prepareFiles(actualPath string) error {
+	err := os.Link(testdata.PathExpectedMFD, filepath.Join(actualPath, filepath.Base(testdata.PathExpectedMFD)))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(testdata.PathActual, testdata.FilenameXML))
+	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(actualPath, testdata.FilenameXML))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameVTXML), filepath.Join(testdata.PathActual, testdata.FilenameVTXML))
+	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameVTXML), filepath.Join(actualPath, testdata.FilenameVTXML))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

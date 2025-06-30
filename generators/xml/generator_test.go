@@ -13,6 +13,9 @@ import (
 // todo: panic if ../testdata/actual/*.mfd exists and xml not exist
 func TestGenerator_Generate(t *testing.T) {
 	// Store the PATH environment variable in a variable
+	actualDir := t.TempDir()
+	mfdPathInActual := filepath.Join(actualDir, filepath.Base(testdata.PathExpectedMFD))
+
 	dbdsn, exists := os.LookupEnv("DB_DSN")
 	if !exists {
 		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
@@ -24,7 +27,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			generator.options.Def()
 			generator.options.URL = dbdsn
-			generator.options.Output = testdata.PathActualMFD
+			generator.options.Output = mfdPathInActual
 			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags")
 
 			t.Log("Generate xml")
@@ -39,7 +42,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				if err != nil {
 					t.Fatal(err)
 				}
