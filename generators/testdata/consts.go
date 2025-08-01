@@ -14,7 +14,7 @@ const (
 	PackageVT         = "vt"
 	PackageVTTemplate = "vt-template"
 	PackageVTUpdated  = "vt-updated"
-	PackageDBTest     = "dbtest"
+	PackageDBTest     = "test"
 
 	PrefixAll    = "all"
 	PrefixEntity = "entities"

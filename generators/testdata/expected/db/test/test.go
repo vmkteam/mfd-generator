@@ -1,5 +1,5 @@
 //nolint:all
-package dbtest
+package test
 
 import (
 	"context"

@@ -6,7 +6,7 @@ tools:
 	@curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${LINT_VERSION}
 
 fmt:
-	@goimports -local "github.com/vmkteam/mfd-generator" -l -w $(PKG)
+	@golangci-lint fmt
 
 lint:
 	@golangci-lint version
