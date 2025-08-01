@@ -186,7 +186,7 @@ func MarshalToFile(filename string, v interface{}) error {
 func FormatAndSave(data interface{}, output, tmpl string, format bool) (bool, error) {
 	buffer, err := renderTemplate(data, tmpl)
 	if err != nil {
-		return false, fmt.Errorf("generating data error: %w", err)
+		return false, fmt.Errorf("render template, err=%w", err)
 	}
 
 	if format {
