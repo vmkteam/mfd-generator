@@ -1,7 +1,9 @@
 package model
 
 import (
+	"embed"
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -9,6 +11,9 @@ import (
 	"github.com/dizzyfool/genna/generators/base"
 	"github.com/spf13/cobra"
 )
+
+//go:embed templates/*
+var content embed.FS
 
 const (
 	mfdFlag = "mfd"
@@ -139,6 +144,26 @@ func (g *Generator) Generate() error {
 	validateTemplate, err := mfd.LoadTemplate(g.options.ValidateTemplatePath, validateDefaultTemplate)
 	if err != nil {
 		return fmt.Errorf("load model template, err=%w", err)
+	}
+
+	// generating base db files
+	for _, file := range []string{"db.go", "filter.go", "filter_json.go", "options.go"} {
+		p := path.Join(g.options.Output, file)
+
+		// check file existence
+		if _, err := os.Stat(p); !os.IsNotExist(err) {
+			continue
+		}
+
+		// generate file if not exists
+		b, err := content.ReadFile(fmt.Sprintf("templates/%s.tmpl", file))
+		if err != nil {
+			return fmt.Errorf("read model template, err=%w", err)
+		}
+
+		if _, err = mfd.Save(b, p); err != nil {
+			return fmt.Errorf("save model template, err=%w", err)
+		}
 	}
 
 	if _, err := mfd.FormatAndSave(validateDate, output, validateTemplate, true); err != nil {

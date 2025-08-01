@@ -125,9 +125,9 @@ import (
     "{{.}}"{{end}}
 {{end}}
 
-	"{{.EmbedLogPackage}}"
 	"{{.ModelPackage}}"
 
+	"{{.EmbedLogPackage}}"
 	"github.com/vmkteam/zenrpc/v2"
 )
 
