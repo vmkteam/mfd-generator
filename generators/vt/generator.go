@@ -7,7 +7,6 @@ import (
 	"path"
 	"regexp"
 	"slices"
-	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -100,7 +99,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.EmbedLogPackage == "" {
-		g.options.EmbedLogPackage = strings.TrimSuffix(g.options.ModelPackage, path.Base(g.options.ModelPackage)) + "embedlog"
+		g.options.EmbedLogPackage = "github.com/vmkteam/embedlog"
 	}
 
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {

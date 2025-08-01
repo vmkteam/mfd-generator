@@ -52,7 +52,6 @@ func NewNewsSummary(in *db.News) *NewsSummary {
 		Category: NewCategorySummary(in.Category),
 		Status:   NewStatus(in.StatusID),
 	}
-	//data
 }
 
 func NewNews(in *db.News) *News {
@@ -75,7 +74,6 @@ func NewNews(in *db.News) *News {
 		Status:   NewStatus(in.StatusID),
 	}
 
-	//data
 	return news
 }
 

@@ -211,8 +211,6 @@ func (s NewsService) dbSort(ops *ViewOps) db.OpFunc {
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
 
-	//data
-
 	return v
 }
 
