@@ -31,7 +31,7 @@ func New{{.Name}}Repo(db orm.DB) {{.Name}}Repo {
 			Tables.{{.Name}}.Name: { {Column: Columns.{{.Name}}.{{.SortField}}, Direction: {{.SortDir}}} },{{end}}{{end}}
 		},
 		join: map[string][]string{ {{range $i, $e := .Entities}}
-			Tables.{{$e.Name}}.Name: {TableColumns{{range .Relations}}, Columns.{{$e.Name}}.{{.}}{{end}} },{{end}} 
+			Tables.{{$e.Name}}.Name: {TableColumns{{range .Relations}}, Columns.{{$e.Name}}.{{.Name}}{{end}} },{{end}} 
 		},
 	}
 }

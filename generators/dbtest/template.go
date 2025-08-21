@@ -1,6 +1,6 @@
 package dbtest
 
-const connTemplate = `//nolint:all
+const baseFileTemplate = `//nolint:all
 package {{.Package}}
 
 import (
@@ -15,7 +15,6 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
-	"github.com/google/uuid"
 )
 
 type Cleaner func()
@@ -93,4 +92,85 @@ func setup() (*pg.DB, error) {
 
 	return conn, nil
 }
+`
+
+const funcFileTemplate = `
+package {{.Package}}
+
+import (
+	"errors"
+	"fmt"
+	"testing"
+
+	"{{.DBPackage}}"
+)
+
+var (
+	errNotFound = errors.New("not found")
+)
+
+`
+
+const funcTemplate = `// {{.Entity.Name}} creates and returns a {{.Entity.Name}} entity with cleanup function
+func {{.Entity.Name}}(t *testing.T, dbo db.DB, in *db.{{.Entity.Name}}) (*db.{{.Entity.Name}}, Cleaner) {
+	repo := db.New{{.Namespace}}Repo(dbo)
+	var cleaners []Cleaner
+
+	// Fill the incoming entity
+	if in == nil {
+		in = &db.{{.Entity.Name}}{}
+	}
+
+	{{if .Entity.HasPKs}}
+	// Check if PKs are provided
+	if {{ range $i, $e := .Entity.PKs}}
+    {{- if gt $i 0 }} && {{ end -}} in.{{$e.Field}} != {{$e.Zero}}
+	{{- end}} {
+		// Fetch the entity by PK
+		{{.Entity.VarName}}, err := repo.{{.Entity.Name}}ByID(t.Context(){{range .Entity.PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Entity.Name}}())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// We must find the entity by PK
+		if {{.Entity.VarName}} == nil {
+			t.Fatal(fmt.Errorf("fetch the main entity {{.Entity.Name}} by
+			{{- range $i, $e := .Entity.PKs}} {{.Field}}=%v
+			{{- if gt $i 0 }}, {{ end -}} 
+			{{- end}}, err=%w"{{- range .Entity.PKs}}, in.{{.Field}}{{- end}}, errNotFound))
+		}
+
+		// Return if found without real cleanup
+		return {{.Entity.VarName}}, emptyClean
+	}
+	{{- end}}
+
+	{{if .Entity.HasRelations}}
+	// Check embedded entities by PK
+	{{- range .Entity.Relations}}
+	if in.{{.Name}} == nil {
+		rel, relatedCleaner := {{.Name}}(t, dbo, nil)
+		in.{{.Name}} = rel
+		cleaners = append(cleaners, relatedCleaner)
+	}
+	{{end}}{{end}}
+
+	// Create the main entity
+	{{.Entity.VarName}}, err := repo.Add{{.Entity.Name}}(t.Context(), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return {{.Entity.VarName}}, func() {
+		if _, err := dbo.ModelContext(t.Context(), &db.{{.Entity.Name}}{ {{range .Entity.PKs}}{{.Field}}: {{$.Entity.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
+			t.Fatal(err)
+		}
+
+		// Clean up related entities from the last to the first
+		for i := len(cleaners) - 1; i >= 0; i-- {
+			cleaners[i]()
+		}
+	}
+}
+
 `

@@ -26,6 +26,8 @@ const (
 	converterTemplateFlag = "converter-tmpl"
 	serviceTemplateFlag   = "service-tmpl"
 	serverTemplateFlag    = "server-tmpl"
+
+	defaultLoggerPkg = "github.com/vmkteam/embedlog"
 )
 
 // CreateCommand creates generator command
@@ -99,7 +101,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.EmbedLogPackage == "" {
-		g.options.EmbedLogPackage = "github.com/vmkteam/embedlog"
+		g.options.EmbedLogPackage = defaultLoggerPkg
 	}
 
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {

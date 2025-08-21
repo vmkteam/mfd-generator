@@ -27,3 +27,6 @@ generate:
 
 mod:
 	@go mod tidy
+
+build:
+	@go build github.com/vmkteam/mfd-generator

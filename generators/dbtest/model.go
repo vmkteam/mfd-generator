@@ -6,27 +6,26 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 )
 
-// NamespaceData stores namespace info for template
-type NamespaceData struct {
+// FuncRenderData stores data for generating functions template
+type FuncRenderData struct {
 	Package   string
 	DBPackage string
 
 	ProjectName string
-
-	GoPGVer string
+	GoPGVer     string
 }
 
-// PackNamespace packs mfd namespace to template data
-func PackNamespace(options Options) NamespaceData {
-	goPGVer := ""
+// PackFuncRenderData packs mfd namespace to template data
+func PackFuncRenderData(options Options) FuncRenderData {
+	var goPGVer string
 	if options.GoPGVer != mfd.GoPG8 {
 		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
 
-	return NamespaceData{
+	return FuncRenderData{
+		GoPGVer:     goPGVer,
 		Package:     options.Package,
 		DBPackage:   options.DBPackage,
 		ProjectName: options.ProjectName,
-		GoPGVer:     goPGVer,
 	}
 }

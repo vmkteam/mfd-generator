@@ -91,7 +91,7 @@ type EntityData struct {
 	SortDir   string
 
 	HasRelations bool
-	Relations    []string
+	Relations    []RelationData
 
 	Columns []AttributeData
 
@@ -159,9 +159,9 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	}
 
 	// store all relation names for join field
-	relNames := make([]string, len(te.Relations))
+	relNames := make([]RelationData, len(te.Relations))
 	for i := range te.Relations {
-		relNames[i] = te.Relations[i].Name
+		relNames[i] = PackRelationData(te.Relations[i])
 	}
 
 	// getting default sorts
@@ -210,6 +210,23 @@ type AttributeData struct {
 	Name      string
 	Addable   bool
 	Updatable bool
+}
+
+type RelationData struct {
+	Name string
+	Type string
+
+	Tag     template.HTML
+	Comment template.HTML
+}
+
+func PackRelationData(in model.RelationData) RelationData {
+	return RelationData{
+		Name:    in.Name,
+		Type:    in.Type,
+		Tag:     in.Tag,
+		Comment: in.Comment,
+	}
 }
 
 func sort(entity mfd.Entity) (string, string) {

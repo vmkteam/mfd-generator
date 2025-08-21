@@ -31,8 +31,6 @@ type Options struct {
 
 	// Entities to generate
 	Entities []string
-
-	ConnTemplatePath string
 }
 
 // Def fills default values of an options
