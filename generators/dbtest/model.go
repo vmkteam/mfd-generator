@@ -142,6 +142,9 @@ type EntityData struct {
 	NeedPreparingDependedRelsFromRoot bool
 	PreparingDependedRelsFromRoot     []string
 
+	NeedPreparingFillingSameAsRootRels bool
+	PreparingFillingSameAsRootRels     []string
+
 	Columns []AttributeData
 
 	HasNotAddable bool
@@ -268,6 +271,9 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(curRel.Relations, curRel, "in", "in")
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 
+	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(relNamesMap)
+	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
+
 	return res
 }
 
@@ -284,14 +290,23 @@ func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embe
 				needVal := !curEntity.NilCheck && parentRel.NilCheck
 				switch {
 				case needAmpersand:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = &in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field))
+					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = &%[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root))
 				case needVal:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = val(in.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field))
+					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = val(%[4]s.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field, root))
 				default:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field))
+					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = %[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root))
 				}
 			}
 		}
+	}
+
+	return res
+}
+
+func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
+	res := make([]string, 0, len(sameRelNames))
+	for name := range sameRelNames {
+		res = append(res, fmt.Sprintf("in.%[1]s = rel.%[1]s", name))
 	}
 
 	return res

@@ -173,7 +173,7 @@ func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleane
 	if {{ range $i, $e := .Entity.PKs}}
     {{- if gt $i 0 }} && {{ end -}}
     {{- if $relation.NilCheck}}in.{{$relation.Name}}{{$e.Field}} != nil && *{{end -}}in.{{$relation.Name}}{{$e.Field}} != {{$e.Zero}}
-	{{- end}} {
+	{{- end }} {
 		{{- range $i, $e := .Entity.PKs}}
 		in.{{$relation.Name}}.{{$e.Field}} = {{- if $relation.NilCheck}}*{{end -}}in.{{$relation.Name}}{{$e.Field}} // Fill them for the next fetching step
 		{{- end }}
@@ -182,6 +182,13 @@ func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleane
 	{
 		rel, relatedCleaner := {{.Name}}(t, dbo, in.{{$relation.Name}})
 		in.{{.Name}} = rel
+		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
+		// Fill the same relations as in {{$relation.Name}})
+		{{- range .Entity.PreparingFillingSameAsRootRels }}
+		{{.}}
+		{{- end }}
+		{{- end }}
+		
 		cleaners = append(cleaners, relatedCleaner)
 	}
 	{{end}}{{end}}
