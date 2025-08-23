@@ -10,12 +10,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// todo: panic if ../testdata/actual/*.mfd exists and xml not exist
+// todo: error if .mfd file has already existed but .xml files was deleted
 func TestGenerator_Generate(t *testing.T) {
-	// Store the PATH environment variable in a variable
-	actualDir := t.TempDir()
-	mfdPathInActual := filepath.Join(actualDir, filepath.Base(testdata.PathExpectedMFD))
-
 	dbdsn, exists := os.LookupEnv("DB_DSN")
 	if !exists {
 		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
@@ -27,8 +23,8 @@ func TestGenerator_Generate(t *testing.T) {
 
 			generator.options.Def()
 			generator.options.URL = dbdsn
-			generator.options.Output = mfdPathInActual
-			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags")
+			generator.options.Output = testdata.PathActualMFD
+			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities")
 
 			t.Log("Generate xml")
 			So(generator.Generate(), ShouldBeNil)
@@ -37,12 +33,13 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
 				"portal.xml":     {},
+				"geo.xml":        {},
 				"newsportal.mfd": {},
 			}
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(actualDir, f))
+				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
 				if err != nil {
 					t.Fatal(err)
 				}

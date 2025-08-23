@@ -2,6 +2,7 @@
     <Name>newsportal.mfd</Name>
     <PackageNames>
         <string>portal</string>
+        <string>geo</string>
     </PackageNames>
     <Languages>
         <string>en</string>

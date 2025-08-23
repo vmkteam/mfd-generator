@@ -20,6 +20,9 @@
                 <Attribute Name="Preview" DBName="preview" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
                 <Attribute Name="Content" DBName="content" DBType="text" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="CategoryID" DBName="categoryId" DBType="int4" GoType="int" PK="false" FK="Category" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="*int" PK="false" FK="Country" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="RegionID" DBName="regionId" DBType="int4" GoType="*int" PK="false" FK="Region" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="CityID" DBName="cityId" DBType="int4" GoType="*int" PK="false" FK="City" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="TagIDs" DBName="tagIds" IsArray="true" DBType="int4" GoType="[]int" PK="false" FK="Tag" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
                 <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0"></Attribute>
                 <Attribute Name="PublishedAt" DBName="publishedAt" DBType="timestamptz" GoType="*time.Time" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>

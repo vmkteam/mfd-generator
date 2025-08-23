@@ -12,7 +12,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/generators/base"
@@ -94,6 +93,8 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	if g.options.Namespaces, err = flags.GetStringSlice(nssFlag); err != nil {
 		return err
 	}
+
+	g.options.Def()
 
 	return
 }
@@ -220,22 +221,15 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace, tmpl *template.Template
 	}
 
 	buffer := new(bytes.Buffer)
-	nsData := repo.PackNamespace(ns, repo.Options{Package: g.options.Package})
+	nsData := PackNamespace(ns, g.options)
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
 		if _, ok := existingFunctions[entity.Name]; ok {
 			continue // Skip if the function already exists
 		}
 
-		data := struct {
-			Namespace string
-			Entity    repo.EntityData
-		}{
-			Namespace: nsData.Name,
-			Entity:    entity,
-		}
 		// Render func
-		if err := tmpl.ExecuteTemplate(buffer, "base", data); err != nil {
+		if err := tmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
 		}
 	}

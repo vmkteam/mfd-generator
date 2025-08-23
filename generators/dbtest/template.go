@@ -5,6 +5,7 @@ package {{.Package}}
 
 import (
 	"context"
+	"errors"
 	"log"
 	"math/rand"
 	"os"
@@ -15,6 +16,10 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
+)
+
+var (
+	errNotFound = errors.New("not found")
 )
 
 type Cleaner func()
@@ -92,79 +97,107 @@ func setup() (*pg.DB, error) {
 
 	return conn, nil
 }
+
+func val[T any, P *T](p P) T {
+	if p != nil {
+		return *p
+	}
+	var def T
+	return def
+}
+
 `
 
 const funcFileTemplate = `
 package {{.Package}}
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
 	"{{.DBPackage}}"
 )
 
-var (
-	errNotFound = errors.New("not found")
-)
-
 `
 
-const funcTemplate = `// {{.Entity.Name}} creates and returns a {{.Entity.Name}} entity with cleanup function
-func {{.Entity.Name}}(t *testing.T, dbo db.DB, in *db.{{.Entity.Name}}) (*db.{{.Entity.Name}}, Cleaner) {
+const funcTemplate = `// {{.Name}} creates and returns a {{.Name}} entity with cleanup function
+func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleaner) {
 	repo := db.New{{.Namespace}}Repo(dbo)
 	var cleaners []Cleaner
 
 	// Fill the incoming entity
 	if in == nil {
-		in = &db.{{.Entity.Name}}{}
+		in = &db.{{.Name}}{}
 	}
 
-	{{if .Entity.HasPKs}}
+	{{/*TODO: Fill FK entities */}}
+
+	{{if .HasPKs}}
 	// Check if PKs are provided
-	if {{ range $i, $e := .Entity.PKs}}
+	if {{ range $i, $e := .PKs}}
     {{- if gt $i 0 }} && {{ end -}} in.{{$e.Field}} != {{$e.Zero}}
 	{{- end}} {
 		// Fetch the entity by PK
-		{{.Entity.VarName}}, err := repo.{{.Entity.Name}}ByID(t.Context(){{range .Entity.PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Entity.Name}}())
+		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// We must find the entity by PK
-		if {{.Entity.VarName}} == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity {{.Entity.Name}} by
-			{{- range $i, $e := .Entity.PKs}} {{.Field}}=%v
+		if {{.VarName}} == nil {
+			t.Fatal(fmt.Errorf("fetch the main entity {{.Name}} by
+			{{- range $i, $e := .PKs}} {{.Field}}=%v
 			{{- if gt $i 0 }}, {{ end -}} 
-			{{- end}}, err=%w"{{- range .Entity.PKs}}, in.{{.Field}}{{- end}}, errNotFound))
+			{{- end}}, err=%w"{{- range .PKs}}, in.{{.Field}}{{- end}}, errNotFound))
 		}
 
 		// Return if found without real cleanup
-		return {{.Entity.VarName}}, emptyClean
+		return {{.VarName}}, emptyClean
 	}
 	{{- end}}
 
-	{{if .Entity.HasRelations}}
-	// Check embedded entities by PK
-	{{- range .Entity.Relations}}
-	if in.{{.Name}} == nil {
-		rel, relatedCleaner := {{.Name}}(t, dbo, nil)
+	{{- if .NeedPreparingDependedRelsFromRoot }}
+	// Inject relation IDs into relations which have the same relations
+	{{- range .PreparingDependedRelsFromRoot }}
+	{{.}}
+	{{- end}}
+	{{- end}}
+
+	{{ if .HasRelations }}
+	// Check embedded entities by FK
+	{{- $entity := . }}
+	{{- range .Relations }}
+
+	// {{.Name}}. Check if all FKs are provided.
+	{{- $relation := .}}
+	if {{ range $i, $e := .Entity.PKs}}
+    {{- if gt $i 0 }} && {{ end -}}
+    {{- if $relation.NilCheck}}in.{{$relation.Name}}{{$e.Field}} != nil && *{{end -}}in.{{$relation.Name}}{{$e.Field}} != {{$e.Zero}}
+	{{- end}} {
+		{{- range $i, $e := .Entity.PKs}}
+		in.{{$relation.Name}}.{{$e.Field}} = {{- if $relation.NilCheck}}*{{end -}}in.{{$relation.Name}}{{$e.Field}} // Fill them for the next fetching step
+		{{- end }}
+	}
+	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
+	{
+		rel, relatedCleaner := {{.Name}}(t, dbo, in.{{$relation.Name}})
 		in.{{.Name}} = rel
 		cleaners = append(cleaners, relatedCleaner)
 	}
 	{{end}}{{end}}
 
 	// Create the main entity
-	{{.Entity.VarName}}, err := repo.Add{{.Entity.Name}}(t.Context(), in)
+	{{.VarName}}, err := repo.Add{{.Name}}(t.Context(), in)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return {{.Entity.VarName}}, func() {
-		if _, err := dbo.ModelContext(t.Context(), &db.{{.Entity.Name}}{ {{range .Entity.PKs}}{{.Field}}: {{$.Entity.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
+	return {{.VarName}}, func() {
+		{{- if .HasPKs}}
+		if _, err := dbo.ModelContext(t.Context(), &db.{{.Name}}{ {{range .PKs}}{{.Field}}: {{$.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
+		{{- end}}
 
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
