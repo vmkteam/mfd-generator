@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"slices"
+	"strings"
 
 	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -139,8 +140,12 @@ type EntityData struct {
 	relationByName            map[string]RelationData
 	relationNamesHasRelations map[string]struct{}
 
+	HasNestedSameRelations bool
+	NestedSameRelations    []string
+
 	NeedPreparingDependedRelsFromRoot bool
-	PreparingDependedRelsFromRoot     []string
+	PreparingDependedRelsFromRoot     []template.HTML
+	InitDependedRelsFromRoot          []template.HTML
 
 	NeedPreparingFillingSameAsRootRels bool
 	PreparingFillingSameAsRootRels     []string
@@ -268,7 +273,7 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	}
 
 	curRel := res
-	res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(curRel.Relations, curRel, "in", "in")
+	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(curRel.Relations, curRel, "in", "in")
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 
 	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(relNamesMap)
@@ -277,11 +282,17 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	return res
 }
 
-func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embeddedRels, root string) []string {
-	var res []string
+// walkThroughDependedEntities Walks through all relations of current relations recursively and finds same relations.
+// Returns prepared strings to inject in a layout.
+// The first value is inici
+// The second one is filling root PKs to same nested relations.
+func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embeddedRels, root string) (initNestedRels, fillNestedRels []template.HTML) {
+	var hasAlreadyPrepared bool
 	for _, curEntity := range curRels {
 		if _, ok := parent.relationNamesHasRelations[curEntity.Name]; ok {
-			res = append(res, walkThroughDependedEntities(curEntity.Entity.Relations, parent, embeddedRels+"."+curEntity.Name, root)...)
+			init, filling := walkThroughDependedEntities(curEntity.Entity.Relations, parent, embeddedRels+"."+curEntity.Name, root)
+			initNestedRels = append(initNestedRels, init...) // Fill from the end to the start
+			fillNestedRels = append(fillNestedRels, filling...)
 		}
 
 		if parentRel, ok := parent.relationByName[curEntity.Name]; ok && embeddedRels != root {
@@ -290,17 +301,33 @@ func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embe
 				needVal := !curEntity.NilCheck && parentRel.NilCheck
 				switch {
 				case needAmpersand:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = &%[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = &%[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root)))
 				case needVal:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = val(%[4]s.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field, root))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = val(%[4]s.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field, root)))
 				default:
-					res = append(res, fmt.Sprintf("%[1]s.%[2]s%[3]s = %[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = %[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root)))
 				}
+			}
+
+			if !hasAlreadyPrepared {
+				relsLevels := strings.Split(embeddedRels, ".")
+				lastIndex := 1
+				if len(relsLevels) > 1 {
+					lastIndex = len(relsLevels) - 1
+				}
+
+				str := template.HTML(fmt.Sprintf(`
+	if %[1]s == nil {
+	%[1]s = &db.%[2]s{}
+}`, embeddedRels, relsLevels[lastIndex]))
+				// Fill from the end to the start
+				initNestedRels = append([]template.HTML{(str)}, initNestedRels...) // Fill from the end to the start
+				hasAlreadyPrepared = true
 			}
 		}
 	}
 
-	return res
+	return
 }
 
 func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
@@ -370,4 +397,29 @@ func sort(entity mfd.Entity) (string, string) {
 	}
 
 	return "", ""
+}
+
+type OpFuncLayoutBuilder interface {
+	Name(entity string) string
+	LoadParsedTemplate() (*template.Template, error)
+}
+
+type OpFuncWithRelations struct{}
+
+func (op OpFuncWithRelations) Name(entity string) string {
+	return fmt.Sprintf("With%sRelations", entity)
+}
+
+func (op OpFuncWithRelations) LoadParsedTemplate() (*template.Template, error) {
+	// Prepare the with relations func template
+	withRelsFuncTmpl, err := mfd.LoadTemplate("", funcOpWithRelTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("load func template, err=%w", err)
+	}
+	parsedWithRelsFuncTmpl, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(withRelsFuncTmpl)
+	if err != nil {
+		return nil, fmt.Errorf("parsing func template, err=%w", err)
+	}
+
+	return parsedWithRelsFuncTmpl, nil
 }

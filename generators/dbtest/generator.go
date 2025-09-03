@@ -123,22 +123,11 @@ func (g *Generator) Generate() (err error) {
 		g.options.Namespaces = project.NamespaceNames
 	}
 
-	// Prepare template
-	tmpl, err := mfd.LoadTemplate("", funcTemplate)
-	if err != nil {
-		return fmt.Errorf("load func template, err=%w", err)
-	}
-
-	parsedTmpl, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
-	if err != nil {
-		return fmt.Errorf("parsing func template, err=%w", err)
-	}
-
 	for _, namespace := range g.options.Namespaces {
 		// generating each func in separate files by namespace
 		if ns := project.Namespace(namespace); ns != nil {
 			// Generate test helpers
-			err = g.generateFuncsByNS(ns, parsedTmpl)
+			err = g.generateFuncsByNS(ns)
 			if err != nil {
 				return fmt.Errorf("failed to generate test helpers: %w", err)
 			}
@@ -196,7 +185,7 @@ func (g *Generator) CreateFuncFile(nsName string) (bool, error) {
 }
 
 // generateFuncsByNS generates the test helper functions
-func (g *Generator) generateFuncsByNS(ns *mfd.Namespace, tmpl *template.Template) error {
+func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	// Getting file name without dots
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 
@@ -222,6 +211,22 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace, tmpl *template.Template
 
 	buffer := new(bytes.Buffer)
 	nsData := PackNamespace(ns, g.options)
+
+	// Prepare the main func template
+	mainFuncTmpl, err := mfd.LoadTemplate("", funcTemplate)
+	if err != nil {
+		return fmt.Errorf("load func template, err=%w", err)
+	}
+	parsedMainFuncTmpl, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(mainFuncTmpl)
+	if err != nil {
+		return fmt.Errorf("parsing func template, err=%w", err)
+	}
+
+	withRelTmpl, err := OpFuncWithRelations{}.LoadParsedTemplate()
+	if err != nil {
+		return fmt.Errorf("load with rels func template, err=%w", err)
+	}
+
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
 		if _, ok := existingFunctions[entity.Name]; ok {
@@ -229,7 +234,16 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace, tmpl *template.Template
 		}
 
 		// Render func
-		if err := tmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
+		if err := parsedMainFuncTmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
+			return fmt.Errorf("processing func template, err=%w", err)
+		}
+
+		if _, ok := existingFunctions[OpFuncWithRelations{}.Name(entity.Name)]; ok {
+			continue // Skip if the function already exists
+		}
+
+		// Render WithRelations opFunc
+		if err := withRelTmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
 		}
 	}

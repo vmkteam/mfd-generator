@@ -116,12 +116,17 @@ import (
 	"testing"
 
 	"{{.DBPackage}}"
+
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
+	"github.com/brianvoe/gofakeit/v7"
 )
 
 `
 
-const funcTemplate = `// {{.Name}} creates and returns a {{.Name}} entity with cleanup function
-func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleaner) {
+const funcTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner
+
+// {{.Name}} creates and returns a {{.Name}} entity with cleanup function
+func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFunc) (*db.{{.Name}}, Cleaner) {
 	repo := db.New{{.Namespace}}Repo(dbo)
 	var cleaners []Cleaner
 
@@ -129,8 +134,6 @@ func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleane
 	if in == nil {
 		in = &db.{{.Name}}{}
 	}
-
-	{{/*TODO: Fill FK entities */}}
 
 	{{if .HasPKs}}
 	// Check if PKs are provided
@@ -156,42 +159,11 @@ func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleane
 	}
 	{{- end}}
 
-	{{- if .NeedPreparingDependedRelsFromRoot }}
-	// Inject relation IDs into relations which have the same relations
-	{{- range .PreparingDependedRelsFromRoot }}
-	{{.}}
-	{{- end}}
-	{{- end}}
-
-	{{ if .HasRelations }}
-	// Check embedded entities by FK
-	{{- $entity := . }}
-	{{- range .Relations }}
-
-	// {{.Name}}. Check if all FKs are provided.
-	{{- $relation := .}}
-	if {{ range $i, $e := .Entity.PKs}}
-    {{- if gt $i 0 }} && {{ end -}}
-    {{- if $relation.NilCheck}}in.{{$relation.Name}}{{$e.Field}} != nil && *{{end -}}in.{{$relation.Name}}{{$e.Field}} != {{$e.Zero}}
-	{{- end }} {
-		{{- range $i, $e := .Entity.PKs}}
-		in.{{$relation.Name}}.{{$e.Field}} = {{- if $relation.NilCheck}}*{{end -}}in.{{$relation.Name}}{{$e.Field}} // Fill them for the next fetching step
-		{{- end }}
+	for _, op := range ops {
+		if cl := op(t, dbo, in); cl != nil {
+			cleaners = append(cleaners, cl)
+		}
 	}
-	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
-	{
-		rel, relatedCleaner := {{.Name}}(t, dbo, in.{{$relation.Name}})
-		in.{{.Name}} = rel
-		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
-		// Fill the same relations as in {{$relation.Name}})
-		{{- range .Entity.PreparingFillingSameAsRootRels }}
-		{{.}}
-		{{- end }}
-		{{- end }}
-		
-		cleaners = append(cleaners, relatedCleaner)
-	}
-	{{end}}{{end}}
 
 	// Create the main entity
 	{{.VarName}}, err := repo.Add{{.Name}}(t.Context(), in)
@@ -212,5 +184,64 @@ func {{.Name}}(t *testing.T, dbo db.DB, in *db.{{.Name}}) (*db.{{.Name}}, Cleane
 		}
 	}
 }
+
+`
+
+const funcOpWithRelTemplate = `{{- if .HasRelations }}
+// With{{.Name}}Relations optional function which allows to create all {{.Name}} relations or fetch them if provided.
+func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+	var cleaners []Cleaner
+
+	{{- if .NeedPreparingDependedRelsFromRoot }}
+	// Prepare nested relations which have the same relations
+	{{- range .InitDependedRelsFromRoot }}
+	{{.}}
+	{{- end}}
+
+	// Inject relation IDs into relations which have the same relations
+	{{- range .PreparingDependedRelsFromRoot }}
+	{{.}}
+	{{- end}}
+	{{- end}}
+
+	// Check embedded entities by FK
+	{{- $entity := . }}
+	{{- range .Relations }}
+
+	// {{.Name}}. Check if all FKs are provided.
+	{{- $relation := .}}
+	if {{ range $i, $e := .Entity.PKs}}
+    {{- if gt $i 0 }} && {{ end -}}
+    {{- if $relation.NilCheck}}in.{{$relation.Name}}{{$e.Field}} != nil && *{{end -}}in.{{$relation.Name}}{{$e.Field}} != {{$e.Zero}}
+	{{- end }} {
+		{{- range $i, $e := .Entity.PKs}}
+		in.{{$relation.Name}}.{{$e.Field}} = {{- if $relation.NilCheck}}*{{end -}}in.{{$relation.Name}}{{$e.Field}} // Fill them for the next fetching step
+		{{- end }}
+	}
+	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
+	{
+		rel, relatedCleaner := {{.Name}}(t, dbo, in.{{$relation.Name}}
+		{{- if .Entity.HasRelations }}, With{{.Name}}Relations {{ end -}}
+		, WithFake{{.Name}})
+		in.{{.Name}} = rel
+		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
+		// Fill the same relations as in {{$relation.Name}})
+		{{- range .Entity.PreparingFillingSameAsRootRels }}
+		{{.}}
+		{{- end }}
+		{{- end }}
+		
+		cleaners = append(cleaners, relatedCleaner)
+	}
+	{{end}}
+
+	return func() {
+		// Clean up related entities from the last to the first
+		for i := len(cleaners) - 1; i >= 0; i-- {
+			cleaners[i]()
+		}
+	}
+}
+{{- end}}
 
 `
