@@ -310,16 +310,13 @@ func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embe
 			}
 
 			if !hasAlreadyPrepared {
-				relsLevels := strings.Split(embeddedRels, ".")
-				lastIndex := 1
-				if len(relsLevels) > 1 {
-					lastIndex = len(relsLevels) - 1
-				}
+				// Split the chain of relations by dots. We need to extract the last element
+				relsChain := strings.Split(embeddedRels, ".")
 
 				str := template.HTML(fmt.Sprintf(`
 	if %[1]s == nil {
 	%[1]s = &db.%[2]s{}
-}`, embeddedRels, relsLevels[lastIndex]))
+}`, embeddedRels, relsChain[len(relsChain)-1]))
 				// Fill from the end to the start
 				initNestedRels = append([]template.HTML{(str)}, initNestedRels...) // Fill from the end to the start
 				hasAlreadyPrepared = true
