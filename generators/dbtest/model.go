@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"html/template"
+	"io"
 	"slices"
 	"strings"
 
@@ -121,7 +122,8 @@ type EntityData struct {
 
 	Namespace string
 
-	Imports []string
+	HasImports bool
+	Imports    []string
 
 	VarName       string
 	VarNamePlural string
@@ -142,6 +144,9 @@ type EntityData struct {
 
 	HasNestedSameRelations bool
 	NestedSameRelations    []string
+
+	NeedFakeFilling bool
+	FakeFilling     []template.HTML
 
 	NeedPreparingDependedRelsFromRoot bool
 	PreparingDependedRelsFromRoot     []template.HTML
@@ -177,14 +182,16 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 
 	imports := mfd.NewSet()
 	columns := make([]AttributeData, 0, len(te.Columns))
+	fakeFiller := NewFakeFiller()
+	fakeFillingData := make([]template.HTML, 0, len(te.Columns))
 
 	for _, column := range te.Columns {
-		// if has status - generate soft delete
+		// if it has status - generate soft delete
 		if mfd.IsStatus(column.DBName) {
 			hasStatus = true
 		}
 
-		// if key - generate arg(s) for GetByID function
+		// if a key - generate arg(s) for GetByID function
 		if column.PrimaryKey {
 			if imp := mfd.Import(&column.Attribute, options.GoPGVer, options.CustomTypes); imp != "" {
 				imports.Append(imp)
@@ -209,7 +216,24 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 			Addable:       column.IsAddable(),
 			Updatable:     column.IsUpdatable(),
 		})
+
+		// Filling OpFunc which generates fake data
+		if !column.Nullable() && !column.PrimaryKey && column.ForeignEntity == nil {
+			// Check if the column has a known field name
+			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
+			if ok {
+				// If it is, it generates more for the field data
+				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName)
+				fakeFillingData = append(fakeFillingData, condition)
+			} else {
+				// By default, generates something depending on a field type
+				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), fakeFiller.ByType(column.Name, column.GoType, column.Max))
+				fakeFillingData = append(fakeFillingData, condition)
+			}
+		}
 	}
+
+	imports.Append(fakeFiller.Imports()...)
 
 	// store all relation names for join field
 	relNames := make([]RelationData, len(te.Relations))
@@ -247,7 +271,8 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 
 		Namespace: namespace,
 
-		Imports: imports.Elements(),
+		HasImports: imports.Len() > 0,
+		Imports:    imports.Elements(),
 
 		VarName:       varName,
 		VarNamePlural: varNamePlural,
@@ -263,6 +288,9 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 		HasRelations:              len(relNames) > 0,
 		relationByName:            relNamesMap,
 		relationNamesHasRelations: relNamesWhichHasRels,
+
+		NeedFakeFilling: len(fakeFillingData) > 0,
+		FakeFilling:     fakeFillingData,
 
 		Columns:       columns,
 		HasNotAddable: hasNotAddable,
@@ -398,7 +426,7 @@ func sort(entity mfd.Entity) (string, string) {
 
 type OpFuncLayoutBuilder interface {
 	Name(entity string) string
-	LoadParsedTemplate() (*template.Template, error)
+	Render(w io.Writer, data any) error
 }
 
 type OpFuncWithRelations struct{}
@@ -407,16 +435,20 @@ func (op OpFuncWithRelations) Name(entity string) string {
 	return fmt.Sprintf("With%sRelations", entity)
 }
 
-func (op OpFuncWithRelations) LoadParsedTemplate() (*template.Template, error) {
-	// Prepare the with relations func template
-	withRelsFuncTmpl, err := mfd.LoadTemplate("", funcOpWithRelTemplate)
-	if err != nil {
-		return nil, fmt.Errorf("load func template, err=%w", err)
-	}
-	parsedWithRelsFuncTmpl, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(withRelsFuncTmpl)
-	if err != nil {
-		return nil, fmt.Errorf("parsing func template, err=%w", err)
-	}
+func (op OpFuncWithRelations) Render(w io.Writer, data any) error {
+	return loadAndParseTemplate(w, funcOpWithRelTemplate, data)
+}
 
-	return parsedWithRelsFuncTmpl, nil
+type OpFuncWithFake struct{}
+
+func (op OpFuncWithFake) Name(entity string) string {
+	return fmt.Sprintf("WithFake%s", entity)
+}
+
+func (op OpFuncWithFake) Render(w io.Writer, data any) error {
+	return loadAndParseTemplate(w, funcOpWithFakeTemplate, data)
+}
+
+func loadAndParseTemplate(w io.Writer, tmpl string, data any) error {
+	return Render(w, tmpl, data)
 }

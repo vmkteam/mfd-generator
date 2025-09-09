@@ -114,6 +114,9 @@ package {{.Package}}
 import (
 	"fmt"
 	"testing"
+	{{- if .HasImports}}
+	{{ range .Imports}}"{{.}}"{{end}}
+	{{- end}}
 
 	"{{.DBPackage}}"
 
@@ -188,7 +191,7 @@ func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFun
 `
 
 const funcOpWithRelTemplate = `{{- if .HasRelations }}
-// With{{.Name}}Relations optional function which allows to create all {{.Name}} relations or fetch them if provided.
+// With{{.Name}}Relations The optional function which allows to create all {{.Name}} relations or fetch them if provided.
 func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
 	var cleaners []Cleaner
 
@@ -241,6 +244,18 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 			cleaners[i]()
 		}
 	}
+}
+{{- end}}
+
+`
+
+const funcOpWithFakeTemplate = `{{- if .NeedFakeFilling }}
+// WithFake{{.Name}} The optional function which allows to fill all required fields with random data.
+func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+	{{- range .FakeFilling }}{{.}}
+	{{- end}}
+	
+	return emptyClean
 }
 {{- end}}
 

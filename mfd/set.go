@@ -25,10 +25,12 @@ func (s *Set) Prepend(element string) {
 	}
 }
 
-func (s *Set) Append(element string) {
-	if !s.Exists(element) {
-		s.set[element] = struct{}{}
-		s.order = append(s.order, element)
+func (s *Set) Append(elements ...string) {
+	for _, element := range elements {
+		if !s.Exists(element) {
+			s.set[element] = struct{}{}
+			s.order = append(s.order, element)
+		}
 	}
 }
 

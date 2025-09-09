@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -143,41 +142,20 @@ func (g *Generator) SaveSetupFile() (bool, error) {
 		return false, nil
 	}
 
-	// Generate base file with conn initialization and helpers
-	tmpl, err := mfd.LoadTemplate("", baseFileTemplate)
-	if err != nil {
-		return false, fmt.Errorf("load model template, err=%w", err)
-	}
-
-	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
-	if err != nil {
-		return false, fmt.Errorf("parsing template, err=%w", err)
-	}
-
-	var buffer bytes.Buffer
-	if err := parsed.ExecuteTemplate(&buffer, "base", PackFuncRenderData(g.options)); err != nil {
+	buffer := new(bytes.Buffer)
+	if err := Render(buffer, baseFileTemplate, PackFuncRenderData(g.options)); err != nil {
 		return false, fmt.Errorf("processing model template, err=%w", err)
 	}
 
 	return mfd.Save(buffer.Bytes(), output)
 }
 
-func (g *Generator) CreateFuncFile(nsName string) (bool, error) {
+func (g *Generator) CreateFuncFile(ns NamespaceData) (bool, error) {
 	// Getting file name without dots
-	output := filepath.Join(g.options.Output, mfd.GoFileName(nsName)+".go")
-	// Generate base file with conn initialization and helpers
-	tmpl, err := mfd.LoadTemplate("", funcFileTemplate)
-	if err != nil {
-		return false, fmt.Errorf("load func file template, err=%w", err)
-	}
+	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 
-	parsed, err := template.New("funcFile").Funcs(mfd.TemplateFunctions).Parse(tmpl)
-	if err != nil {
-		return false, fmt.Errorf("parsing func file template, err=%w", err)
-	}
-
-	var buffer bytes.Buffer
-	if err := parsed.ExecuteTemplate(&buffer, "funcFile", PackFuncRenderData(g.options)); err != nil {
+	buffer := new(bytes.Buffer)
+	if err := Render(buffer, funcFileTemplate, ns); err != nil {
 		return false, fmt.Errorf("processing func file template, err=%w", err)
 	}
 
@@ -188,12 +166,13 @@ func (g *Generator) CreateFuncFile(nsName string) (bool, error) {
 func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	// Getting file name without dots
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
+	nsData := PackNamespace(ns, g.options)
 
 	// Walk for each namespace and check if they have already had file and extract function names from them
 	// Note: consider that the func names are distinct across all namespaces (because they have the same pkg)
 	existingFunctions := make(map[string]struct{})
 	if !fileExists(output) { // If file doesn't exist, create it
-		if _, err := g.CreateFuncFile(ns.Name); err != nil {
+		if _, err := g.CreateFuncFile(nsData); err != nil {
 			return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
 		}
 	}
@@ -210,22 +189,6 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	}
 
 	buffer := new(bytes.Buffer)
-	nsData := PackNamespace(ns, g.options)
-
-	// Prepare the main func template
-	mainFuncTmpl, err := mfd.LoadTemplate("", funcTemplate)
-	if err != nil {
-		return fmt.Errorf("load func template, err=%w", err)
-	}
-	parsedMainFuncTmpl, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(mainFuncTmpl)
-	if err != nil {
-		return fmt.Errorf("parsing func template, err=%w", err)
-	}
-
-	withRelTmpl, err := OpFuncWithRelations{}.LoadParsedTemplate()
-	if err != nil {
-		return fmt.Errorf("load with rels func template, err=%w", err)
-	}
 
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
@@ -234,7 +197,7 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 		}
 
 		// Render func
-		if err := parsedMainFuncTmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
+		if err := Render(buffer, funcTemplate, entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
 		}
 
@@ -243,7 +206,16 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 		}
 
 		// Render WithRelations opFunc
-		if err := withRelTmpl.ExecuteTemplate(buffer, "base", entity); err != nil {
+		if err := (OpFuncWithRelations{}).Render(buffer, entity); err != nil {
+			return fmt.Errorf("processing func template, err=%w", err)
+		}
+
+		if _, ok := existingFunctions[OpFuncWithFake{}.Name(entity.Name)]; ok {
+			continue // Skip if the function already exists
+		}
+
+		// Render WithRelations opFunc
+		if err := (OpFuncWithFake{}).Render(buffer, entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
 		}
 	}

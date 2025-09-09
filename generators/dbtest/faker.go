@@ -1,0 +1,292 @@
+package dbtest
+
+import (
+	"bytes"
+	"fmt"
+	"html/template"
+	"io"
+	"time"
+
+	"github.com/vmkteam/mfd-generator/mfd"
+
+	"github.com/dizzyfool/genna/model"
+)
+
+const (
+	maxWordCount   = 10
+	maxWordLen     = 10
+	minSentenceLen = 30
+)
+
+type FakeFiller struct {
+	imports map[string]struct{}
+}
+
+func NewFakeFiller() FakeFiller { return FakeFiller{imports: make(map[string]struct{})} }
+
+// ByNameAndType Checks column name if it is a known name with a special fake func substitution
+//
+//nolint:funlen
+func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (res template.HTML, found bool) {
+	switch columnName {
+	case "StatusID":
+		//nolint:gocritic
+		switch gotype {
+		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+			return FakeIt("1").assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "Phone":
+		switch gotype {
+		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+			return fakePhone.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		case model.TypeString:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutRunes(maxFiledLen+1).string())), true
+		}
+
+		return "", false
+	case "Alias":
+		//nolint:gocritic
+		switch gotype {
+		case model.TypeString:
+			//nolint:gocritic
+			switch {
+			case maxFiledLen >= minSentenceLen:
+				ff.imports["strings"] = struct{}{}
+				return fakeEmpty.sentence(maxFiledLen).cutRunesString(maxFiledLen+1).replaceAll(" ", "-").assign(columnName).Tmpl(), true
+			}
+
+			return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "Email":
+		//nolint:gocritic
+		switch gotype {
+		case model.TypeString:
+			return fakeEmail.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "Login":
+		switch gotype {
+		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+			return fakeIntRange.assign(columnName).Tmpl(), true
+		case model.TypeString:
+			return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "Password":
+		//nolint:gocritic
+		switch gotype {
+		case model.TypeString:
+			return fakePassword.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "CreatedAt":
+		switch gotype {
+		case model.TypeTime:
+			ff.imports["time"] = struct{}{}
+			return fakeNow.assign(columnName).Tmpl(), true
+		case model.TypeString:
+			ff.imports["time"] = struct{}{}
+			return fakeNow.formatRFC3339().assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	case "ModifiedAt", "ModifiedDate", "ModifyAt", "ModifyDate",
+		"UpdatedAt", "UpdatedDate", "UpdateAt", "UpdateDate",
+		"StartedAt", "StartedDate", "StartAt", "StartDate",
+		"DeletedAt", "DeletedDate", "DeleteAt", "DeleteDate",
+		"PublishedAt", "PublishedDate", "PublishDate", "PublishAt":
+		switch gotype {
+		case model.TypeTime:
+			ff.imports["time"] = struct{}{}
+			return fakeRangeDateFuture.assign(columnName).Tmpl(), true
+		case model.TypeString:
+			ff.imports["time"] = struct{}{}
+			return fakeRangeDateFuture.formatRFC3339().assign(columnName).Tmpl(), true
+		}
+
+		return "", false
+	}
+
+	return "", false
+}
+
+func (ff FakeFiller) ByType(columnName, gotype string, maxFiledLen int) template.HTML {
+	switch gotype {
+	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+		return fakeIntRange.assign(columnName).Tmpl()
+	case model.TypeString:
+		//nolint:gocritic
+		switch {
+		case maxFiledLen >= minSentenceLen:
+			return fakeEmpty.sentence(maxFiledLen).cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl()
+		}
+		return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl()
+	case model.TypeByteSlice:
+		//nolint:gocritic
+		switch {
+		case maxFiledLen >= minSentenceLen:
+			return fakeEmpty.sentence(maxFiledLen).cutRunesBytes(maxFiledLen + 1).assign(columnName).Tmpl()
+		}
+		return fakeWord.cutRunesBytes(maxFiledLen + 1).assign(columnName).Tmpl()
+	case model.TypeBool:
+		return fakeBool.assign(columnName).Tmpl()
+	case model.TypeTime:
+		ff.imports["time"] = struct{}{}
+		return fakeRangeDateFuture.assign(columnName).Tmpl()
+	case model.TypeDuration:
+		return FakeIt(fmt.Sprintf("gofakeit.IntRange(%d, %d)", time.Second.Nanoseconds(), (24 * time.Hour).Nanoseconds())).assign(columnName).Tmpl()
+	case model.TypeMapInterface:
+		return FakeIt("map[string]interface{}{gofakeit.InputName(): gofakeit.Word()}").assign(columnName).Tmpl()
+	case model.TypeMapString:
+		return FakeIt("map[string]string{gofakeit.InputName(): gofakeit.Word()}").assign(columnName).Tmpl()
+	case model.TypeIP:
+		ff.imports["net"] = struct{}{}
+		return fakeEmpty.ipv4().assign(columnName).Tmpl()
+	case model.TypeIPNet:
+		ff.imports["net"] = struct{}{}
+		return fakeEmpty.ipv4Net().assign(columnName).Tmpl()
+	case model.TypeInterface:
+		return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl()
+	}
+
+	panic(fmt.Sprintf("the type=%s is unsupported", gotype))
+}
+
+const (
+	fakeEmpty           FakeIt = ""
+	fakeIntRange        FakeIt = "gofakeit.IntRange(1, 10)"
+	fakeByte            FakeIt = "byte(gofakeit.UintRange(0, 255))"
+	fakeBool            FakeIt = "gofakeit.Bool()"
+	fakeWord            FakeIt = "gofakeit.Word()"
+	fakePhone           FakeIt = "gofakeit.Phone()"
+	fakeEmail           FakeIt = "gofakeit.Email()"
+	fakePassword        FakeIt = "gofakeit.Password(true, true, true, false, false, 12)"
+	fakeNow             FakeIt = "time.Now()"
+	fakeRangeDateFuture FakeIt = "gofakeit.DateRange(time.Now().Add(5*time.Minute), time.Now().Add(1*time.Hour))"
+)
+
+type FakeIt string
+
+func (fi FakeIt) String() string {
+	return string(fi)
+}
+
+func (fi FakeIt) sentence(maxFiledLen int) FakeIt {
+	return FakeIt(fmt.Sprintf("gofakeit.Sentence(%d)", min(maxWordCount, maxFiledLen/maxWordLen)))
+}
+
+func (fi FakeIt) ipv4() FakeIt {
+	return FakeIt(fmt.Sprintf("net.IPv4(%[1]s, %[1]s, %[1]s, %[1]s", fakeByte))
+}
+
+func (fi FakeIt) ipv4Net() FakeIt {
+	return FakeIt(fmt.Sprintf("net.IPNet{IP: %s, Mask: net.IPv4Mask(255, 255, 255, 0)}", fakeEmpty.ipv4()))
+}
+
+func (fi FakeIt) cut(maxFiledLen int) FakeIt {
+	return FakeIt(fmt.Sprintf("%s[:%d]", fi, maxFiledLen))
+}
+
+func (fi FakeIt) cutRunes(maxFiledLen int) FakeIt {
+	return fi.runes().cut(maxFiledLen)
+}
+
+func (fi FakeIt) cutRunesString(maxFiledLen int) FakeIt {
+	return fi.runes().cut(maxFiledLen).string()
+}
+
+func (fi FakeIt) cutRunesBytes(maxFiledLen int) FakeIt {
+	return fi.runes().cut(maxFiledLen).bytes()
+}
+
+func (fi FakeIt) string() FakeIt {
+	return FakeIt(fmt.Sprintf("string(%s)", fi))
+}
+
+func (fi FakeIt) runes() FakeIt {
+	return FakeIt(fmt.Sprintf("[]rune(%s)", fi))
+}
+
+func (fi FakeIt) bytes() FakeIt {
+	return FakeIt(fmt.Sprintf("[]byte(%s)", fi))
+}
+
+func (fi FakeIt) formatRFC3339() FakeIt {
+	return FakeIt(fmt.Sprintf("%s.Format(time.RFC3339)", fi))
+}
+
+func (fi FakeIt) replaceAll(from, to string) FakeIt {
+	return FakeIt(fmt.Sprintf("strings.ReplaceAll(%s, \"%s\", \"%s\")", fi, from, to))
+}
+
+func (fi FakeIt) assign(columnName string) FakeIt {
+	return FakeIt(fmt.Sprintf("in.%s = %s", columnName, fi))
+}
+
+func (fi FakeIt) Tmpl() template.HTML {
+	return template.HTML(fi.String())
+}
+
+func (ff FakeFiller) Imports() []string {
+	res := make([]string, 0, len(ff.imports))
+	for i := range ff.imports {
+		res = append(res, i)
+	}
+
+	return res
+}
+
+const (
+	wrapperTmpl = `
+	if {{.Condition}} {
+		{{.Filling}}
+	}
+`
+)
+
+type conditionData struct {
+	Name string
+	Zero template.HTML
+}
+
+type wrapperTemplateData struct {
+	Condition template.HTML
+	Filling   template.HTML
+}
+
+func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML) template.HTML {
+	condition := "in.{{.Name}} == {{.Zero}}"
+	//nolint:gocritic
+	switch goType {
+	case model.TypeTime:
+		condition = "in.{{.Name}}.IsZero()"
+	}
+
+	var conditionBuf bytes.Buffer
+	err := Render(&conditionBuf, condition, conditionData{columnName, zeroVal})
+	if err != nil {
+		panic(fmt.Errorf("cannot make a condition, column=%s, GoType=%s, err=%w", columnName, zeroVal, err))
+	}
+
+	var wrapperBuff bytes.Buffer
+	err = Render(&wrapperBuff, wrapperTmpl, wrapperTemplateData{Condition: template.HTML(conditionBuf.String()), Filling: filling})
+	if err != nil {
+		panic(fmt.Errorf("cannot wrap, column=%s, GoType=%s, err=%w", columnName, zeroVal, err))
+	}
+
+	return template.HTML(wrapperBuff.String())
+}
+
+// Render renders text/template to Writer.
+func Render(wr io.Writer, tmpl string, data any) error {
+	t := template.Must(template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl))
+	return t.Execute(wr, data)
+}
