@@ -3,6 +3,7 @@ package test
 
 import (
 	"context"
+	"errors"
 	"log"
 	"math/rand"
 	"os"
@@ -10,10 +11,13 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
+	"github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 
 	"github.com/go-pg/pg/v10"
-	"github.com/google/uuid"
+)
+
+var (
+	errNotFound = errors.New("not found")
 )
 
 type Cleaner func()
@@ -90,4 +94,12 @@ func setup() (*pg.DB, error) {
 	}
 
 	return conn, nil
+}
+
+func val[T any, P *T](p P) T {
+	if p != nil {
+		return *p
+	}
+	var def T
+	return def
 }

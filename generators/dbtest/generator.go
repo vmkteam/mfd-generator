@@ -3,12 +3,10 @@ package dbtest
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -19,10 +17,18 @@ import (
 )
 
 const (
-	mfdFlag   = "mfd"
-	pkgFlag   = "package"
-	dbPkgFlag = "dbPkg"
-	nssFlag   = "namespaces"
+	mfdFlag      = "mfd"
+	pkgFlag      = "package"
+	dbPkgFlag    = "db-pkg"
+	nssFlag      = "namespaces"
+	entitiesFlag = "entities"
+	forceFlag    = "force"
+
+	FuncPattern = `^func (\w+)`
+)
+
+var (
+	funcRe = regexp.MustCompile(FuncPattern)
 )
 
 // CreateCommand creates generator command
@@ -62,7 +68,10 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 		panic(err)
 	}
 
-	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
+	flags.StringSliceP(nssFlag, "n", []string{}, "namespaces to generate. Separate by comma\n")
+	flags.StringSliceP(entitiesFlag, "e", []string{}, "entities to generate. Separate by comma\n")
+
+	flags.BoolP(forceFlag, "f", false, "force generate if functions already exist. Deletes old and generates new functions")
 }
 
 // ReadFlags reads basic flags from command
@@ -90,6 +99,14 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 	}
 
 	if g.options.Namespaces, err = flags.GetStringSlice(nssFlag); err != nil {
+		return err
+	}
+
+	if g.options.Entities, err = flags.GetStringSlice(entitiesFlag); err != nil {
+		return err
+	}
+
+	if g.options.Force, err = flags.GetBool(forceFlag); err != nil {
 		return err
 	}
 
@@ -123,7 +140,8 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	for _, namespace := range g.options.Namespaces {
-		// generating each func in separate files by namespace
+		// Walk through each namespace and check if they have already had file and extract function names from them
+		// Note: consider that the func names are distinct across all namespaces (because they have the same pkg)
 		if ns := project.Namespace(namespace); ns != nil {
 			// Generate test helpers
 			err = g.generateFuncsByNS(ns)
@@ -143,7 +161,7 @@ func (g *Generator) SaveSetupFile() (bool, error) {
 	}
 
 	buffer := new(bytes.Buffer)
-	if err := Render(buffer, baseFileTemplate, PackFuncRenderData(g.options)); err != nil {
+	if err := mfd.RenderText(buffer, baseFileTemplate, PackFuncRenderData(g.options)); err != nil {
 		return false, fmt.Errorf("processing model template, err=%w", err)
 	}
 
@@ -155,7 +173,7 @@ func (g *Generator) CreateFuncFile(ns NamespaceData) (bool, error) {
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 
 	buffer := new(bytes.Buffer)
-	if err := Render(buffer, funcFileTemplate, ns); err != nil {
+	if err := mfd.Render(buffer, funcFileTemplate, ns); err != nil {
 		return false, fmt.Errorf("processing func file template, err=%w", err)
 	}
 
@@ -168,50 +186,32 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 	nsData := PackNamespace(ns, g.options)
 
-	// Walk for each namespace and check if they have already had file and extract function names from them
-	// Note: consider that the func names are distinct across all namespaces (because they have the same pkg)
-	existingFunctions := make(map[string]struct{})
-	if !fileExists(output) { // If file doesn't exist, create it
-		if _, err := g.CreateFuncFile(nsData); err != nil {
-			return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
+	// Partial file update flow
+	// If entities are provided, it appends missing functions or regenerates them if force provided
+	if len(g.options.Entities) > 0 && !nsData.HasAllOfProvidedEntities(g.options.Entities) {
+		if err := g.generateFuncsByEntities(nsData, ns.Name, output); err != nil {
+			return fmt.Errorf("generate funcs by entities, err=%w", err)
 		}
+		return nil
 	}
 
-	// Parse namespace file and fetch existing func names
-	existing, err := g.parseExistingFunctions(output)
-	if err != nil {
-		return fmt.Errorf("parse existing functions, ns=%s, err=%w", ns.Name, err)
-	}
-
-	// Set existing functions to our map
-	for i := range existing {
-		existingFunctions[existing[i]] = struct{}{}
+	// Generating file entirely by namespace flow
+	if _, err := g.CreateFuncFile(nsData); err != nil {
+		return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
 	}
 
 	buffer := new(bytes.Buffer)
 
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
-		if _, ok := existingFunctions[entity.Name]; ok {
-			continue // Skip if the function already exists
-		}
-
-		// Render func
-		if err := Render(buffer, funcTemplate, entity); err != nil {
+		// Render the main func
+		if err := mfd.Render(buffer, funcTemplate, entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
-		}
-
-		if _, ok := existingFunctions[OpFuncWithRelations{}.Name(entity.Name)]; ok {
-			continue // Skip if the function already exists
 		}
 
 		// Render WithRelations opFunc
 		if err := (OpFuncWithRelations{}).Render(buffer, entity); err != nil {
 			return fmt.Errorf("processing func template, err=%w", err)
-		}
-
-		if _, ok := existingFunctions[OpFuncWithFake{}.Name(entity.Name)]; ok {
-			continue // Skip if the function already exists
 		}
 
 		// Render WithRelations opFunc
@@ -238,24 +238,55 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	return nil
 }
 
-// parseExistingFunctions parses existing helper functions to avoid overwriting,
-// returns slice of func names
-func (g *Generator) parseExistingFunctions(output string) ([]string, error) {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, output, nil, parser.ParseComments)
-	if err != nil {
-		return nil, fmt.Errorf("parse file, path=%s, err=%w", output, err)
+func (g *Generator) generateFuncsByEntities(nsData NamespaceData, nsName, output string) error {
+	if !fileExists(output) { // If file doesn't exist, create it
+		if _, err := g.CreateFuncFile(nsData); err != nil {
+			return fmt.Errorf("create file for functions, ns=%s, err=%w", nsName, err)
+		}
 	}
 
-	var res []string
-	ast.Inspect(node, func(n ast.Node) bool {
-		if fn, ok := n.(*ast.FuncDecl); ok {
-			res = append(res, fn.Name.Name)
-		}
-		return true
-	})
+	entities := make(map[string]struct{}, len(g.options.Entities))
+	for i := range g.options.Entities {
+		entities[g.options.Entities[i]] = struct{}{}
+	}
 
-	return res, nil
+	// Render funcs for each entity
+	for _, entity := range nsData.Entities {
+		if _, ok := entities[entity.Name]; !ok {
+			continue // Skip if entities are provided and it is not one of them
+		}
+
+		// Render the main func
+		if err := g.replaceFunctionFromFile(MainFunc{}, entity, output); err != nil {
+			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
+		}
+
+		// Render WithRelations opFunc
+		if err := g.replaceFunctionFromFile(OpFuncWithRelations{}, entity, output); err != nil {
+			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
+		}
+
+		// Render WithFake opFunc
+		if err := g.replaceFunctionFromFile(OpFuncWithFake{}, entity, output); err != nil {
+			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// replaceFunctionFromFile removes specified functions from a Go file
+func (g *Generator) replaceFunctionFromFile(b FuncLayoutRenderer, entity EntityData, filePath string) error {
+	buf := new(bytes.Buffer)
+	if err := b.Render(buf, entity); err != nil {
+		return fmt.Errorf("render the main func, entity=%s, err=%w", entity.Name, err)
+	}
+
+	if _, err := mfd.UpdateFile(buf, filePath, funcRe, g.options.Force); err != nil {
+		return fmt.Errorf("update file, err=%w", err)
+	}
+
+	return nil
 }
 
 func fileExists(path string) bool {

@@ -34,6 +34,9 @@ type Options struct {
 	// Entities to generate
 	Entities []string
 
+	// Force Replaces existing functions
+	Force bool
+
 	// custom types
 	CustomTypes mfd.CustomTypes
 }

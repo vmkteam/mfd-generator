@@ -9,7 +9,8 @@ import ({{if .HasImports}}{{range .Imports}}
 	"{{.ModelPackage}}"
 )
 {{range $model := .Entities}}
-type {{.Name}} struct { {{range .ModelColumns}}
+type {{.Name}} struct {
+	{{- range .ModelColumns}}
 	{{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{if .HasModelRelations}}
 	{{range .ModelRelations}}
 	{{.Name}} *{{.Type}}{{if ne .Type "Status"}}Summary{{end}} {{.Tag}}{{end}}{{end}}
@@ -22,7 +23,8 @@ func ({{.ShortVarName}} *{{.Name}}) ToDB() *db.{{.Name}} {
 		{{.ToDBFunc}}
 	{{end}}{{end}}
 
-	{{.VarName}} := &db.{{.Name}}{ {{range .ModelColumns}}{{if not .IsParams}}
+	{{.VarName}} := &db.{{.Name}}{
+	{{- range .ModelColumns}}{{if not .IsParams}}
 		{{.Name}}: {{if ne .ToDBName ""}}{{.ToDBName}},{{else}}{{$model.ShortVarName}}.{{.FieldName}},{{end}}{{end}}{{end}}
 	}
 	{{range .ModelColumns}}{{if .IsParams}}{{if .NilCheck}}
@@ -49,12 +51,14 @@ func ({{.ShortVarName}}s *{{.Name}}Search) ToDB() *db.{{.Name}}Search {
 		{{.ToDBFunc}}
 	{{end}}{{end}}
 
-	return &db.{{.Name}}Search{ {{range .SearchColumns}}
+	return &db.{{.Name}}Search{
+	{{- range .SearchColumns}}
 		{{.FieldName}}: {{if ne .ToDBName ""}}{{.ToDBName}},{{else}}{{$model.ShortVarName}}s.{{.Name}},{{end}}{{end}}
 	}
 }
 
-type {{.Name}}Summary struct { {{range .SummaryColumns}}{{if ne .Name "StatusID"}}
+type {{.Name}}Summary struct {
+	{{- range .SummaryColumns}}{{if ne .Name "StatusID"}}
 	{{.Name}} {{.GoType}} {{.Tag}} {{.Comment}}{{end}}{{end}}{{if .HasSummaryRelations}}
 	{{range .SummaryRelations}}
 	{{.Name}} *{{.Type}}{{if ne .Name "Status"}}Summary{{end}} {{.Tag}}{{end}}{{end}}
@@ -82,7 +86,8 @@ func New{{.Name}}(in *db.{{.Name}}) *{{.Name}} {
 		{{.FromDBFunc}}
 	{{end}}{{end}}
 
-	{{.VarName}} := &{{.Name}}{ {{range .ModelColumns}}{{if .IsParams}}{{if .NilCheck}}
+	{{.VarName}} := &{{.Name}}{
+	{{- range .ModelColumns}}{{if .IsParams}}{{if .NilCheck}}
 		{{.Name}}: New{{.ParamsName}}(in.{{.Name}}),{{end}}{{else}}
 		{{.Name}}: {{if ne .FromDBName ""}}{{.FromDBName}},{{else}}in.{{.Name}},{{end}}{{end}}{{end}}{{if .HasModelRelations}}
 		{{range .ModelRelations}}
@@ -103,7 +108,8 @@ func New{{.Name}}Summary(in *db.{{.Name}}) *{{.Name}}Summary {
 		{{.FromDBFunc}}
 	{{end}}{{end}}
 
-	return &{{.Name}}Summary{ {{range .SummaryColumns}}{{if ne .Name "StatusID"}}{{if .IsParams}}
+	return &{{.Name}}Summary{
+		{{- range .SummaryColumns}}{{if ne .Name "StatusID"}}{{if .IsParams}}
 		{{.Name}}: New{{.ParamsName}}(in.{{.Name}}),{{else}}
 		{{.Name}}: {{if ne .FromDBName ""}}{{.FromDBName}},{{else}}in.{{.Name}},{{end}}{{end}}{{end}}{{end}}{{if .HasSummaryRelations}}
 		{{range .SummaryRelations}}
@@ -321,7 +327,7 @@ func (s {{.Name}}Service) isValid(ctx context.Context, {{.VarName}} {{.Name}}, i
 
 	{{if .HasAlias}}
 	// check alias unique
-	search := &db.{{.Name}}Search{ 
+	search := &db.{{.Name}}Search{
 		{{.AliasArg}}: &{{$model.VarName}}.{{.AliasField}},{{range .PKSearches}}
 		{{.Arg}}: &{{$model.VarName}}.{{.Field}},{{end}}
 	}

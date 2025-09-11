@@ -252,8 +252,7 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 const funcOpWithFakeTemplate = `{{- if .NeedFakeFilling }}
 // WithFake{{.Name}} The optional function which allows to fill all required fields with random data.
 func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
-	{{- range .FakeFilling }}{{.}}
-	{{- end}}
+	{{- range .FakeFilling }}{{.}}{{ end }}
 	
 	return emptyClean
 }

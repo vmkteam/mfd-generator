@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io"
 	"time"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -160,6 +159,15 @@ func (ff FakeFiller) ByType(columnName, gotype string, maxFiledLen int) template
 	panic(fmt.Sprintf("the type=%s is unsupported", gotype))
 }
 
+func (ff FakeFiller) Imports() []string {
+	res := make([]string, 0, len(ff.imports))
+	for i := range ff.imports {
+		res = append(res, i)
+	}
+
+	return res
+}
+
 const (
 	fakeEmpty           FakeIt = ""
 	fakeIntRange        FakeIt = "gofakeit.IntRange(1, 10)"
@@ -235,15 +243,6 @@ func (fi FakeIt) Tmpl() template.HTML {
 	return template.HTML(fi.String())
 }
 
-func (ff FakeFiller) Imports() []string {
-	res := make([]string, 0, len(ff.imports))
-	for i := range ff.imports {
-		res = append(res, i)
-	}
-
-	return res
-}
-
 const (
 	wrapperTmpl = `
 	if {{.Condition}} {
@@ -271,22 +270,16 @@ func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML) 
 	}
 
 	var conditionBuf bytes.Buffer
-	err := Render(&conditionBuf, condition, conditionData{columnName, zeroVal})
+	err := mfd.Render(&conditionBuf, condition, conditionData{columnName, zeroVal})
 	if err != nil {
 		panic(fmt.Errorf("cannot make a condition, column=%s, GoType=%s, err=%w", columnName, zeroVal, err))
 	}
 
 	var wrapperBuff bytes.Buffer
-	err = Render(&wrapperBuff, wrapperTmpl, wrapperTemplateData{Condition: template.HTML(conditionBuf.String()), Filling: filling})
+	err = mfd.Render(&wrapperBuff, wrapperTmpl, wrapperTemplateData{Condition: template.HTML(conditionBuf.String()), Filling: filling})
 	if err != nil {
 		panic(fmt.Errorf("cannot wrap, column=%s, GoType=%s, err=%w", columnName, zeroVal, err))
 	}
 
 	return template.HTML(wrapperBuff.String())
-}
-
-// Render renders text/template to Writer.
-func Render(wr io.Writer, tmpl string, data any) error {
-	t := template.Must(template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl))
-	return t.Execute(wr, data)
 }

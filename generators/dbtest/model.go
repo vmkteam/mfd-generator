@@ -115,6 +115,25 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 	}
 }
 
+func (n NamespaceData) HasAllOfProvidedEntities(provided []string) bool {
+	if len(provided) == 0 {
+		return false
+	}
+
+	byName := make(map[string]struct{}, len(provided))
+	for i := range provided {
+		byName[provided[i]] = struct{}{}
+	}
+
+	for i := range n.Entities {
+		if _, ok := byName[n.Entities[i].Name]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 // EntityData stores entity info for template
 type EntityData struct {
 	Name       string
@@ -361,6 +380,8 @@ func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
 		res = append(res, fmt.Sprintf("in.%[1]s = rel.%[1]s", name))
 	}
 
+	slices.Sort(res)
+
 	return res
 }
 
@@ -424,16 +445,17 @@ func sort(entity mfd.Entity) (string, string) {
 	return "", ""
 }
 
-type OpFuncLayoutBuilder interface {
-	Name(entity string) string
+type FuncLayoutRenderer interface {
 	Render(w io.Writer, data any) error
 }
 
-type OpFuncWithRelations struct{}
+type MainFunc struct{}
 
-func (op OpFuncWithRelations) Name(entity string) string {
-	return fmt.Sprintf("With%sRelations", entity)
+func (op MainFunc) Render(w io.Writer, data any) error {
+	return loadAndParseTemplate(w, funcTemplate, data)
 }
+
+type OpFuncWithRelations struct{}
 
 func (op OpFuncWithRelations) Render(w io.Writer, data any) error {
 	return loadAndParseTemplate(w, funcOpWithRelTemplate, data)
@@ -441,14 +463,10 @@ func (op OpFuncWithRelations) Render(w io.Writer, data any) error {
 
 type OpFuncWithFake struct{}
 
-func (op OpFuncWithFake) Name(entity string) string {
-	return fmt.Sprintf("WithFake%s", entity)
-}
-
 func (op OpFuncWithFake) Render(w io.Writer, data any) error {
 	return loadAndParseTemplate(w, funcOpWithFakeTemplate, data)
 }
 
 func loadAndParseTemplate(w io.Writer, tmpl string, data any) error {
-	return Render(w, tmpl, data)
+	return mfd.Render(w, tmpl, data)
 }
