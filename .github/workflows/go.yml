@@ -33,7 +33,7 @@ jobs:
 
     - name: Prepare test db
       run: psql -d postgresql://postgres@localhost/newsportal < schema.sql
-      working-directory: ./generators/xml/testdata/
+      working-directory: generators/xml/testdata/
       env:
         PGPASSWORD: postgres
 
