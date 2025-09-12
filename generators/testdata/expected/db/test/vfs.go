@@ -74,7 +74,7 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 	}
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
-		rel, relatedCleaner := Folder(t, dbo, in.Folder, WithFakeFolder)
+		rel, relatedCleaner := VfsFolder(t, dbo, in.Folder, WithFakeVfsFolder)
 		in.Folder = rel
 
 		cleaners = append(cleaners, relatedCleaner)
