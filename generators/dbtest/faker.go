@@ -39,10 +39,10 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 	case "Phone":
 		switch gotype {
 		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
-			return fakePhone.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
-		case model.TypeString:
 			ff.imports["strconv"] = struct{}{}
 			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutRunes(maxFiledLen+1).string())), true
+		case model.TypeString:
+			return fakePhone.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -119,8 +119,12 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 
 func (ff FakeFiller) ByType(columnName, gotype string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
 	switch gotype {
-	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+	case model.TypeInt, model.TypeInt32, model.TypeInt64:
 		return fakeIntRange.assign(columnName).Tmpl(), true
+	case model.TypeFloat32:
+		return fakeFloat32Range.assign(columnName).Tmpl(), true
+	case model.TypeFloat64:
+		return fakeFloat64Range.assign(columnName).Tmpl(), true
 	case model.TypeString:
 		//nolint:gocritic
 		switch {
@@ -177,6 +181,8 @@ func (ff FakeFiller) Imports() []string {
 const (
 	fakeEmpty           FakeIt = ""
 	fakeIntRange        FakeIt = "gofakeit.IntRange(1, 10)"
+	fakeFloat32Range    FakeIt = "gofakeit.Float32Range(1, 10)"
+	fakeFloat64Range    FakeIt = "gofakeit.Float64Range(1, 10)"
 	fakeByte            FakeIt = "byte(gofakeit.UintRange(0, 255))"
 	fakeBool            FakeIt = "gofakeit.Bool()"
 	fakeWord            FakeIt = "gofakeit.Word()"

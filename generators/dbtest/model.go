@@ -86,7 +86,7 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 	entities := make([]EntityData, len(namespace.Entities))
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 	for i, entity := range namespace.Entities {
-		packed := PackEntity(*entity, name, options)
+		packed := PackEntity(*entity, nil, name, options)
 		entities[i] = packed
 
 		for _, imp := range packed.Imports {
@@ -186,7 +186,7 @@ type EntityData struct {
 // PackEntity packs mfd entity to template data
 //
 //nolint:funlen
-func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData {
+func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace string, options Options) EntityData {
 	// base template entity - repo depends on int
 	te := model.PackEntity(entity, model.Options{})
 
@@ -257,15 +257,26 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	// store all relation names for join field
 	relNames := make([]RelationData, 0, len(te.Relations))
 	relNamesMap := make(map[string]RelationData, len(te.Relations))
+	sameRelNamesMap := make(map[string]RelationData, len(te.Relations))
 	relNamesWhichHasRels := make(map[string]struct{}, len(te.Relations))
 	for i := range te.Relations {
 		if te.Relations[i].Entity.Name == te.Name {
 			continue
 		}
 
-		relationData := PackRelationData(te.Relations[i], namespace, options)
+		relationData := PackRelationData(te.Relations[i], &te, namespace, options)
 		relNames = append(relNames, relationData)
 		relNamesMap[relationData.Name] = relationData
+
+		// Check what if we have the same relations as a parent has
+		if parentEntity != nil && parentEntity.HasRelations {
+			for _, rel := range parentEntity.Relations {
+				if rel.Name == relationData.Name {
+					sameRelNamesMap[relationData.Name] = relationData
+				}
+			}
+		}
+
 		if relationData.Entity.HasRelations {
 			relNamesWhichHasRels[relationData.Name] = struct{}{}
 		}
@@ -328,7 +339,7 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(curRel.Relations, curRel, "in", "in")
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 
-	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(relNamesMap)
+	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(sameRelNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
 
 	return res
@@ -410,7 +421,7 @@ type RelationData struct {
 	Comment template.HTML
 }
 
-func PackRelationData(in model.RelationData, namespace string, options Options) RelationData {
+func PackRelationData(in model.RelationData, parentEntity *model.EntityData, namespace string, options Options) RelationData {
 	res := RelationData{
 		Name:     in.Name,
 		Type:     in.Type,
@@ -421,7 +432,7 @@ func PackRelationData(in model.RelationData, namespace string, options Options) 
 	}
 
 	if in.ForeignEntity != nil {
-		res.Entity = PackEntity(*in.Entity, namespace, Options{GoPGVer: options.GoPGVer})
+		res.Entity = PackEntity(*in.Entity, parentEntity, namespace, Options{GoPGVer: options.GoPGVer})
 	}
 
 	return res

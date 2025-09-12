@@ -230,7 +230,7 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		, WithFake{{.Type}})
 		in.{{.Name}} = rel
 		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
-		// Fill the same relations as in {{$relation.Name}})
+		// Fill the same relations as in {{$relation.Name}}
 		{{- range .Entity.PreparingFillingSameAsRootRels }}
 		{{.}}
 		{{- end }}
