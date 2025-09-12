@@ -3,6 +3,7 @@
     <PackageNames>
         <string>portal</string>
         <string>geo</string>
+        <string>vfs</string>
     </PackageNames>
     <Languages>
         <string>en</string>

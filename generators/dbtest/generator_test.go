@@ -38,6 +38,7 @@ func TestGenerator_Generate(t *testing.T) {
 					"test.go":   {},
 					"geo.go":    {},
 					"portal.go": {},
+					"vfs.go":    {},
 				}
 
 				for f := range expectedFilenames {

@@ -255,11 +255,15 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 	imports.Append(fakeFiller.Imports()...)
 
 	// store all relation names for join field
-	relNames := make([]RelationData, len(te.Relations))
+	relNames := make([]RelationData, 0, len(te.Relations))
 	relNamesMap := make(map[string]RelationData, len(te.Relations))
 	relNamesWhichHasRels := make(map[string]struct{}, len(te.Relations))
 	for i := range te.Relations {
-		relNames[i] = PackRelationData(te.Relations[i], namespace, options)
+		if te.Relations[i].Entity.Name == te.Name {
+			continue
+		}
+
+		relNames = append(relNames, PackRelationData(te.Relations[i], namespace, options))
 		relNamesMap[relNames[i].Name] = relNames[i]
 		if relNames[i].Entity.HasRelations {
 			relNamesWhichHasRels[relNames[i].Name] = struct{}{}

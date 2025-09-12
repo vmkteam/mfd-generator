@@ -24,7 +24,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Def()
 			generator.options.URL = dbdsn
 			generator.options.Output = testdata.PathActualMFD
-			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities")
+			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities;vfs:vfsFiles,vfsFolders")
 
 			t.Log("Generate xml")
 			So(generator.Generate(), ShouldBeNil)

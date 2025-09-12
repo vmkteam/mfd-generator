@@ -233,12 +233,12 @@ type CitySearch struct {
 
 	ID            *int
 	RegionID      *int
+	CountryID     *int
 	Title         *string
 	AltTitle      *string
 	Alias         *string
 	OrderNumber   *int
 	StatusID      *int
-	CountryID     *int
 	IDs           []int
 	NotID         *int
 	TitleILike    *string
@@ -255,6 +255,9 @@ func (cs *CitySearch) Apply(query *orm.Query) *orm.Query {
 	if cs.RegionID != nil {
 		cs.where(query, Tables.City.Alias, Columns.City.RegionID, cs.RegionID)
 	}
+	if cs.CountryID != nil {
+		cs.where(query, Tables.City.Alias, Columns.City.CountryID, cs.CountryID)
+	}
 	if cs.Title != nil {
 		cs.where(query, Tables.City.Alias, Columns.City.Title, cs.Title)
 	}
@@ -269,9 +272,6 @@ func (cs *CitySearch) Apply(query *orm.Query) *orm.Query {
 	}
 	if cs.StatusID != nil {
 		cs.where(query, Tables.City.Alias, Columns.City.StatusID, cs.StatusID)
-	}
-	if cs.CountryID != nil {
-		cs.where(query, Tables.City.Alias, Columns.City.CountryID, cs.CountryID)
 	}
 	if len(cs.IDs) > 0 {
 		Filter{Columns.City.ID, cs.IDs, SearchTypeArray, false}.Apply(query)
@@ -485,5 +485,149 @@ func (rs *RegionSearch) Q() applier {
 			return query, nil
 		}
 		return rs.Apply(query), nil
+	}
+}
+
+type VfsFileSearch struct {
+	search
+
+	ID            *int
+	FolderID      *int
+	Title         *string
+	Path          *string
+	Params        *string
+	IsFavorite    *bool
+	MimeType      *string
+	FileSize      *int
+	FileExists    *bool
+	CreatedAt     *time.Time
+	StatusID      *int
+	IDs           []int
+	TitleILike    *string
+	PathILike     *string
+	ParamsILike   *string
+	MimeTypeILike *string
+}
+
+func (vfs *VfsFileSearch) Apply(query *orm.Query) *orm.Query {
+	if vfs == nil {
+		return query
+	}
+	if vfs.ID != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.ID, vfs.ID)
+	}
+	if vfs.FolderID != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.FolderID, vfs.FolderID)
+	}
+	if vfs.Title != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.Title, vfs.Title)
+	}
+	if vfs.Path != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.Path, vfs.Path)
+	}
+	if vfs.Params != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.Params, vfs.Params)
+	}
+	if vfs.IsFavorite != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.IsFavorite, vfs.IsFavorite)
+	}
+	if vfs.MimeType != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.MimeType, vfs.MimeType)
+	}
+	if vfs.FileSize != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.FileSize, vfs.FileSize)
+	}
+	if vfs.FileExists != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.FileExists, vfs.FileExists)
+	}
+	if vfs.CreatedAt != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.CreatedAt, vfs.CreatedAt)
+	}
+	if vfs.StatusID != nil {
+		vfs.where(query, Tables.VfsFile.Alias, Columns.VfsFile.StatusID, vfs.StatusID)
+	}
+	if len(vfs.IDs) > 0 {
+		Filter{Columns.VfsFile.ID, vfs.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if vfs.TitleILike != nil {
+		Filter{Columns.VfsFile.Title, *vfs.TitleILike, SearchTypeILike, false}.Apply(query)
+	}
+	if vfs.PathILike != nil {
+		Filter{Columns.VfsFile.Path, *vfs.PathILike, SearchTypeILike, false}.Apply(query)
+	}
+	if vfs.ParamsILike != nil {
+		Filter{Columns.VfsFile.Params, *vfs.ParamsILike, SearchTypeILike, false}.Apply(query)
+	}
+	if vfs.MimeTypeILike != nil {
+		Filter{Columns.VfsFile.MimeType, *vfs.MimeTypeILike, SearchTypeILike, false}.Apply(query)
+	}
+
+	vfs.apply(query)
+
+	return query
+}
+
+func (vfs *VfsFileSearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if vfs == nil {
+			return query, nil
+		}
+		return vfs.Apply(query), nil
+	}
+}
+
+type VfsFolderSearch struct {
+	search
+
+	ID             *int
+	ParentFolderID *int
+	Title          *string
+	IsFavorite     *bool
+	CreatedAt      *time.Time
+	StatusID       *int
+	IDs            []int
+	TitleILike     *string
+}
+
+func (vfs *VfsFolderSearch) Apply(query *orm.Query) *orm.Query {
+	if vfs == nil {
+		return query
+	}
+	if vfs.ID != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.ID, vfs.ID)
+	}
+	if vfs.ParentFolderID != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.ParentFolderID, vfs.ParentFolderID)
+	}
+	if vfs.Title != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.Title, vfs.Title)
+	}
+	if vfs.IsFavorite != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.IsFavorite, vfs.IsFavorite)
+	}
+	if vfs.CreatedAt != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.CreatedAt, vfs.CreatedAt)
+	}
+	if vfs.StatusID != nil {
+		vfs.where(query, Tables.VfsFolder.Alias, Columns.VfsFolder.StatusID, vfs.StatusID)
+	}
+	if len(vfs.IDs) > 0 {
+		Filter{Columns.VfsFolder.ID, vfs.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if vfs.TitleILike != nil {
+		Filter{Columns.VfsFolder.Title, *vfs.TitleILike, SearchTypeILike, false}.Apply(query)
+	}
+
+	vfs.apply(query)
+
+	return query
+}
+
+func (vfs *VfsFolderSearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if vfs == nil {
+			return query, nil
+		}
+		return vfs.Apply(query), nil
 	}
 }

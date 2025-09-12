@@ -21,7 +21,7 @@ var Columns = struct {
 		ID, Title, StatusID string
 	}
 	City struct {
-		ID, RegionID, Title, AltTitle, Alias, OrderNumber, StatusID, CountryID string
+		ID, RegionID, CountryID, Title, AltTitle, Alias, OrderNumber, StatusID string
 
 		Region, Country string
 	}
@@ -32,6 +32,16 @@ var Columns = struct {
 		ID, CountryID, Title, AltTitle, Alias, OrderNumber, Image, H1, PageTitle, MetaDescription, StatusID string
 
 		Country string
+	}
+	VfsFile struct {
+		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
+
+		Folder string
+	}
+	VfsFolder struct {
+		ID, ParentFolderID, Title, IsFavorite, CreatedAt, StatusID string
+
+		ParentFolder string
 	}
 }{
 	Category: struct {
@@ -73,18 +83,18 @@ var Columns = struct {
 		StatusID: "statusId",
 	},
 	City: struct {
-		ID, RegionID, Title, AltTitle, Alias, OrderNumber, StatusID, CountryID string
+		ID, RegionID, CountryID, Title, AltTitle, Alias, OrderNumber, StatusID string
 
 		Region, Country string
 	}{
 		ID:          "cityId",
 		RegionID:    "regionId",
+		CountryID:   "countryId",
 		Title:       "title",
 		AltTitle:    "altTitle",
 		Alias:       "alias",
 		OrderNumber: "orderNumber",
 		StatusID:    "statusId",
-		CountryID:   "countryId",
 
 		Region:  "Region",
 		Country: "Country",
@@ -121,6 +131,39 @@ var Columns = struct {
 
 		Country: "Country",
 	},
+	VfsFile: struct {
+		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
+
+		Folder string
+	}{
+		ID:         "fileId",
+		FolderID:   "folderId",
+		Title:      "title",
+		Path:       "path",
+		Params:     "params",
+		IsFavorite: "isFavorite",
+		MimeType:   "mimeType",
+		FileSize:   "fileSize",
+		FileExists: "fileExists",
+		CreatedAt:  "createdAt",
+		StatusID:   "statusId",
+
+		Folder: "Folder",
+	},
+	VfsFolder: struct {
+		ID, ParentFolderID, Title, IsFavorite, CreatedAt, StatusID string
+
+		ParentFolder string
+	}{
+		ID:             "folderId",
+		ParentFolderID: "parentFolderId",
+		Title:          "title",
+		IsFavorite:     "isFavorite",
+		CreatedAt:      "createdAt",
+		StatusID:       "statusId",
+
+		ParentFolder: "ParentFolder",
+	},
 }
 
 var Tables = struct {
@@ -140,6 +183,12 @@ var Tables = struct {
 		Name, Alias string
 	}
 	Region struct {
+		Name, Alias string
+	}
+	VfsFile struct {
+		Name, Alias string
+	}
+	VfsFolder struct {
 		Name, Alias string
 	}
 }{
@@ -177,6 +226,18 @@ var Tables = struct {
 		Name, Alias string
 	}{
 		Name:  "regions",
+		Alias: "t",
+	},
+	VfsFile: struct {
+		Name, Alias string
+	}{
+		Name:  "vfsFiles",
+		Alias: "t",
+	},
+	VfsFolder: struct {
+		Name, Alias string
+	}{
+		Name:  "vfsFolders",
 		Alias: "t",
 	},
 }
@@ -225,12 +286,12 @@ type City struct {
 
 	ID          int     `pg:"cityId,pk"`
 	RegionID    int     `pg:"regionId,use_zero"`
+	CountryID   int     `pg:"countryId,use_zero"`
 	Title       string  `pg:"title,use_zero"`
 	AltTitle    *string `pg:"altTitle"`
 	Alias       string  `pg:"alias,use_zero"`
 	OrderNumber int     `pg:"orderNumber,use_zero"`
 	StatusID    int     `pg:"statusId,use_zero"`
-	CountryID   int     `pg:"countryId,use_zero"`
 
 	Region  *Region  `pg:"fk:regionId,rel:has-one"`
 	Country *Country `pg:"fk:countryId,rel:has-one"`
@@ -266,4 +327,35 @@ type Region struct {
 	StatusID        int     `pg:"statusId,use_zero"`
 
 	Country *Country `pg:"fk:countryId,rel:has-one"`
+}
+
+type VfsFile struct {
+	tableName struct{} `pg:"vfsFiles,alias:t,discard_unknown_columns"`
+
+	ID         int       `pg:"fileId,pk"`
+	FolderID   int       `pg:"folderId,use_zero"`
+	Title      string    `pg:"title,use_zero"`
+	Path       string    `pg:"path,use_zero"`
+	Params     *string   `pg:"params"`
+	IsFavorite *bool     `pg:"isFavorite"`
+	MimeType   string    `pg:"mimeType,use_zero"`
+	FileSize   *int      `pg:"fileSize"`
+	FileExists bool      `pg:"fileExists,use_zero"`
+	CreatedAt  time.Time `pg:"createdAt,use_zero"`
+	StatusID   int       `pg:"statusId,use_zero"`
+
+	Folder *VfsFolder `pg:"fk:folderId,rel:has-one"`
+}
+
+type VfsFolder struct {
+	tableName struct{} `pg:"vfsFolders,alias:t,discard_unknown_columns"`
+
+	ID             int       `pg:"folderId,pk"`
+	ParentFolderID *int      `pg:"parentFolderId"`
+	Title          string    `pg:"title,use_zero"`
+	IsFavorite     *bool     `pg:"isFavorite"`
+	CreatedAt      time.Time `pg:"createdAt,use_zero"`
+	StatusID       int       `pg:"statusId,use_zero"`
+
+	ParentFolder *VfsFolder `pg:"fk:parentFolderId,rel:has-one"`
 }

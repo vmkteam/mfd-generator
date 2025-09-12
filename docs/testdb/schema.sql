@@ -92,6 +92,68 @@ COMMENT ON COLUMN "tags"."tagId" IS 'id тега';
 
 COMMENT ON COLUMN "tags"."title" IS 'Текст тега';
 
+CREATE TABLE "vfsFiles" (
+                            "fileId" SERIAL NOT NULL,
+                            "folderId" int4 NOT NULL,
+                            "title" varchar(255) NOT NULL,
+                            "path" varchar(255) NOT NULL,
+                            "params" text,
+                            "isFavorite" bool DEFAULT false,
+                            "mimeType" varchar(255) NOT NULL,
+                            "fileSize" int4 DEFAULT 0,
+                            "fileExists" bool NOT NULL DEFAULT true,
+                            "createdAt" timestamp NOT NULL DEFAULT now(),
+                            "statusId" int4 NOT NULL,
+                            CONSTRAINT "vfsFiles_pkey" PRIMARY KEY("fileId")
+);
+
+CREATE INDEX "IX_FK_vfsFiles_folderId_vfsFiles" ON "vfsFiles" USING BTREE (
+    "folderId"
+    );
+
+
+CREATE INDEX "IX_FK_vfsFiles_statusId_vfsFiles" ON "vfsFiles" USING BTREE (
+    "statusId"
+    );
+
+
+CREATE TABLE "vfsFolders" (
+                              "folderId" SERIAL NOT NULL,
+                              "parentFolderId" int4,
+                              "title" varchar(255) NOT NULL,
+                              "isFavorite" bool DEFAULT false,
+                              "createdAt" timestamp NOT NULL DEFAULT now(),
+                              "statusId" int4 NOT NULL,
+                              CONSTRAINT "vfsFolders_pkey" PRIMARY KEY("folderId")
+);
+
+CREATE INDEX "IX_FK_vfsFolders_folderId_vfsFolders" ON "vfsFolders" USING BTREE (
+    "parentFolderId"
+    );
+
+
+CREATE INDEX "IX_FK_vfsFolders_statusId_vfsFolders" ON "vfsFolders" USING BTREE (
+    "statusId"
+    );
+
+
+CREATE TABLE "vfsHashes" (
+                             "hash" varchar(40) NOT NULL,
+                             "namespace" varchar(32) NOT NULL,
+                             "extension" varchar(4) NOT NULL,
+                             "fileSize" int4 NOT NULL DEFAULT 0,
+                             "width" int4 NOT NULL DEFAULT 0,
+                             "height" int4 NOT NULL DEFAULT 0,
+                             "blurhash" text,
+                             "error" text,
+                             "createdAt" timestamp with time zone NOT NULL DEFAULT now(),
+                             "indexedAt" timestamp with time zone,
+                             CONSTRAINT "vfsHashes_pkey" PRIMARY KEY("hash","namespace")
+);
+
+CREATE INDEX "IX_vfsHashes_indexedAt" ON "vfsHashes" USING BTREE (
+    "indexedAt"
+    );
 
 ALTER TABLE "news" ADD CONSTRAINT "Ref_news_to_statuses" FOREIGN KEY ("statusId")
 	REFERENCES "statuses"("statusId")
@@ -182,4 +244,32 @@ ALTER TABLE "cities" ADD CONSTRAINT "Ref_cities_to_statuses" FOREIGN KEY ("statu
     MATCH SIMPLE
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
+    NOT DEFERRABLE;
+
+ALTER TABLE "vfsFiles" ADD CONSTRAINT "vfsFiles_folderId_fkey" FOREIGN KEY ("folderId")
+    REFERENCES "vfsFolders"("folderId")
+    MATCH SIMPLE
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+    NOT DEFERRABLE;
+
+ALTER TABLE "vfsFiles" ADD CONSTRAINT "vfsFiles_statusId_fkey" FOREIGN KEY ("statusId")
+    REFERENCES "statuses"("statusId")
+    MATCH SIMPLE
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+    NOT DEFERRABLE;
+
+ALTER TABLE "vfsFolders" ADD CONSTRAINT "vfsFolders_parentFolderId_fkey" FOREIGN KEY ("parentFolderId")
+    REFERENCES "vfsFolders"("folderId")
+    MATCH SIMPLE
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+    NOT DEFERRABLE;
+
+ALTER TABLE "vfsFolders" ADD CONSTRAINT "vfsFolders_statusId_fkey" FOREIGN KEY ("statusId")
+    REFERENCES "statuses"("statusId")
+    MATCH SIMPLE
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
     NOT DEFERRABLE;
