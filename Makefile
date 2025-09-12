@@ -6,12 +6,12 @@ tools:
 	@curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${LINT_VERSION}
 
 fmt:
-	@golangci-lint-2 fmt
+	@golangci-lint fmt
 
 lint:
-	@golangci-lint-2 version
-	@golangci-lint-2 config verify
-	@golangci-lint-2 run
+	@golangci-lint version
+	@golangci-lint config verify
+	@golangci-lint run
 
 db-test:
 	@echo "Rebuilding test DB..."
