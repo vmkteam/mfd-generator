@@ -12,7 +12,6 @@ import (
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/generators/base"
-	"github.com/dizzyfool/genna/util"
 	"github.com/spf13/cobra"
 )
 
@@ -185,63 +184,11 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	// Getting file name without dots
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 	nsData := PackNamespace(ns, g.options)
+	checkEntities := len(g.options.Entities) > 0 && !nsData.HasAllOfProvidedEntities(g.options.Entities)
 
-	// Partial file update flow
-	// If entities are provided, it appends missing functions or regenerates them if force provided
-	if len(g.options.Entities) > 0 && !nsData.HasAllOfProvidedEntities(g.options.Entities) {
-		if err := g.generateFuncsByEntities(nsData, ns.Name, output); err != nil {
-			return fmt.Errorf("generate funcs by entities, err=%w", err)
-		}
-		return nil
-	}
-
-	// Generating file entirely by namespace flow
-	if _, err := g.CreateFuncFile(nsData); err != nil {
-		return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
-	}
-
-	buffer := new(bytes.Buffer)
-
-	// Render funcs for each entity
-	for _, entity := range nsData.Entities {
-		// Render the main func
-		if err := mfd.Render(buffer, funcTemplate, entity); err != nil {
-			return fmt.Errorf("processing func template, err=%w", err)
-		}
-
-		// Render WithRelations opFunc
-		if err := (OpFuncWithRelations{}).Render(buffer, entity); err != nil {
-			return fmt.Errorf("processing func template, err=%w", err)
-		}
-
-		// Render WithRelations opFunc
-		if err := (OpFuncWithFake{}).Render(buffer, entity); err != nil {
-			return fmt.Errorf("processing func template, err=%w", err)
-		}
-	}
-
-	if buffer.Len() == 0 {
-		return nil
-	}
-
-	content, err := os.ReadFile(output)
-	if err != nil {
-		return fmt.Errorf("read file=%s, err=%w", output, err)
-	}
-
-	content = append(content, buffer.Bytes()...)
-	// Write to file
-	if _, err := util.FmtAndSave(content, output); err != nil {
-		return fmt.Errorf("fmt and write to file=%s, err=%w", output, err)
-	}
-
-	return nil
-}
-
-func (g *Generator) generateFuncsByEntities(nsData NamespaceData, nsName, output string) error {
-	if !fileExists(output) { // If file doesn't exist, create it
+	if !fileExists(output) {
 		if _, err := g.CreateFuncFile(nsData); err != nil {
-			return fmt.Errorf("create file for functions, ns=%s, err=%w", nsName, err)
+			return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
 		}
 	}
 
@@ -252,22 +199,29 @@ func (g *Generator) generateFuncsByEntities(nsData NamespaceData, nsName, output
 
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
-		if _, ok := entities[entity.Name]; !ok {
+		if _, ok := entities[entity.Name]; !ok && checkEntities {
 			continue // Skip if entities are provided and it is not one of them
 		}
 
+		// Render opFunc type struct
+		// Make a regexp with entity name to prevent removing OpFunc types despite the entity
+		typeOpFuncRe := regexp.MustCompile(fmt.Sprintf(`^type %[1]sOpFunc func\(t \*testing\.T, dbo orm\.DB, in \*db\.%[1]s\) Cleaner`, entity.Name))
+		if err := g.replaceTargetFromFile(OpFuncType{}, typeOpFuncRe, entity, output, "", ""); err != nil {
+			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
+		}
+
 		// Render the main func
-		if err := g.replaceFunctionFromFile(MainFunc{}, entity, output); err != nil {
+		if err := g.replaceTargetFromFile(MainFunc{}, funcRe, entity, output, "{", "}"); err != nil {
 			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
 		}
 
 		// Render WithRelations opFunc
-		if err := g.replaceFunctionFromFile(OpFuncWithRelations{}, entity, output); err != nil {
+		if err := g.replaceTargetFromFile(OpFuncWithRelations{}, funcRe, entity, output, "{", "}"); err != nil {
 			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
 		}
 
 		// Render WithFake opFunc
-		if err := g.replaceFunctionFromFile(OpFuncWithFake{}, entity, output); err != nil {
+		if err := g.replaceTargetFromFile(OpFuncWithFake{}, funcRe, entity, output, "{", "}"); err != nil {
 			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
 		}
 	}
@@ -275,14 +229,20 @@ func (g *Generator) generateFuncsByEntities(nsData NamespaceData, nsName, output
 	return nil
 }
 
-// replaceFunctionFromFile removes specified functions from a Go file
-func (g *Generator) replaceFunctionFromFile(b FuncLayoutRenderer, entity EntityData, filePath string) error {
+// replaceTargetFromFile removes specified functions from a Go file
+// The target could be func, struct or type OpFunc
+func (g *Generator) replaceTargetFromFile(b FuncLayoutRenderer, targetReExpression *regexp.Regexp, entity EntityData, filePath, openingToken, closeningToken string) error {
 	buf := new(bytes.Buffer)
 	if err := b.Render(buf, entity); err != nil {
 		return fmt.Errorf("render the main func, entity=%s, err=%w", entity.Name, err)
 	}
 
-	if _, err := mfd.UpdateFile(buf, filePath, funcRe, g.options.Force); err != nil {
+	// If it rendered nothing, the main condition in the template doesn't work, just skip
+	if buf.Len() == 0 {
+		return nil
+	}
+
+	if _, err := mfd.UpdateFile(buf, filePath, openingToken, closeningToken, targetReExpression, g.options.Force); err != nil {
 		return fmt.Errorf("update file, err=%w", err)
 	}
 

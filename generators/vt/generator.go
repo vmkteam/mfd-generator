@@ -304,7 +304,7 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			if err := mfd.Render(buf, serviceTemplate, serviceData); err != nil {
 				return fmt.Errorf("render service, err=%w", err)
 			}
-			if _, err := mfd.UpdateFile(buf, output, structRe, true); err != nil {
+			if _, err := mfd.UpdateFile(buf, output, "{", "}", structRe, true); err != nil {
 				return fmt.Errorf("update file, service=%s, err=%w", namespace, err)
 			}
 		}
@@ -317,7 +317,7 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			if err := mfd.Render(modelBuf, modelTemplate, modelData); err != nil {
 				return fmt.Errorf("render model, model=%s, err=%w", entity.Name, err)
 			}
-			if _, err := mfd.UpdateFile(modelBuf, output, structRe, true); err != nil {
+			if _, err := mfd.UpdateFile(modelBuf, output, "{", "}", structRe, true); err != nil {
 				return fmt.Errorf("update model file, entity=%s, err=%w", entity.Name, err)
 			}
 			// generate converter file
@@ -326,7 +326,7 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 				return fmt.Errorf("render converer, model=%s, err=%w", entity.Name, err)
 			}
 			output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
-			if _, err := mfd.UpdateFile(converterBuf, output, funcRe, true); err != nil {
+			if _, err := mfd.UpdateFile(converterBuf, output, "{", "}", funcRe, true); err != nil {
 				return fmt.Errorf("update converter file, entity=%s, err=%w", entity.Name, err)
 			}
 		}

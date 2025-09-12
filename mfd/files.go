@@ -235,14 +235,20 @@ func RenderText(wr io.Writer, tmpl string, data any) error {
 //		}
 //
 // fmt.Println("Replacement successful:", success)
-func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Regexp, force bool) (bool, error) {
+func replaceFragmentInFile(output, findData, newData, openingToken, closeningToken string, pattern *regexp.Regexp, force bool) (bool, error) {
 	content, err := os.ReadFile(output)
 	if err != nil {
-		return false, fmt.Errorf("read file err: %w", err)
+		if !os.IsNotExist(err) {
+			return false, fmt.Errorf("read file err: %w", err)
+		}
+
+		if _, err := os.Create(output); err != nil {
+			return false, fmt.Errorf("output file was not found, attemtion to create it is failed, output=%s, err=%w", output, err)
+		}
 	}
 
 	lines := strings.Split(string(content), "\n")
-	ff := extractFragments(pattern, lines)
+	ff := extractFragments(pattern, lines, openingToken, closeningToken)
 	if len(ff) == 0 {
 		lines = append(lines, strings.Split(newData, "\n")...)
 		newContent := strings.Join(lines, "\n")
@@ -311,7 +317,7 @@ func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Reg
 //		}
 //
 // fmt.Println(fragments) // [[2, 5]]
-func extractFragments(re *regexp.Regexp, lines []string) [][2]int {
+func extractFragments(re *regexp.Regexp, lines []string, openingToken, closeningToken string) [][2]int {
 	var (
 		reFragments [][2]int
 		start       = -1
@@ -340,6 +346,8 @@ func extractFragments(re *regexp.Regexp, lines []string) [][2]int {
 
 	var ff [][2]int
 
+	checkOpeningCloseninigTokens := openingToken != closeningToken
+
 	// split big fragment
 	for _, fragment := range reFragments {
 		ll := lines[fragment[0]:fragment[1]]
@@ -349,15 +357,24 @@ func extractFragments(re *regexp.Regexp, lines []string) [][2]int {
 		var openTokenCnt int
 
 		for i, line := range ll {
-			if strings.HasSuffix(line, "{}") {
+			if !checkOpeningCloseninigTokens {
+				if line == "" {
+					continue
+				}
+				ff = append(ff, [2]int{subStart, fragment[0] + i + 1})
+				subStart = fragment[0] + i + 1
 				continue
 			}
 
-			if strings.HasSuffix(line, "{") {
+			if strings.HasSuffix(line, openingToken+closeningToken) {
+				continue
+			}
+
+			if strings.HasSuffix(line, openingToken) {
 				openTokenCnt++
 				continue
 			}
-			if strings.HasSuffix(line, "}") {
+			if strings.HasSuffix(line, closeningToken) {
 				openTokenCnt--
 				if openTokenCnt > 0 {
 					continue
@@ -394,12 +411,12 @@ func extractFragments(re *regexp.Regexp, lines []string) [][2]int {
 //		}
 //
 // fmt.Println("Update successful:", success)
-func UpdateFile(buffer *bytes.Buffer, output string, pattern *regexp.Regexp, force bool) (bool, error) {
+func UpdateFile(buffer *bytes.Buffer, output, openingToken, closeningToken string, pattern *regexp.Regexp, force bool) (bool, error) {
 	// get []string from generate template
 	lines := strings.Split(buffer.String(), "\n")
 
 	// search fragment from our template
-	fragments := extractFragments(pattern, lines)
+	fragments := extractFragments(pattern, lines, openingToken, closeningToken)
 	if len(fragments) == 0 {
 		return false, errors.New("no reFragments found with pattern in the new content")
 	}
@@ -415,7 +432,7 @@ func UpdateFile(buffer *bytes.Buffer, output string, pattern *regexp.Regexp, for
 				break
 			}
 		}
-		if _, err := replaceFragmentInFile(output, strings.TrimSuffix(findRow, " "), strings.Join(filePart, "\n"), pattern, force); err != nil {
+		if _, err := replaceFragmentInFile(output, strings.TrimSuffix(findRow, " "), strings.Join(filePart, "\n"), openingToken, closeningToken, pattern, force); err != nil {
 			return false, fmt.Errorf("replace fragment error: %w", err)
 		}
 	}

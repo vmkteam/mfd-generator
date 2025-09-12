@@ -105,7 +105,6 @@ func val[T any, P *T](p P) T {
 	var def T
 	return def
 }
-
 `
 
 const funcFileTemplate = `
@@ -126,10 +125,10 @@ import (
 
 `
 
-const funcTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner
+const opFuncTypeTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner
+`
 
-// {{.Name}} creates and returns a {{.Name}} entity with cleanup function
-func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFunc) (*db.{{.Name}}, Cleaner) {
+const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFunc) (*db.{{.Name}}, Cleaner) {
 	repo := db.New{{.Namespace}}Repo(dbo)
 	var cleaners []Cleaner
 
@@ -191,7 +190,6 @@ func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFun
 `
 
 const funcOpWithRelTemplate = `{{- if .HasRelations }}
-// With{{.Name}}Relations The optional function which allows to create all {{.Name}} relations or fetch them if provided.
 func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
 	var cleaners []Cleaner
 
@@ -245,17 +243,14 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		}
 	}
 }
-{{- end}}
 
-`
+{{- end}}`
 
 const funcOpWithFakeTemplate = `{{- if .NeedFakeFilling }}
-// WithFake{{.Name}} The optional function which allows to fill all required fields with random data.
 func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
 	{{- range .FakeFilling }}{{.}}{{ end }}
 	
 	return emptyClean
 }
-{{- end}}
 
-`
+{{- end}}`

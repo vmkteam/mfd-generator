@@ -461,6 +461,12 @@ func (op OpFuncWithRelations) Render(w io.Writer, data any) error {
 	return loadAndParseTemplate(w, funcOpWithRelTemplate, data)
 }
 
+type OpFuncType struct{}
+
+func (op OpFuncType) Render(w io.Writer, data any) error {
+	return loadAndParseTemplate(w, opFuncTypeTemplate, data)
+}
+
 type OpFuncWithFake struct{}
 
 func (op OpFuncWithFake) Render(w io.Writer, data any) error {

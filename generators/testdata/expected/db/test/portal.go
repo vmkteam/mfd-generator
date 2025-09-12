@@ -13,7 +13,6 @@ import (
 
 type CategoryOpFunc func(t *testing.T, dbo orm.DB, in *db.Category) Cleaner
 
-// Category creates and returns a Category entity with cleanup function
 func Category(t *testing.T, dbo orm.DB, in *db.Category, ops ...CategoryOpFunc) (*db.Category, Cleaner) {
 	repo := db.NewPortalRepo(dbo)
 	var cleaners []Cleaner
@@ -64,7 +63,6 @@ func Category(t *testing.T, dbo orm.DB, in *db.Category, ops ...CategoryOpFunc) 
 	}
 }
 
-// WithFakeCategory The optional function which allows to fill all required fields with random data.
 func WithFakeCategory(t *testing.T, dbo orm.DB, in *db.Category) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
@@ -83,7 +81,6 @@ func WithFakeCategory(t *testing.T, dbo orm.DB, in *db.Category) Cleaner {
 
 type NewsOpFunc func(t *testing.T, dbo orm.DB, in *db.News) Cleaner
 
-// News creates and returns a News entity with cleanup function
 func News(t *testing.T, dbo orm.DB, in *db.News, ops ...NewsOpFunc) (*db.News, Cleaner) {
 	repo := db.NewPortalRepo(dbo)
 	var cleaners []Cleaner
@@ -134,7 +131,6 @@ func News(t *testing.T, dbo orm.DB, in *db.News, ops ...NewsOpFunc) (*db.News, C
 	}
 }
 
-// WithNewsRelations The optional function which allows to create all News relations or fetch them if provided.
 func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	var cleaners []Cleaner
 	// Prepare nested relations which have the same relations
@@ -220,7 +216,6 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	}
 }
 
-// WithFakeNews The optional function which allows to fill all required fields with random data.
 func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
@@ -239,7 +234,6 @@ func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 type TagOpFunc func(t *testing.T, dbo orm.DB, in *db.Tag) Cleaner
 
-// Tag creates and returns a Tag entity with cleanup function
 func Tag(t *testing.T, dbo orm.DB, in *db.Tag, ops ...TagOpFunc) (*db.Tag, Cleaner) {
 	repo := db.NewPortalRepo(dbo)
 	var cleaners []Cleaner
@@ -290,7 +284,6 @@ func Tag(t *testing.T, dbo orm.DB, in *db.Tag, ops ...TagOpFunc) (*db.Tag, Clean
 	}
 }
 
-// WithFakeTag The optional function which allows to fill all required fields with random data.
 func WithFakeTag(t *testing.T, dbo orm.DB, in *db.Tag) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])

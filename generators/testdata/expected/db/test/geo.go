@@ -13,7 +13,6 @@ import (
 
 type CityOpFunc func(t *testing.T, dbo orm.DB, in *db.City) Cleaner
 
-// City creates and returns a City entity with cleanup function
 func City(t *testing.T, dbo orm.DB, in *db.City, ops ...CityOpFunc) (*db.City, Cleaner) {
 	repo := db.NewGeoRepo(dbo)
 	var cleaners []Cleaner
@@ -64,7 +63,6 @@ func City(t *testing.T, dbo orm.DB, in *db.City, ops ...CityOpFunc) (*db.City, C
 	}
 }
 
-// WithCityRelations The optional function which allows to create all City relations or fetch them if provided.
 func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	var cleaners []Cleaner
 	// Prepare nested relations which have the same relations
@@ -112,7 +110,6 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	}
 }
 
-// WithFakeCity The optional function which allows to fill all required fields with random data.
 func WithFakeCity(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
@@ -135,7 +132,6 @@ func WithFakeCity(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 
 type CountryOpFunc func(t *testing.T, dbo orm.DB, in *db.Country) Cleaner
 
-// Country creates and returns a Country entity with cleanup function
 func Country(t *testing.T, dbo orm.DB, in *db.Country, ops ...CountryOpFunc) (*db.Country, Cleaner) {
 	repo := db.NewGeoRepo(dbo)
 	var cleaners []Cleaner
@@ -186,7 +182,6 @@ func Country(t *testing.T, dbo orm.DB, in *db.Country, ops ...CountryOpFunc) (*d
 	}
 }
 
-// WithFakeCountry The optional function which allows to fill all required fields with random data.
 func WithFakeCountry(t *testing.T, dbo orm.DB, in *db.Country) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
@@ -209,7 +204,6 @@ func WithFakeCountry(t *testing.T, dbo orm.DB, in *db.Country) Cleaner {
 
 type RegionOpFunc func(t *testing.T, dbo orm.DB, in *db.Region) Cleaner
 
-// Region creates and returns a Region entity with cleanup function
 func Region(t *testing.T, dbo orm.DB, in *db.Region, ops ...RegionOpFunc) (*db.Region, Cleaner) {
 	repo := db.NewGeoRepo(dbo)
 	var cleaners []Cleaner
@@ -260,7 +254,6 @@ func Region(t *testing.T, dbo orm.DB, in *db.Region, ops ...RegionOpFunc) (*db.R
 	}
 }
 
-// WithRegionRelations The optional function which allows to create all Region relations or fetch them if provided.
 func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	var cleaners []Cleaner
 
@@ -286,7 +279,6 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	}
 }
 
-// WithFakeRegion The optional function which allows to fill all required fields with random data.
 func WithFakeRegion(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	if in.Title == "" {
 		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
