@@ -42,6 +42,9 @@
                         <previewLabel>Preview</previewLabel>
                         <contentLabel>Content</contentLabel>
                         <categoryIdLabel>Category</categoryIdLabel>
+                        <countryIdLabel>Country</countryIdLabel>
+                        <regionIdLabel>Region</regionIdLabel>
+                        <cityIdLabel>City</cityIdLabel>
                         <tagIdsLabel>Tags</tagIdsLabel>
                         <publishedAtLabel>Published At</publishedAtLabel>
                         <statusIdLabel>Status</statusIdLabel>
@@ -54,6 +57,9 @@
                             <preview>Preview</preview>
                             <content>Content</content>
                             <categoryId>Category</categoryId>
+                            <countryId>Country</countryId>
+                            <regionId>Region</regionId>
+                            <cityId>City</cityId>
                             <createdAt>Created at</createdAt>
                             <publishedAt>Published At</publishedAt>
                             <statusId>Status</statusId>
@@ -64,7 +70,8 @@
                             <preview>Preview</preview>
                             <content>Content</content>
                             <category>Category</category>
-                            <publishedAt>Published At</publishedAt>
+                            <country>Country</country>
+                            <region>Region</region>
                             <status>Status</status>
                             <actions>Actions</actions>
                         </Headers>
@@ -90,6 +97,222 @@
                         </Filter>
                         <Headers>
                             <title>Title</title>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
+        <Namespace Name="geo">
+            <Entities>
+                <Entity Name="City" Key="city">
+                    <Crumbs>
+                        <cityAdd>Add</cityAdd>
+                        <cityEdit>Edit</cityEdit>
+                        <cityList>Cities</cityList>
+                    </Crumbs>
+                    <Form>
+                        <regionIdLabel>Region</regionIdLabel>
+                        <countryIdLabel>Country</countryIdLabel>
+                        <titleLabel>Title</titleLabel>
+                        <altTitleLabel>Alt Title</altTitleLabel>
+                        <aliasLabel>Alias</aliasLabel>
+                        <orderNumberLabel>Order Number</orderNumberLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Cities</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <regionId>Region</regionId>
+                            <countryId>Country</countryId>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                            <notId>Not</notId>
+                        </Filter>
+                        <Headers>
+                            <region>Region</region>
+                            <country>Country</country>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="Country" Key="country">
+                    <Crumbs>
+                        <countryAdd>Add</countryAdd>
+                        <countryEdit>Edit</countryEdit>
+                        <countryList>Countries</countryList>
+                    </Crumbs>
+                    <Form>
+                        <titleLabel>Title</titleLabel>
+                        <altTitleLabel>Alt Title</altTitleLabel>
+                        <aliasLabel>Alias</aliasLabel>
+                        <orderNumberLabel>Order Number</orderNumberLabel>
+                        <h1Label>H 1</h1Label>
+                        <pageTitleLabel>Page Title</pageTitleLabel>
+                        <metaDescriptionLabel>Meta Description</metaDescriptionLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Countries</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <h1>H 1</h1>
+                            <pageTitle>Page Title</pageTitle>
+                            <metaDescription>Meta Description</metaDescription>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                            <notId>Not</notId>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <h1>H 1</h1>
+                            <pageTitle>Page Title</pageTitle>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="Region" Key="region">
+                    <Crumbs>
+                        <regionAdd>Add</regionAdd>
+                        <regionEdit>Edit</regionEdit>
+                        <regionList>Regions</regionList>
+                    </Crumbs>
+                    <Form>
+                        <countryIdLabel>Country</countryIdLabel>
+                        <titleLabel>Title</titleLabel>
+                        <altTitleLabel>Alt Title</altTitleLabel>
+                        <aliasLabel>Alias</aliasLabel>
+                        <orderNumberLabel>Order Number</orderNumberLabel>
+                        <imageLabel>Image</imageLabel>
+                        <h1Label>H 1</h1Label>
+                        <pageTitleLabel>Page Title</pageTitleLabel>
+                        <metaDescriptionLabel>Meta Description</metaDescriptionLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Regions</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <countryId>Country</countryId>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <image>Image</image>
+                            <h1>H 1</h1>
+                            <pageTitle>Page Title</pageTitle>
+                            <metaDescription>Meta Description</metaDescription>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                            <notId>Not</notId>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <altTitle>Alt Title</altTitle>
+                            <alias>Alias</alias>
+                            <orderNumber>Order Number</orderNumber>
+                            <image>Image</image>
+                            <h1>H 1</h1>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
+        <Namespace Name="vfs">
+            <Entities>
+                <Entity Name="VfsFile" Key="vfsFile">
+                    <Crumbs>
+                        <vfsFileAdd>Add</vfsFileAdd>
+                        <vfsFileEdit>Edit</vfsFileEdit>
+                        <vfsFileList>Vfs Files</vfsFileList>
+                    </Crumbs>
+                    <Form>
+                        <folderIdLabel>Folder</folderIdLabel>
+                        <titleLabel>Title</titleLabel>
+                        <pathLabel>Path</pathLabel>
+                        <paramsLabel>Params</paramsLabel>
+                        <isFavoriteLabel>Is Favorite</isFavoriteLabel>
+                        <mimeTypeLabel>Mime Type</mimeTypeLabel>
+                        <fileSizeLabel>File Size</fileSizeLabel>
+                        <fileExistsLabel>File Exists</fileExistsLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Vfs Files</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <folderId>Folder</folderId>
+                            <title>Title</title>
+                            <path>Path</path>
+                            <params>Params</params>
+                            <isFavorite>Is Favorite</isFavorite>
+                            <mimeType>Mime Type</mimeType>
+                            <fileSize>File Size</fileSize>
+                            <fileExists>File Exists</fileExists>
+                            <createdAt>Created at</createdAt>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <title>Title</title>
+                            <path>Path</path>
+                            <isFavorite>Is Favorite</isFavorite>
+                            <mimeType>Mime Type</mimeType>
+                            <fileSize>File Size</fileSize>
+                            <fileExists>File Exists</fileExists>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="VfsFolder" Key="vfsFolder">
+                    <Crumbs>
+                        <vfsFolderAdd>Add</vfsFolderAdd>
+                        <vfsFolderEdit>Edit</vfsFolderEdit>
+                        <vfsFolderList>Vfs Folders</vfsFolderList>
+                    </Crumbs>
+                    <Form>
+                        <parentFolderIdLabel>Parent Folder</parentFolderIdLabel>
+                        <titleLabel>Title</titleLabel>
+                        <isFavoriteLabel>Is Favorite</isFavoriteLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Vfs Folders</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <parentFolderId>Parent Folder</parentFolderId>
+                            <title>Title</title>
+                            <isFavorite>Is Favorite</isFavorite>
+                            <createdAt>Created at</createdAt>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <parentFolder>Parent Folder</parentFolder>
+                            <title>Title</title>
+                            <isFavorite>Is Favorite</isFavorite>
                             <status>Status</status>
                             <actions>Actions</actions>
                         </Headers>

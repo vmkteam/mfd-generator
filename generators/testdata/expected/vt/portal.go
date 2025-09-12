@@ -190,12 +190,14 @@ type NewsService struct {
 	zenrpc.Service
 	embedlog.Logger
 	portalRepo db.PortalRepo
+	geoRepo    db.GeoRepo
 }
 
 func NewNewsService(dbo db.DB, logger embedlog.Logger) *NewsService {
 	return &NewsService{
 		Logger:     logger,
 		portalRepo: db.NewPortalRepo(dbo),
+		geoRepo:    db.NewGeoRepo(dbo),
 	}
 }
 
@@ -206,7 +208,7 @@ func (s NewsService) dbSort(ops *ViewOps) db.OpFunc {
 	}
 
 	switch ops.SortColumn {
-	case db.Columns.News.ID, db.Columns.News.Title, db.Columns.News.Preview, db.Columns.News.Content, db.Columns.News.CategoryID, db.Columns.News.CreatedAt, db.Columns.News.PublishedAt, db.Columns.News.StatusID:
+	case db.Columns.News.ID, db.Columns.News.Title, db.Columns.News.Preview, db.Columns.News.Content, db.Columns.News.CategoryID, db.Columns.News.CountryID, db.Columns.News.RegionID, db.Columns.News.CityID, db.Columns.News.CreatedAt, db.Columns.News.PublishedAt, db.Columns.News.StatusID:
 		v = db.WithSort(db.NewSortField(ops.SortColumn, ops.SortDesc))
 	}
 
@@ -366,6 +368,33 @@ func (s NewsService) isValid(ctx context.Context, news News, isUpdate bool) Vali
 			v.SetInternalError(err)
 		} else if item == nil {
 			v.Append("categoryId", FieldErrorIncorrect)
+		}
+	}
+
+	if news.CountryID != nil {
+		item, err := s.geoRepo.CountryByID(ctx, *news.CountryID)
+		if err != nil {
+			v.SetInternalError(err)
+		} else if item == nil {
+			v.Append("countryId", FieldErrorIncorrect)
+		}
+	}
+
+	if news.RegionID != nil {
+		item, err := s.geoRepo.RegionByID(ctx, *news.RegionID)
+		if err != nil {
+			v.SetInternalError(err)
+		} else if item == nil {
+			v.Append("regionId", FieldErrorIncorrect)
+		}
+	}
+
+	if news.CityID != nil {
+		item, err := s.geoRepo.CityByID(ctx, *news.CityID)
+		if err != nil {
+			v.SetInternalError(err)
+		} else if item == nil {
+			v.Append("cityId", FieldErrorIncorrect)
 		}
 	}
 

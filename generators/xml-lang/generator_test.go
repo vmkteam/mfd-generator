@@ -27,8 +27,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Entities = []string{"category"}
 
 			t.Log("Generate only entity news xml-vt")
-			err = generator.Generate()
-			So(err, ShouldBeNil)
+			So(generator.Generate(), ShouldBeNil)
 
 			t.Logf("Check %s file", "en-one-entity.xml")
 			content, err := os.ReadFile(filepath.Join(actualDir, "en.xml"))
@@ -43,8 +42,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.MFDPath = mfdPathInActual
 
 			t.Log("Generate xml-vt")
-			err = generator.Generate()
-			So(err, ShouldBeNil)
+			So(generator.Generate(), ShouldBeNil)
 		})
 
 		Convey("Check generated files", func() {
@@ -58,7 +56,7 @@ func TestGenerator_Generate(t *testing.T) {
 				So(err, ShouldBeNil)
 				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpected, f))
 				So(err, ShouldBeNil)
-				So(content, ShouldResemble, expectedContent)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 	})
@@ -76,6 +74,26 @@ func prepareFiles(actualPath string) error {
 	}
 
 	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameVTXML), filepath.Join(actualPath, testdata.FilenameVTXML))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(actualPath, "geo.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(actualPath, "geo.vt.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(actualPath, "vfs.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(actualPath, "vfs.vt.xml"))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

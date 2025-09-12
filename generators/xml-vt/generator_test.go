@@ -30,6 +30,8 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
 				"portal.vt.xml": {},
+				"geo.vt.xml":    {},
+				"vfs.vt.xml":    {},
 			}
 
 			for f := range expectedFilenames {
@@ -42,7 +44,7 @@ func TestGenerator_Generate(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				So(content, ShouldResemble, expectedContent)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 	})
