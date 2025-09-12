@@ -226,7 +226,7 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
-		{{- if .Entity.HasRelations }}, With{{.Name}}Relations {{ end -}}
+		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
 		, WithFake{{.Type}})
 		in.{{.Name}} = rel
 		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
