@@ -66,5 +66,25 @@ func prepareFiles() error {
 		return err
 	}
 
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(testdata.PathActual, "geo.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(testdata.PathActual, "geo.vt.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(testdata.PathActual, "vfs.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(testdata.PathActual, "vfs.vt.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
 	return nil
 }
