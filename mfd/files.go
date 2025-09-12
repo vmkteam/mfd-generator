@@ -348,6 +348,7 @@ func extractFragments(re *regexp.Regexp, lines []string, openingToken, closening
 
 	checkOpeningCloseninigTokens := openingToken != closeningToken
 
+	reInlineOpeningAndClosing := regexp.MustCompile(`\{.*}$`)
 	// split big fragment
 	for _, fragment := range reFragments {
 		ll := lines[fragment[0]:fragment[1]]
@@ -366,7 +367,7 @@ func extractFragments(re *regexp.Regexp, lines []string, openingToken, closening
 				continue
 			}
 
-			if strings.HasSuffix(line, openingToken+closeningToken) {
+			if reInlineOpeningAndClosing.MatchString(line) {
 				continue
 			}
 

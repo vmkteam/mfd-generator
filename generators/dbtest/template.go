@@ -113,9 +113,10 @@ package {{.Package}}
 import (
 	"fmt"
 	"testing"
-	{{- if .HasImports}}
-	{{ range .Imports}}"{{.}}"{{end}}
-	{{- end}}
+	{{- if .HasImports}}{{- range .Imports}}
+	"{{.}}"
+	{{- end }}
+	{{- end }}
 
 	"{{.DBPackage}}"
 
@@ -175,7 +176,10 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 
 	return {{.VarName}}, func() {
 		{{- if .HasPKs}}
-		if _, err := dbo.ModelContext(t.Context(), &db.{{.Name}}{ {{range .PKs}}{{.Field}}: {{$.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
+		if _, err := dbo.ModelContext(t.Context(), &db.{{.Name}}{ 
+		{{- range $i, $e := .PKs}}
+		{{- if gt $i 0 }}, {{ end -}}
+		{{.Field}}: {{$.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
 		{{- end}}

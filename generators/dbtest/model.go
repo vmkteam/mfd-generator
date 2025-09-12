@@ -242,11 +242,11 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
 			if ok {
 				// If it is, it generates more for the field data
-				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName)
+				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray)
 				fakeFillingData = append(fakeFillingData, condition)
-			} else {
+			} else if byType, found := fakeFiller.ByType(column.Name, column.GoType, column.IsArray, column.Max); found {
 				// By default, generates something depending on a field type
-				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), fakeFiller.ByType(column.Name, column.GoType, column.Max))
+				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray)
 				fakeFillingData = append(fakeFillingData, condition)
 			}
 		}
@@ -263,10 +263,11 @@ func PackEntity(entity mfd.Entity, namespace string, options Options) EntityData
 			continue
 		}
 
-		relNames = append(relNames, PackRelationData(te.Relations[i], namespace, options))
-		relNamesMap[relNames[i].Name] = relNames[i]
-		if relNames[i].Entity.HasRelations {
-			relNamesWhichHasRels[relNames[i].Name] = struct{}{}
+		relationData := PackRelationData(te.Relations[i], namespace, options)
+		relNames = append(relNames, relationData)
+		relNamesMap[relationData.Name] = relationData
+		if relationData.Entity.HasRelations {
+			relNamesWhichHasRels[relationData.Name] = struct{}{}
 		}
 	}
 
