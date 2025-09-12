@@ -199,7 +199,7 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 
 	// Render funcs for each entity
 	for _, entity := range nsData.Entities {
-		if _, ok := entities[entity.Name]; !ok && checkEntities {
+		if _, ok := entities[entity.VarName]; !ok && checkEntities {
 			continue // Skip if entities are provided and it is not one of them
 		}
 

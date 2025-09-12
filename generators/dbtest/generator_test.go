@@ -114,7 +114,7 @@ func TestGenerator_Generate(t *testing.T) {
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
-				generator.options.Entities = []string{"News"}
+				generator.options.Entities = []string{"news"}
 
 				// Clear output before generating
 				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
@@ -162,7 +162,7 @@ func TestGenerator_Generate(t *testing.T) {
 				err = os.WriteFile(filepath.Join(testdata.PathActualDBTest, filename), []byte(newContent), 0644)
 				So(err, ShouldBeNil)
 
-				generator.options.Entities = []string{"News"}
+				generator.options.Entities = []string{"news"}
 				generator.options.Force = true
 				So(generator.Generate(), ShouldBeNil)
 			})
