@@ -402,6 +402,8 @@ func initRels(relByName map[string]RelationData) []template.HTML {
 		res = append(res, str)
 	}
 
+	slices.Sort(res)
+
 	return res
 }
 

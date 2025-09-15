@@ -67,12 +67,12 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	var cleaners []Cleaner
 
 	// Prepare main relations
-	if in.Region == nil {
-		in.Region = &db.Region{}
-	}
-
 	if in.Country == nil {
 		in.Country = &db.Country{}
+	}
+
+	if in.Region == nil {
+		in.Region = &db.Region{}
 	}
 
 	// Prepare nested relations which have the same relations

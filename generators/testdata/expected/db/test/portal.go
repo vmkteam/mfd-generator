@@ -139,16 +139,16 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		in.Category = &db.Category{}
 	}
 
+	if in.City == nil {
+		in.City = &db.City{}
+	}
+
 	if in.Country == nil {
 		in.Country = &db.Country{}
 	}
 
 	if in.Region == nil {
 		in.Region = &db.Region{}
-	}
-
-	if in.City == nil {
-		in.City = &db.City{}
 	}
 
 	// Prepare nested relations which have the same relations
