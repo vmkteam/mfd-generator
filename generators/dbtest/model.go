@@ -40,10 +40,12 @@ func PackFuncRenderData(options Options) FuncFileRenderData {
 
 // PKPair stores primary keys with type for template
 type PKPair struct {
-	Field string
-	Arg   string
-	Type  string
-	Zero  template.HTML
+	Field    string
+	Arg      string
+	Type     string
+	FK       *mfd.Entity
+	Nullable bool
+	Zero     template.HTML
 }
 
 func PackPKPair(column model.AttributeData) PKPair {
@@ -51,11 +53,14 @@ func PackPKPair(column model.AttributeData) PKPair {
 	if column.Name == util.ID {
 		arg = "id"
 	}
+
 	return PKPair{
-		Field: column.Name,
-		Arg:   arg,
-		Type:  column.GoType,
-		Zero:  template.HTML(mfd.MakeZeroValue(column.GoType)),
+		Field:    column.Name,
+		Arg:      arg,
+		Type:     column.GoType,
+		FK:       column.ForeignEntity,
+		Nullable: column.Nullable(),
+		Zero:     template.HTML(mfd.MakeZeroValue(column.GoType)),
 	}
 }
 
@@ -147,9 +152,10 @@ type EntityData struct {
 	VarName       string
 	VarNamePlural string
 
-	HasStatus bool
-	HasPKs    bool
-	PKs       []PKPair
+	HasStatus  bool
+	HasPKs     bool
+	PKs        []PKPair
+	FillingPKs []template.HTML
 
 	SortField string
 	SortDir   string
@@ -187,7 +193,7 @@ type EntityData struct {
 
 // PackEntity packs mfd entity to template data
 //
-//nolint:funlen
+//nolint:funlen,gocognit
 func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace string, options Options) EntityData {
 	// base template entity - repo depends on int
 	te := model.PackEntity(entity, model.Options{})
@@ -238,17 +244,27 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 			Updatable:     column.IsUpdatable(),
 		})
 
+		// Calculate if the column relates to itself
+		var hasSameRel bool
+		if column.ForeignEntity != nil {
+			for _, rel := range te.Relations {
+				if rel.Type == column.GoType {
+					hasSameRel = true
+				}
+			}
+		}
+
 		// Filling OpFunc which generates fake data
-		if !column.Nullable() && !column.PrimaryKey && column.ForeignEntity == nil {
+		if !column.Nullable() && !column.PrimaryKey && !hasSameRel {
 			// Check if the column has a known field name
 			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
 			if ok {
 				// If it is, it generates more for the field data
-				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray, false)
 				fakeFillingData = append(fakeFillingData, condition)
-			} else if byType, found := fakeFiller.ByType(column.Name, column.GoType, column.IsArray, column.Max); found {
+			} else if byType, found := fakeFiller.ByType(column.Name, column.GoType, column.DBType, column.IsArray, column.Max); found {
 				// By default, generates something depending on a field type
-				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray, false)
 				fakeFillingData = append(fakeFillingData, condition)
 			}
 		}
@@ -343,6 +359,7 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(sameRelNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
 	res.fillingRels(te, relNamesMap)
+	res.fillingRelPKs(relNamesMap)
 
 	return res
 }
@@ -383,7 +400,7 @@ func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embe
 
 				zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
 				assign := fmt.Sprintf("%s = %s", embeddedRels, zero)
-				str := mustWrapFilling(embeddedRels, "nil", "nil", template.HTML(assign), false)
+				str := mustWrapFilling(embeddedRels, "nil", "nil", template.HTML(assign), false, false)
 				initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
 				hasAlreadyPrepared = true
 			}
@@ -398,7 +415,7 @@ func initRels(relByName map[string]RelationData) []template.HTML {
 	for relName, rel := range relByName {
 		zero := fmt.Sprintf("&db.%s{}", rel.Type)
 		assign := fmt.Sprintf("in.%s = %s", relName, zero)
-		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false)
+		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false, false)
 		res = append(res, str)
 	}
 
@@ -418,35 +435,60 @@ func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
 	return res
 }
 
-func (e EntityData) fillingRels(rawEntity model.EntityData, relNamesMap map[string]RelationData) {
-	byRelName := fillingRels(rawEntity, relNamesMap)
-	for i, rel := range e.Relations {
-		e.Relations[i].Entity.FillingCreatedOrFoundRels = byRelName[rel.Name]
+func (e *EntityData) fillingRelPKs(relByName map[string]RelationData) {
+	for _, rel := range e.Relations {
+		for _, pk := range relByName[rel.Name].Entity.PKs {
+			var res string
+			needVal := rel.NilCheck
+			fieldName := rel.Name + pk.Field
+			for _, origPK := range e.PKs {
+				if origPK.FK != nil && origPK.FK.Name == rel.Name {
+					fieldName = pk.Field
+					needVal = false // Consider that its pk as fk is not nil
+				}
+			}
+			switch {
+			case needVal:
+				res = fmt.Sprintf("in.%s.%s = val(in.%s)", rel.Name, pk.Field, fieldName)
+			default:
+				res = fmt.Sprintf("in.%s.%s = in.%s", rel.Name, pk.Field, fieldName)
+			}
+
+			e.FillingPKs = append(e.FillingPKs, mustWrapFilling("in."+fieldName, pk.Type, pk.Zero, template.HTML(res), false, needVal))
+		}
 	}
 }
 
-func fillingRels(e model.EntityData, relNamesMap map[string]RelationData) map[string][]template.HTML {
-	res := make(map[string][]template.HTML, len(relNamesMap)*2)
-	for _, r := range e.Relations {
+func (e *EntityData) fillingRels(rawEntity model.EntityData, relNamesMap map[string]RelationData) {
+	byRelName := make(map[string][]template.HTML, len(relNamesMap)*2)
+	for _, r := range rawEntity.Relations {
 		rel, ok := relNamesMap[r.Name]
 		if !ok {
 			continue
 		}
 
-		res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%s = rel", r.Name)))
+		byRelName[r.Name] = append(byRelName[r.Name], template.HTML(fmt.Sprintf("in.%s = rel", r.Name)))
 		for _, pk := range rel.Entity.PKs {
-			col := e.AttributeByName(rel.Name + pk.Field)
-			needAmpersand := col.Nullable()
+			fieldName := rel.Name + pk.Field
+			needAmpersand := rel.NilCheck
+			for _, origPK := range e.PKs {
+				if origPK.FK != nil && origPK.FK.Name == rel.Name {
+					fieldName = pk.Field
+					needAmpersand = false // Consider that its pk as fk is not nil
+				}
+			}
 			switch {
 			case needAmpersand:
-				res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%[1]s%[2]s = &rel.%[2]s", r.Name, pk.Field)))
+				byRelName[r.Name] = append(byRelName[r.Name], template.HTML(fmt.Sprintf("in.%s = &rel.%s", fieldName, pk.Field)))
 			default:
-				res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%[1]s%[2]s = rel.%[2]s", r.Name, pk.Field)))
+				byRelName[r.Name] = append(byRelName[r.Name], template.HTML(fmt.Sprintf("in.%s = rel.%s", fieldName, pk.Field)))
 			}
 		}
 	}
 
-	return res
+	for i, rel := range e.Relations {
+		e.Relations[i].Entity.FillingCreatedOrFoundRels = byRelName[rel.Name]
+	}
 }
 
 // AttributeData stores attribute info for template

@@ -120,14 +120,14 @@ func cutS(str string, maxLen int) string {
 	if maxLen == 0 {
 		return str
 	}
-	return string([]rune(str)[:min(len(str), maxLen+1)])
+	return string([]rune(str)[:min(len(str), maxLen)])
 }
 
 func cutB(str string, maxLen int) []byte {
 	if maxLen == 0 {
 		return []byte(str)
 	}
-	return []byte(str)[:min(len(str), maxLen+1)]
+	return []byte(str)[:min(len(str), maxLen)]
 }
 `
 
@@ -240,19 +240,14 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 
 	// {{.Name}}. Check if all FKs are provided.
 	{{- $relation := .}}
-	if {{ range $i, $e := .Entity.PKs}}
-    {{- if gt $i 0 }} && {{ end -}}
-    {{- if $relation.NilCheck}}in.{{$relation.Name}}{{$e.Field}} != nil && *{{end -}}in.{{$relation.Name}}{{$e.Field}} != {{$e.Zero}}
-	{{- end }} {
-		{{- range $i, $e := .Entity.PKs}}
-		in.{{$relation.Name}}.{{$e.Field}} = {{- if $relation.NilCheck}}*{{end -}}in.{{$relation.Name}}{{$e.Field}} // Fill them for the next fetching step
-		{{- end }}
-	}
+	{{- range $entity.FillingPKs }}
+	{{.}}
+	{{- end }}
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
 		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
-		, WithFake{{.Type}})
+		, {{- if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}}) 
 		{{- range .Entity.FillingCreatedOrFoundRels }}
 		{{.}}
 		{{- end }}

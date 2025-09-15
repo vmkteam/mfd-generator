@@ -155,13 +155,14 @@ func (g *Generator) Generate() (err error) {
 
 func (g *Generator) SaveSetupFile() (bool, error) {
 	output := path.Join(g.options.Output, "test.go")
-	if fileExists(output) {
+	isForce := g.options.Force && (len(g.options.Namespaces) == 0 || len(g.options.Entities) == 0)
+	if !isForce && fileExists(output) {
 		return false, nil
 	}
 
 	buffer := new(bytes.Buffer)
 	if err := mfd.RenderText(buffer, baseFileTemplate, PackFuncRenderData(g.options)); err != nil {
-		return false, fmt.Errorf("processing model template, err=%w", err)
+		return false, fmt.Errorf("processing setup file template, err=%w", err)
 	}
 
 	return mfd.Save(buffer.Bytes(), output)

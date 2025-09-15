@@ -119,53 +119,60 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 	return "", false
 }
 
-func (ff FakeFiller) ByType(columnName, gotype string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
-	switch gotype {
-	case model.TypeInt, model.TypeInt32, model.TypeInt64:
-		return fakeIntRange.assign(columnName).Tmpl(), true
-	case model.TypeFloat32:
-		return fakeFloat32Range.assign(columnName).Tmpl(), true
-	case model.TypeFloat64:
-		return fakeFloat64Range.assign(columnName).Tmpl(), true
-	case model.TypeString:
-		switch {
-		case maxFiledLen == 0:
-			return fakeEmpty.sentence(defaultSentenceLen).cutString(maxFiledLen).assign(columnName).Tmpl(), true
-		case maxFiledLen >= minSentenceLen:
-			return fakeEmpty.sentence(maxFiledLen).cutString(maxFiledLen).assign(columnName).Tmpl(), true
-		}
-		return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
-	case model.TypeByteSlice:
-		switch {
-		case maxFiledLen == 0:
-			return fakeEmpty.sentence(defaultSentenceLen).cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
-		case maxFiledLen >= minSentenceLen:
-			return fakeEmpty.sentence(maxFiledLen).cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
-		}
-		return fakeWord.cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
-	case model.TypeBool:
-		return fakeBool.assign(columnName).Tmpl(), true
-	case model.TypeTime:
-		ff.imports["time"] = struct{}{}
-		return fakeRangeDateFuture.assign(columnName).Tmpl(), true
-	case model.TypeDuration:
-		return FakeIt(fmt.Sprintf("gofakeit.IntRange(%d, %d)", time.Second.Nanoseconds(), (24 * time.Hour).Nanoseconds())).assign(columnName).Tmpl(), true
-	case model.TypeMapInterface:
-		return FakeIt("map[string]interface{}{gofakeit.InputName(): gofakeit.Word()}").assign(columnName).Tmpl(), true
-	case model.TypeMapString:
-		return FakeIt("map[string]string{gofakeit.InputName(): gofakeit.Word()}").assign(columnName).Tmpl(), true
-	case model.TypeIP:
-		ff.imports["net"] = struct{}{}
-		return fakeEmpty.ipv4().assign(columnName).Tmpl(), true
-	case model.TypeIPNet:
-		ff.imports["net"] = struct{}{}
-		return fakeEmpty.ipv4Net().assign(columnName).Tmpl(), true
-	case model.TypeInterface:
-		return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
+func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
+	switch dbType {
+	case model.TypePGPoint:
+		return FakeIt(fmt.Sprintf(`"("+%s+","+%s+")"`, fakeLat, fakeLon)).assign(colName).Tmpl(), true
+	case model.TypePGUuid:
+		return fakeUUID.assign(colName).Tmpl(), true
 	}
 
 	if isArray {
-		return FakeIt(gotype + "{}").assign(columnName).Tmpl(), true
+		return FakeIt(goType + "{}").assign(colName).Tmpl(), true
+	}
+
+	switch goType {
+	case model.TypeInt, model.TypeInt32, model.TypeInt64:
+		return fakeIntRange.assign(colName).Tmpl(), true
+	case model.TypeFloat32:
+		return fakeFloat32Range.assign(colName).Tmpl(), true
+	case model.TypeFloat64:
+		return fakeFloat64Range.assign(colName).Tmpl(), true
+	case model.TypeString:
+		switch {
+		case maxFiledLen == 0:
+			return fakeEmpty.sentence(defaultSentenceLen).cutString(maxFiledLen).assign(colName).Tmpl(), true
+		case maxFiledLen >= minSentenceLen:
+			return fakeEmpty.sentence(maxFiledLen).cutString(maxFiledLen).assign(colName).Tmpl(), true
+		}
+		return fakeWord.cutString(maxFiledLen).assign(colName).Tmpl(), true
+	case model.TypeByteSlice:
+		switch {
+		case maxFiledLen == 0:
+			return fakeEmpty.sentence(defaultSentenceLen).cutBytes(maxFiledLen).assign(colName).Tmpl(), true
+		case maxFiledLen >= minSentenceLen:
+			return fakeEmpty.sentence(maxFiledLen).cutBytes(maxFiledLen).assign(colName).Tmpl(), true
+		}
+		return fakeWord.cutBytes(maxFiledLen).assign(colName).Tmpl(), true
+	case model.TypeBool:
+		return fakeBool.assign(colName).Tmpl(), true
+	case model.TypeTime:
+		ff.imports["time"] = struct{}{}
+		return fakeRangeDateFuture.assign(colName).Tmpl(), true
+	case model.TypeDuration:
+		return FakeIt(fmt.Sprintf("gofakeit.IntRange(%d, %d)", time.Second.Nanoseconds(), (24 * time.Hour).Nanoseconds())).assign(colName).Tmpl(), true
+	case model.TypeMapInterface:
+		return FakeIt("map[string]interface{}{gofakeit.InputName(): gofakeit.Word()}").assign(colName).Tmpl(), true
+	case model.TypeMapString:
+		return FakeIt("map[string]string{gofakeit.InputName(): gofakeit.Word()}").assign(colName).Tmpl(), true
+	case model.TypeIP:
+		ff.imports["net"] = struct{}{}
+		return fakeEmpty.ipv4().assign(colName).Tmpl(), true
+	case model.TypeIPNet:
+		ff.imports["net"] = struct{}{}
+		return fakeEmpty.ipv4Net().assign(colName).Tmpl(), true
+	case model.TypeInterface:
+		return fakeWord.cutString(maxFiledLen).assign(colName).Tmpl(), true
 	}
 
 	// By default, we don't know what the type and what package it belongs.
@@ -187,6 +194,8 @@ const (
 	fakeIntRange        FakeIt = "gofakeit.IntRange(1, 10)"
 	fakeFloat32Range    FakeIt = "gofakeit.Float32Range(1, 10)"
 	fakeFloat64Range    FakeIt = "gofakeit.Float64Range(1, 10)"
+	fakeLat             FakeIt = `fmt.Sprintf("%f", gofakeit.Latitude())`
+	fakeLon             FakeIt = `fmt.Sprintf("%f", gofakeit.Longitude())`
 	fakeByte            FakeIt = "byte(gofakeit.UintRange(0, 255))"
 	fakeBool            FakeIt = "gofakeit.Bool()"
 	fakeWord            FakeIt = "gofakeit.Word()"
@@ -194,6 +203,7 @@ const (
 	fakeEmail           FakeIt = "gofakeit.Email()"
 	fakePassword        FakeIt = "gofakeit.Password(true, true, true, false, false, 12)"
 	fakeNow             FakeIt = "time.Now()"
+	fakeUUID            FakeIt = `gofakeit.UUID()`
 	fakeRangeDateFuture FakeIt = "gofakeit.DateRange(time.Now().Add(5*time.Minute), time.Now().Add(1*time.Hour))"
 )
 
@@ -257,12 +267,15 @@ type wrapperTemplateData struct {
 	Filling   template.HTML
 }
 
-func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray bool) template.HTML {
+func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray, nilCheck bool) template.HTML {
 	if isArray {
 		zeroVal = "nil"
 	}
 
 	condition := "{{.Name}} == {{.Zero}}"
+	if nilCheck {
+		condition = "{{.Name}} == nil || *{{.Name}} == {{.Zero}}"
+	}
 	//nolint:gocritic
 	switch goType {
 	case model.TypeTime:

@@ -83,9 +83,15 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	// Check embedded entities by FK
 
 	// Region. Check if all FKs are provided.
-	if in.RegionID != 0 {
-		in.Region.ID = in.RegionID // Fill them for the next fetching step
+
+	if in.RegionID == 0 {
+		in.Region.ID = in.RegionID
 	}
+
+	if in.CountryID == 0 {
+		in.Country.ID = in.CountryID
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
@@ -98,9 +104,15 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	}
 
 	// Country. Check if all FKs are provided.
-	if in.CountryID != 0 {
-		in.Country.ID = in.CountryID // Fill them for the next fetching step
+
+	if in.RegionID == 0 {
+		in.Region.ID = in.RegionID
 	}
+
+	if in.CountryID == 0 {
+		in.Country.ID = in.CountryID
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
@@ -119,6 +131,14 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 }
 
 func WithFakeCity(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
+	if in.RegionID == 0 {
+		in.RegionID = gofakeit.IntRange(1, 10)
+	}
+
+	if in.CountryID == 0 {
+		in.CountryID = gofakeit.IntRange(1, 10)
+	}
+
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
@@ -273,9 +293,11 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	// Check embedded entities by FK
 
 	// Country. Check if all FKs are provided.
-	if in.CountryID != 0 {
-		in.Country.ID = in.CountryID // Fill them for the next fetching step
+
+	if in.CountryID == 0 {
+		in.Country.ID = in.CountryID
 	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
@@ -294,6 +316,10 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 }
 
 func WithFakeRegion(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
+	if in.CountryID == 0 {
+		in.CountryID = gofakeit.IntRange(1, 10)
+	}
+
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}

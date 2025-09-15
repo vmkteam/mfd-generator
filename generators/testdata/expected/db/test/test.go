@@ -118,12 +118,12 @@ func cutS(str string, maxLen int) string {
 	if maxLen == 0 {
 		return str
 	}
-	return string([]rune(str)[:min(len(str), maxLen+1)])
+	return string([]rune(str)[:min(len(str), maxLen)])
 }
 
 func cutB(str string, maxLen int) []byte {
 	if maxLen == 0 {
 		return []byte(str)
 	}
-	return []byte(str)[:min(len(str), maxLen+1)]
+	return []byte(str)[:min(len(str), maxLen)]
 }

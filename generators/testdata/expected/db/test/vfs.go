@@ -74,9 +74,11 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 	// Check embedded entities by FK
 
 	// Folder. Check if all FKs are provided.
-	if in.FolderID != 0 {
-		in.Folder.ID = in.FolderID // Fill them for the next fetching step
+
+	if in.FolderID == 0 {
+		in.Folder.ID = in.FolderID
 	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := VfsFolder(t, dbo, in.Folder, WithFakeVfsFolder)
@@ -95,6 +97,10 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 }
 
 func WithFakeVfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
+	if in.FolderID == 0 {
+		in.FolderID = gofakeit.IntRange(1, 10)
+	}
+
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}

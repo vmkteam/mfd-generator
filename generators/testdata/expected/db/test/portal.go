@@ -165,9 +165,23 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	// Check embedded entities by FK
 
 	// City. Check if all FKs are provided.
-	if in.CityID != nil && *in.CityID != 0 {
-		in.City.ID = *in.CityID // Fill them for the next fetching step
+
+	if in.CityID == nil || *in.CityID == 0 {
+		in.City.ID = val(in.CityID)
 	}
+
+	if in.RegionID == nil || *in.RegionID == 0 {
+		in.Region.ID = val(in.RegionID)
+	}
+
+	if in.CategoryID == 0 {
+		in.Category.ID = in.CategoryID
+	}
+
+	if in.CountryID == nil || *in.CountryID == 0 {
+		in.Country.ID = val(in.CountryID)
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := City(t, dbo, in.City, WithCityRelations, WithFakeCity)
@@ -181,9 +195,23 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	}
 
 	// Region. Check if all FKs are provided.
-	if in.RegionID != nil && *in.RegionID != 0 {
-		in.Region.ID = *in.RegionID // Fill them for the next fetching step
+
+	if in.CityID == nil || *in.CityID == 0 {
+		in.City.ID = val(in.CityID)
 	}
+
+	if in.RegionID == nil || *in.RegionID == 0 {
+		in.Region.ID = val(in.RegionID)
+	}
+
+	if in.CategoryID == 0 {
+		in.Category.ID = in.CategoryID
+	}
+
+	if in.CountryID == nil || *in.CountryID == 0 {
+		in.Country.ID = val(in.CountryID)
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
@@ -196,9 +224,23 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	}
 
 	// Category. Check if all FKs are provided.
-	if in.CategoryID != 0 {
-		in.Category.ID = in.CategoryID // Fill them for the next fetching step
+
+	if in.CityID == nil || *in.CityID == 0 {
+		in.City.ID = val(in.CityID)
 	}
+
+	if in.RegionID == nil || *in.RegionID == 0 {
+		in.Region.ID = val(in.RegionID)
+	}
+
+	if in.CategoryID == 0 {
+		in.Category.ID = in.CategoryID
+	}
+
+	if in.CountryID == nil || *in.CountryID == 0 {
+		in.Country.ID = val(in.CountryID)
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Category(t, dbo, in.Category, WithFakeCategory)
@@ -209,9 +251,23 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	}
 
 	// Country. Check if all FKs are provided.
-	if in.CountryID != nil && *in.CountryID != 0 {
-		in.Country.ID = *in.CountryID // Fill them for the next fetching step
+
+	if in.CityID == nil || *in.CityID == 0 {
+		in.City.ID = val(in.CityID)
 	}
+
+	if in.RegionID == nil || *in.RegionID == 0 {
+		in.Region.ID = val(in.RegionID)
+	}
+
+	if in.CategoryID == 0 {
+		in.Category.ID = in.CategoryID
+	}
+
+	if in.CountryID == nil || *in.CountryID == 0 {
+		in.Country.ID = val(in.CountryID)
+	}
+
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
@@ -232,6 +288,10 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
+	}
+
+	if in.CategoryID == 0 {
+		in.CategoryID = gofakeit.IntRange(1, 10)
 	}
 
 	if in.CreatedAt.IsZero() {
