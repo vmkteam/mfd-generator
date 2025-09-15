@@ -186,7 +186,7 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	nsData := PackNamespace(ns, g.options)
 	checkEntities := len(g.options.Entities) > 0 && !nsData.HasAllOfProvidedEntities(g.options.Entities)
 
-	if !fileExists(output) {
+	if !fileExists(output) || (len(g.options.Entities) == 0 && g.options.Force) {
 		if _, err := g.CreateFuncFile(nsData); err != nil {
 			return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
 		}

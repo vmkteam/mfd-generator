@@ -65,11 +65,17 @@ func City(t *testing.T, dbo orm.DB, in *db.City, ops ...CityOpFunc) (*db.City, C
 
 func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	var cleaners []Cleaner
-	// Prepare nested relations which have the same relations
 
+	// Prepare main relations
 	if in.Region == nil {
 		in.Region = &db.Region{}
 	}
+
+	if in.Country == nil {
+		in.Country = &db.Country{}
+	}
+
+	// Prepare nested relations which have the same relations
 
 	// Inject relation IDs into relations which have the same relations
 	in.Region.CountryID = in.CountryID
@@ -84,6 +90,7 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	{
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
 		in.Region = rel
+		in.RegionID = rel.ID
 		// Fill the same relations as in Region
 		in.Country = rel.Country
 
@@ -98,6 +105,7 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
 		in.Country = rel
+		in.CountryID = rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}
@@ -112,11 +120,11 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 
 func WithFakeCity(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.Alias == "" {
-		in.Alias = strings.ReplaceAll(string([]rune(gofakeit.Sentence(10))[:256]), " ", "-")
+		in.Alias = strings.ReplaceAll(cutS(gofakeit.Sentence(10), 255), " ", "-")
 	}
 
 	if in.OrderNumber == 0 {
@@ -184,11 +192,11 @@ func Country(t *testing.T, dbo orm.DB, in *db.Country, ops ...CountryOpFunc) (*d
 
 func WithFakeCountry(t *testing.T, dbo orm.DB, in *db.Country) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.Alias == "" {
-		in.Alias = strings.ReplaceAll(string([]rune(gofakeit.Sentence(10))[:256]), " ", "-")
+		in.Alias = strings.ReplaceAll(cutS(gofakeit.Sentence(10), 255), " ", "-")
 	}
 
 	if in.OrderNumber == 0 {
@@ -257,6 +265,11 @@ func Region(t *testing.T, dbo orm.DB, in *db.Region, ops ...RegionOpFunc) (*db.R
 func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	var cleaners []Cleaner
 
+	// Prepare main relations
+	if in.Country == nil {
+		in.Country = &db.Country{}
+	}
+
 	// Check embedded entities by FK
 
 	// Country. Check if all FKs are provided.
@@ -267,6 +280,7 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
 		in.Country = rel
+		in.CountryID = rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}
@@ -281,11 +295,11 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 
 func WithFakeRegion(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.Alias == "" {
-		in.Alias = strings.ReplaceAll(string([]rune(gofakeit.Sentence(10))[:256]), " ", "-")
+		in.Alias = strings.ReplaceAll(cutS(gofakeit.Sentence(10), 255), " ", "-")
 	}
 
 	if in.OrderNumber == 0 {

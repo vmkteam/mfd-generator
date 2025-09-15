@@ -154,8 +154,10 @@ type EntityData struct {
 	SortField string
 	SortDir   string
 
-	HasRelations bool
-	Relations    []RelationData
+	HasRelations              bool
+	Relations                 []RelationData
+	InitRels                  []template.HTML
+	FillingCreatedOrFoundRels []template.HTML
 
 	// Helpers for filling NeedPreparingDependedRelsFromRoot and PreparingDependedRelsFromRoot
 	relationByName            map[string]RelationData
@@ -168,8 +170,8 @@ type EntityData struct {
 	FakeFilling     []template.HTML
 
 	NeedPreparingDependedRelsFromRoot bool
-	PreparingDependedRelsFromRoot     []template.HTML
 	InitDependedRelsFromRoot          []template.HTML
+	PreparingDependedRelsFromRoot     []template.HTML
 
 	NeedPreparingFillingSameAsRootRels bool
 	PreparingFillingSameAsRootRels     []string
@@ -242,11 +244,11 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
 			if ok {
 				// If it is, it generates more for the field data
-				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray)
 				fakeFillingData = append(fakeFillingData, condition)
 			} else if byType, found := fakeFiller.ByType(column.Name, column.GoType, column.IsArray, column.Max); found {
 				// By default, generates something depending on a field type
-				condition := mustWrapFilling(column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray)
 				fakeFillingData = append(fakeFillingData, condition)
 			}
 		}
@@ -335,12 +337,12 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 		NotUpdatable:    notUpdatable,
 	}
 
-	curRel := res
-	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(curRel.Relations, curRel, "in", "in")
+	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "in", "in")
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
-
+	res.InitRels = initRels(relNamesMap)
 	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(sameRelNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
+	res.fillingRels(te, relNamesMap)
 
 	return res
 }
@@ -375,19 +377,32 @@ func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embe
 			if !hasAlreadyPrepared {
 				// Split the chain of relations by dots. We need to extract the last element
 				relsChain := strings.Split(embeddedRels, ".")
+				if len(relsChain) <= 2 {
+					continue
+				}
 
-				str := template.HTML(fmt.Sprintf(`
-	if %[1]s == nil {
-	%[1]s = &db.%[2]s{}
-}`, embeddedRels, relsChain[len(relsChain)-1]))
-				// Fill from the end to the start
-				initNestedRels = append([]template.HTML{(str)}, initNestedRels...) // Fill from the end to the start
+				zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
+				assign := fmt.Sprintf("%s = %s", embeddedRels, zero)
+				str := mustWrapFilling(embeddedRels, "nil", "nil", template.HTML(assign), false)
+				initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
 				hasAlreadyPrepared = true
 			}
 		}
 	}
 
 	return
+}
+
+func initRels(relByName map[string]RelationData) []template.HTML {
+	res := make([]template.HTML, 0, len(relByName))
+	for relName, rel := range relByName {
+		zero := fmt.Sprintf("&db.%s{}", rel.Type)
+		assign := fmt.Sprintf("in.%s = %s", relName, zero)
+		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false)
+		res = append(res, str)
+	}
+
+	return res
 }
 
 func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
@@ -397,6 +412,37 @@ func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
 	}
 
 	slices.Sort(res)
+
+	return res
+}
+
+func (e EntityData) fillingRels(rawEntity model.EntityData, relNamesMap map[string]RelationData) {
+	byRelName := fillingRels(rawEntity, relNamesMap)
+	for i, rel := range e.Relations {
+		e.Relations[i].Entity.FillingCreatedOrFoundRels = byRelName[rel.Name]
+	}
+}
+
+func fillingRels(e model.EntityData, relNamesMap map[string]RelationData) map[string][]template.HTML {
+	res := make(map[string][]template.HTML, len(relNamesMap)*2)
+	for _, r := range e.Relations {
+		rel, ok := relNamesMap[r.Name]
+		if !ok {
+			continue
+		}
+
+		res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%s = rel", r.Name)))
+		for _, pk := range rel.Entity.PKs {
+			col := e.AttributeByName(rel.Name + pk.Field)
+			needAmpersand := col.Nullable()
+			switch {
+			case needAmpersand:
+				res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%[1]s%[2]s = &rel.%[2]s", r.Name, pk.Field)))
+			default:
+				res[r.Name] = append(res[r.Name], template.HTML(fmt.Sprintf("in.%[1]s%[2]s = rel.%[2]s", r.Name, pk.Field)))
+			}
+		}
+	}
 
 	return res
 }

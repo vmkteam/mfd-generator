@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	maxWordCount   = 10
-	maxWordLen     = 10
-	minSentenceLen = 30
+	maxWordCount       = 10
+	maxWordLen         = 10
+	minSentenceLen     = 30
+	defaultSentenceLen = 100
 )
 
 type FakeFiller struct {
@@ -40,9 +41,9 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		switch gotype {
 		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
 			ff.imports["strconv"] = struct{}{}
-			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutRunes(maxFiledLen+1).string())), true
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutString(maxFiledLen))), true
 		case model.TypeString:
-			return fakePhone.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakePhone.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -50,14 +51,15 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		//nolint:gocritic
 		switch gotype {
 		case model.TypeString:
-			//nolint:gocritic
+			ff.imports["strings"] = struct{}{}
 			switch {
+			case maxFiledLen == 0:
+				return fakeEmpty.sentence(defaultSentenceLen).cutString(maxFiledLen).replaceAll(" ", "-").assign(columnName).Tmpl(), true
 			case maxFiledLen >= minSentenceLen:
-				ff.imports["strings"] = struct{}{}
-				return fakeEmpty.sentence(maxFiledLen).cutRunesString(maxFiledLen+1).replaceAll(" ", "-").assign(columnName).Tmpl(), true
+				return fakeEmpty.sentence(maxFiledLen).cutString(maxFiledLen).replaceAll(" ", "-").assign(columnName).Tmpl(), true
 			}
 
-			return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -65,7 +67,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		//nolint:gocritic
 		switch gotype {
 		case model.TypeString:
-			return fakeEmail.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakeEmail.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -74,7 +76,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
 			return fakeIntRange.assign(columnName).Tmpl(), true
 		case model.TypeString:
-			return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -82,7 +84,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		//nolint:gocritic
 		switch gotype {
 		case model.TypeString:
-			return fakePassword.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakePassword.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
 
 		return "", false
@@ -126,19 +128,21 @@ func (ff FakeFiller) ByType(columnName, gotype string, isArray bool, maxFiledLen
 	case model.TypeFloat64:
 		return fakeFloat64Range.assign(columnName).Tmpl(), true
 	case model.TypeString:
-		//nolint:gocritic
 		switch {
+		case maxFiledLen == 0:
+			return fakeEmpty.sentence(defaultSentenceLen).cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		case maxFiledLen >= minSentenceLen:
-			return fakeEmpty.sentence(maxFiledLen).cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakeEmpty.sentence(maxFiledLen).cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
-		return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 	case model.TypeByteSlice:
-		//nolint:gocritic
 		switch {
+		case maxFiledLen == 0:
+			return fakeEmpty.sentence(defaultSentenceLen).cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
 		case maxFiledLen >= minSentenceLen:
-			return fakeEmpty.sentence(maxFiledLen).cutRunesBytes(maxFiledLen + 1).assign(columnName).Tmpl(), true
+			return fakeEmpty.sentence(maxFiledLen).cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
 		}
-		return fakeWord.cutRunesBytes(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		return fakeWord.cutBytes(maxFiledLen).assign(columnName).Tmpl(), true
 	case model.TypeBool:
 		return fakeBool.assign(columnName).Tmpl(), true
 	case model.TypeTime:
@@ -157,7 +161,7 @@ func (ff FakeFiller) ByType(columnName, gotype string, isArray bool, maxFiledLen
 		ff.imports["net"] = struct{}{}
 		return fakeEmpty.ipv4Net().assign(columnName).Tmpl(), true
 	case model.TypeInterface:
-		return fakeWord.cutRunesString(maxFiledLen + 1).assign(columnName).Tmpl(), true
+		return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 	}
 
 	if isArray {
@@ -211,32 +215,12 @@ func (fi FakeIt) ipv4Net() FakeIt {
 	return FakeIt(fmt.Sprintf("net.IPNet{IP: %s, Mask: net.IPv4Mask(255, 255, 255, 0)}", fakeEmpty.ipv4()))
 }
 
-func (fi FakeIt) cut(maxFiledLen int) FakeIt {
-	return FakeIt(fmt.Sprintf("%s[:%d]", fi, maxFiledLen))
+func (fi FakeIt) cutString(maxFiledLen int) FakeIt {
+	return FakeIt(fmt.Sprintf("cutS(%s, %d)", fi, maxFiledLen))
 }
 
-func (fi FakeIt) cutRunes(maxFiledLen int) FakeIt {
-	return fi.runes().cut(maxFiledLen)
-}
-
-func (fi FakeIt) cutRunesString(maxFiledLen int) FakeIt {
-	return fi.runes().cut(maxFiledLen).string()
-}
-
-func (fi FakeIt) cutRunesBytes(maxFiledLen int) FakeIt {
-	return fi.runes().cut(maxFiledLen).bytes()
-}
-
-func (fi FakeIt) string() FakeIt {
-	return FakeIt(fmt.Sprintf("string(%s)", fi))
-}
-
-func (fi FakeIt) runes() FakeIt {
-	return FakeIt(fmt.Sprintf("[]rune(%s)", fi))
-}
-
-func (fi FakeIt) bytes() FakeIt {
-	return FakeIt(fmt.Sprintf("[]byte(%s)", fi))
+func (fi FakeIt) cutBytes(maxFiledLen int) FakeIt {
+	return FakeIt(fmt.Sprintf("cutB(%s, %d)", fi, maxFiledLen))
 }
 
 func (fi FakeIt) formatRFC3339() FakeIt {
@@ -278,11 +262,11 @@ func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, 
 		zeroVal = "nil"
 	}
 
-	condition := "in.{{.Name}} == {{.Zero}}"
+	condition := "{{.Name}} == {{.Zero}}"
 	//nolint:gocritic
 	switch goType {
 	case model.TypeTime:
-		condition = "in.{{.Name}}.IsZero()"
+		condition = "{{.Name}}.IsZero()"
 	}
 
 	var conditionBuf bytes.Buffer

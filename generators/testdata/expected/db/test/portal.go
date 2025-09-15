@@ -65,7 +65,7 @@ func Category(t *testing.T, dbo orm.DB, in *db.Category, ops ...CategoryOpFunc) 
 
 func WithFakeCategory(t *testing.T, dbo orm.DB, in *db.Category) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.OrderNumber == 0 {
@@ -133,18 +133,27 @@ func News(t *testing.T, dbo orm.DB, in *db.News, ops ...NewsOpFunc) (*db.News, C
 
 func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	var cleaners []Cleaner
-	// Prepare nested relations which have the same relations
+
+	// Prepare main relations
+	if in.Category == nil {
+		in.Category = &db.Category{}
+	}
+
+	if in.Country == nil {
+		in.Country = &db.Country{}
+	}
+
+	if in.Region == nil {
+		in.Region = &db.Region{}
+	}
 
 	if in.City == nil {
 		in.City = &db.City{}
 	}
 
+	// Prepare nested relations which have the same relations
 	if in.City.Region == nil {
 		in.City.Region = &db.Region{}
-	}
-
-	if in.Region == nil {
-		in.Region = &db.Region{}
 	}
 
 	// Inject relation IDs into relations which have the same relations
@@ -163,6 +172,7 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	{
 		rel, relatedCleaner := City(t, dbo, in.City, WithCityRelations, WithFakeCity)
 		in.City = rel
+		in.CityID = &rel.ID
 		// Fill the same relations as in City
 		in.Country = rel.Country
 		in.Region = rel.Region
@@ -178,6 +188,7 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	{
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
 		in.Region = rel
+		in.RegionID = &rel.ID
 		// Fill the same relations as in Region
 		in.Country = rel.Country
 
@@ -192,6 +203,7 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	{
 		rel, relatedCleaner := Category(t, dbo, in.Category, WithFakeCategory)
 		in.Category = rel
+		in.CategoryID = rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}
@@ -204,6 +216,7 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	{
 		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
 		in.Country = rel
+		in.CountryID = &rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}
@@ -218,7 +231,7 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.CreatedAt.IsZero() {
@@ -286,7 +299,7 @@ func Tag(t *testing.T, dbo orm.DB, in *db.Tag, ops ...TagOpFunc) (*db.Tag, Clean
 
 func WithFakeTag(t *testing.T, dbo orm.DB, in *db.Tag) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.StatusID == 0 {

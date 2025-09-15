@@ -66,6 +66,11 @@ func VfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile, ops ...VfsFileOpFunc) (*d
 func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 	var cleaners []Cleaner
 
+	// Prepare main relations
+	if in.Folder == nil {
+		in.Folder = &db.VfsFolder{}
+	}
+
 	// Check embedded entities by FK
 
 	// Folder. Check if all FKs are provided.
@@ -76,6 +81,7 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 	{
 		rel, relatedCleaner := VfsFolder(t, dbo, in.Folder, WithFakeVfsFolder)
 		in.Folder = rel
+		in.FolderID = rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}
@@ -90,15 +96,15 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 
 func WithFakeVfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.Path == "" {
-		in.Path = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Path = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.MimeType == "" {
-		in.MimeType = string([]rune(gofakeit.Sentence(10))[:256])
+		in.MimeType = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.FileExists == false {
@@ -170,7 +176,7 @@ func VfsFolder(t *testing.T, dbo orm.DB, in *db.VfsFolder, ops ...VfsFolderOpFun
 
 func WithFakeVfsFolder(t *testing.T, dbo orm.DB, in *db.VfsFolder) Cleaner {
 	if in.Title == "" {
-		in.Title = string([]rune(gofakeit.Sentence(10))[:256])
+		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
 	if in.CreatedAt.IsZero() {

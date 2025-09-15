@@ -54,7 +54,12 @@ func (d testDBLogQuery) BeforeQuery(ctx context.Context, _ *pg.QueryEvent) (cont
 }
 
 func (d testDBLogQuery) AfterQuery(_ context.Context, q *pg.QueryEvent) error {
-	log.Println(q.FormattedQuery())
+	fq, err := q.FormattedQuery()
+	if err != nil {
+		return err
+	}
+	log.Println(string(fq))
+
 	return nil
 }
 
@@ -81,21 +86,26 @@ func Setup(t *testing.T) db.DB {
 }
 
 func setup() (*pg.DB, error) {
-	url := "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable"
-	if r := os.Getenv("DB_CONN"); r != "" {
-		url = r
-	}
-	cfg, err := pg.ParseURL(url)
+	u := env("DB_CONN", "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable")
+	cfg, err := pg.ParseURL(u)
 	if err != nil {
 		return nil, err
 	}
 	conn := pg.Connect(cfg)
 
-	if r := os.Getenv("DB_LOG_QUERY"); r == "true" {
+	if r := env("DB_LOG_QUERY", "true"); r == "true" {
 		conn.AddQueryHook(testDBLogQuery{})
 	}
 
 	return conn, nil
+}
+
+func env(v, def string) string {
+	if r := os.Getenv(v); r != "" {
+		return r
+	}
+
+	return def
 }
 
 func val[T any, P *T](p P) T {
@@ -104,6 +114,20 @@ func val[T any, P *T](p P) T {
 	}
 	var def T
 	return def
+}
+
+func cutS(str string, maxLen int) string {
+	if maxLen == 0 {
+		return str
+	}
+	return string([]rune(str)[:min(len(str), maxLen+1)])
+}
+
+func cutB(str string, maxLen int) []byte {
+	if maxLen == 0 {
+		return []byte(str)
+	}
+	return []byte(str)[:min(len(str), maxLen+1)]
 }
 `
 
@@ -197,11 +221,12 @@ const funcOpWithRelTemplate = `{{- if .HasRelations }}
 func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
 	var cleaners []Cleaner
 
+	// Prepare main relations
+	{{- range .InitRels }}{{.}}{{ end }}
+
 	{{- if .NeedPreparingDependedRelsFromRoot }}
 	// Prepare nested relations which have the same relations
-	{{- range .InitDependedRelsFromRoot }}
-	{{.}}
-	{{- end}}
+	{{- range .InitDependedRelsFromRoot }}{{.}}{{ end }}
 
 	// Inject relation IDs into relations which have the same relations
 	{{- range .PreparingDependedRelsFromRoot }}
@@ -228,7 +253,9 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
 		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
 		, WithFake{{.Type}})
-		in.{{.Name}} = rel
+		{{- range .Entity.FillingCreatedOrFoundRels }}
+		{{.}}
+		{{- end }}
 		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
 		// Fill the same relations as in {{$relation.Name}}
 		{{- range .Entity.PreparingFillingSameAsRootRels }}
