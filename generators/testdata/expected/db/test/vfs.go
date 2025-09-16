@@ -75,7 +75,7 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 
 	// Folder. Check if all FKs are provided.
 
-	if in.FolderID == 0 {
+	if in.FolderID != 0 {
 		in.Folder.ID = in.FolderID
 	}
 

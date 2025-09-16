@@ -267,19 +267,30 @@ type wrapperTemplateData struct {
 	Filling   template.HTML
 }
 
-func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray, nilCheck bool) template.HTML {
+func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray, nilCheck, isNotEqual bool) template.HTML {
 	if isArray {
 		zeroVal = "nil"
 	}
 
-	condition := "{{.Name}} == {{.Zero}}"
+	comparationSign := "=="
+	if isNotEqual {
+		comparationSign = "!="
+	}
+
+	condition := fmt.Sprintf("{{.Name}} %s {{.Zero}}", comparationSign)
 	if nilCheck {
-		condition = "{{.Name}} == nil || *{{.Name}} == {{.Zero}}"
+		condition = fmt.Sprintf("{{.Name}} %[1]s nil || *{{.Name}} %[1]s {{.Zero}}", comparationSign)
+		if isNotEqual {
+			condition = fmt.Sprintf("{{.Name}} %[1]s nil && *{{.Name}} %[1]s {{.Zero}}", comparationSign)
+		}
 	}
 	//nolint:gocritic
 	switch goType {
 	case model.TypeTime:
 		condition = "{{.Name}}.IsZero()"
+		if isNotEqual {
+			condition = "!{{.Name}}.IsZero()"
+		}
 	}
 
 	var conditionBuf bytes.Buffer

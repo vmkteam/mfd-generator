@@ -261,11 +261,11 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
 			if ok {
 				// If it is, it generates more for the field data
-				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray, false)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byFieldName, column.IsArray, false, false)
 				fakeFillingData = append(fakeFillingData, condition)
 			} else if byType, found := fakeFiller.ByType(column.Name, column.GoType, column.DBType, column.IsArray, column.Max); found {
 				// By default, generates something depending on a field type
-				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray, false)
+				condition := mustWrapFilling("in."+column.Name, column.GoType, template.HTML(mfd.MakeZeroValue(column.GoType)), byType, column.IsArray, false, false)
 				fakeFillingData = append(fakeFillingData, condition)
 			}
 		}
@@ -404,7 +404,7 @@ func walkThroughDependedEntities(curRels []RelationData, root EntityData, embedd
 				if len(relsChain) > 2 {
 					zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
 					assign := fmt.Sprintf("in%s = %s", embeddedRels, zero)
-					str := mustWrapFilling("in"+embeddedRels, "nil", "nil", template.HTML(assign), false, false)
+					str := mustWrapFilling("in"+embeddedRels, "nil", "nil", template.HTML(assign), false, false, false)
 					initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
 					hasAlreadyPrepared = true
 				}
@@ -446,7 +446,7 @@ func initRels(relByName map[string]RelationData) []template.HTML {
 	for relName, rel := range relByName {
 		zero := fmt.Sprintf("&db.%s{}", rel.Type)
 		assign := fmt.Sprintf("in.%s = %s", relName, zero)
-		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false, false)
+		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false, false, false)
 		res = append(res, str)
 	}
 
@@ -474,7 +474,7 @@ func (e *EntityData) fillingRelPKs(relByName map[string]RelationData) {
 				res = fmt.Sprintf("in.%s.%s = in.%s", rel.Name, pk.Field, fieldName)
 			}
 
-			e.FillingPKs = append(e.FillingPKs, mustWrapFilling("in."+fieldName, pk.Type, pk.Zero, template.HTML(res), false, needVal))
+			e.FillingPKs = append(e.FillingPKs, mustWrapFilling("in."+fieldName, pk.Type, pk.Zero, template.HTML(res), false, needVal, true))
 		}
 	}
 }

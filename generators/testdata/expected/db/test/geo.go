@@ -84,11 +84,11 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 
 	// Region. Check if all FKs are provided.
 
-	if in.RegionID == 0 {
+	if in.RegionID != 0 {
 		in.Region.ID = in.RegionID
 	}
 
-	if in.CountryID == 0 {
+	if in.CountryID != 0 {
 		in.Country.ID = in.CountryID
 	}
 
@@ -105,11 +105,11 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 
 	// Country. Check if all FKs are provided.
 
-	if in.RegionID == 0 {
+	if in.RegionID != 0 {
 		in.Region.ID = in.RegionID
 	}
 
-	if in.CountryID == 0 {
+	if in.CountryID != 0 {
 		in.Country.ID = in.CountryID
 	}
 
@@ -294,7 +294,7 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 
 	// Country. Check if all FKs are provided.
 
-	if in.CountryID == 0 {
+	if in.CountryID != 0 {
 		in.Country.ID = in.CountryID
 	}
 

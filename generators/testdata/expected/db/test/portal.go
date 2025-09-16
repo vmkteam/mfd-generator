@@ -166,19 +166,19 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 	// City. Check if all FKs are provided.
 
-	if in.CityID == nil || *in.CityID == 0 {
+	if in.CityID != nil && *in.CityID != 0 {
 		in.City.ID = val(in.CityID)
 	}
 
-	if in.RegionID == nil || *in.RegionID == 0 {
+	if in.RegionID != nil && *in.RegionID != 0 {
 		in.Region.ID = val(in.RegionID)
 	}
 
-	if in.CategoryID == 0 {
+	if in.CategoryID != 0 {
 		in.Category.ID = in.CategoryID
 	}
 
-	if in.CountryID == nil || *in.CountryID == 0 {
+	if in.CountryID != nil && *in.CountryID != 0 {
 		in.Country.ID = val(in.CountryID)
 	}
 
@@ -198,19 +198,19 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 	// Region. Check if all FKs are provided.
 
-	if in.CityID == nil || *in.CityID == 0 {
+	if in.CityID != nil && *in.CityID != 0 {
 		in.City.ID = val(in.CityID)
 	}
 
-	if in.RegionID == nil || *in.RegionID == 0 {
+	if in.RegionID != nil && *in.RegionID != 0 {
 		in.Region.ID = val(in.RegionID)
 	}
 
-	if in.CategoryID == 0 {
+	if in.CategoryID != 0 {
 		in.Category.ID = in.CategoryID
 	}
 
-	if in.CountryID == nil || *in.CountryID == 0 {
+	if in.CountryID != nil && *in.CountryID != 0 {
 		in.Country.ID = val(in.CountryID)
 	}
 
@@ -225,19 +225,19 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 	// Category. Check if all FKs are provided.
 
-	if in.CityID == nil || *in.CityID == 0 {
+	if in.CityID != nil && *in.CityID != 0 {
 		in.City.ID = val(in.CityID)
 	}
 
-	if in.RegionID == nil || *in.RegionID == 0 {
+	if in.RegionID != nil && *in.RegionID != 0 {
 		in.Region.ID = val(in.RegionID)
 	}
 
-	if in.CategoryID == 0 {
+	if in.CategoryID != 0 {
 		in.Category.ID = in.CategoryID
 	}
 
-	if in.CountryID == nil || *in.CountryID == 0 {
+	if in.CountryID != nil && *in.CountryID != 0 {
 		in.Country.ID = val(in.CountryID)
 	}
 
@@ -252,19 +252,19 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 
 	// Country. Check if all FKs are provided.
 
-	if in.CityID == nil || *in.CityID == 0 {
+	if in.CityID != nil && *in.CityID != 0 {
 		in.City.ID = val(in.CityID)
 	}
 
-	if in.RegionID == nil || *in.RegionID == 0 {
+	if in.RegionID != nil && *in.RegionID != 0 {
 		in.Region.ID = val(in.RegionID)
 	}
 
-	if in.CategoryID == 0 {
+	if in.CategoryID != 0 {
 		in.Category.ID = in.CategoryID
 	}
 
-	if in.CountryID == nil || *in.CountryID == 0 {
+	if in.CountryID != nil && *in.CountryID != 0 {
 		in.Country.ID = val(in.CountryID)
 	}
 
