@@ -49,7 +49,8 @@ Flags:
         <string>en</string>
     </Languages>
     <TableMapping>
-        <common>users</common>
+        <common>users,pageSettings</common>
+        <news>news,categories,tags</news>
     </TableMapping>
     <GoPGVer>8</GoPGVer> <!-- версия go-pg -->
 </Project>
