@@ -188,7 +188,9 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		in.City = rel
 		in.CityID = &rel.ID
 		// Fill the same relations as in City
-		in.Country = rel.Country
+		in.City.Country = rel.Region.Country
+		in.Region.Country = rel.Region.Country
+		in.Country = rel.Region.Country
 		in.Region = rel.Region
 
 		cleaners = append(cleaners, relatedCleaner)
@@ -217,8 +219,6 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
 		in.Region = rel
 		in.RegionID = &rel.ID
-		// Fill the same relations as in Region
-		in.Country = rel.Country
 
 		cleaners = append(cleaners, relatedCleaner)
 	}

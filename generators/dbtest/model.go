@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -180,7 +181,7 @@ type EntityData struct {
 	PreparingDependedRelsFromRoot     []template.HTML
 
 	NeedPreparingFillingSameAsRootRels bool
-	PreparingFillingSameAsRootRels     []string
+	PreparingFillingSameAsRootRels     map[string][]template.HTML
 
 	Columns []AttributeData
 
@@ -353,10 +354,10 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 		NotUpdatable:    notUpdatable,
 	}
 
-	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "in", "in")
+	res.PreparingFillingSameAsRootRels = make(map[string][]template.HTML)
+	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "", "", make(map[string]struct{}), res.PreparingFillingSameAsRootRels)
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 	res.InitRels = initRels(relNamesMap)
-	res.PreparingFillingSameAsRootRels = packPrepareSameAsRootRels(sameRelNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
 	res.fillingRels(te, relNamesMap)
 	res.fillingRelPKs(relNamesMap)
@@ -364,46 +365,76 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 	return res
 }
 
+var (
+	firstEntity = regexp.MustCompile(`^\.[^.]+`)
+)
+
 // walkThroughDependedEntities Walks through all relations of current relations recursively and finds same relations.
 // Returns prepared strings to inject in a layout.
 // The first value is inici
 // The second one is filling root PKs to same nested relations.
-func walkThroughDependedEntities(curRels []RelationData, parent EntityData, embeddedRels, root string) (initNestedRels, fillNestedRels []template.HTML) {
+func walkThroughDependedEntities(curRels []RelationData, root EntityData, embeddedRels, embeddedRelTypes string, alreadyPrepared map[string]struct{}, assignNestedRelsByRel map[string][]template.HTML) (initNestedRels, fillNestedRels []template.HTML) {
+	rootRelName := firstEntity.FindString(embeddedRels)
+
 	var hasAlreadyPrepared bool
 	for _, curEntity := range curRels {
-		if _, ok := parent.relationNamesHasRelations[curEntity.Name]; ok {
-			init, filling := walkThroughDependedEntities(curEntity.Entity.Relations, parent, embeddedRels+"."+curEntity.Name, root)
-			initNestedRels = append(initNestedRels, init...) // Fill from the end to the start
-			fillNestedRels = append(fillNestedRels, filling...)
-		}
+		init, filling := walkThroughDependedEntities(curEntity.Entity.Relations, root, embeddedRels+"."+curEntity.Name, embeddedRels+"."+curEntity.Type, alreadyPrepared, assignNestedRelsByRel)
+		initNestedRels = append(initNestedRels, init...) // Fill from the end to the start
+		fillNestedRels = append(fillNestedRels, filling...)
 
-		if parentRel, ok := parent.relationByName[curEntity.Name]; ok && embeddedRels != root {
+		if rootRel, ok := root.relationByName[curEntity.Name]; ok && embeddedRels != "" {
 			for _, pk := range curEntity.Entity.PKs {
-				needAmpersand := curEntity.NilCheck && !parentRel.NilCheck
-				needVal := !curEntity.NilCheck && parentRel.NilCheck
+				needAmpersand := curEntity.NilCheck && !rootRel.NilCheck
+				needVal := !curEntity.NilCheck && rootRel.NilCheck
 				switch {
 				case needAmpersand:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = &%[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root)))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = &in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field)))
 				case needVal:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = val(%[4]s.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field, root)))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = val(in.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field)))
 				default:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("%[1]s.%[2]s%[3]s = %[4]s.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field, root)))
+					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field)))
 				}
 			}
+		}
 
+		if embeddedRels != "" {
 			if !hasAlreadyPrepared {
 				// Split the chain of relations by dots. We need to extract the last element
-				relsChain := strings.Split(embeddedRels, ".")
-				if len(relsChain) <= 2 {
-					continue
+				relsChain := strings.Split(embeddedRelTypes, ".")
+				if len(relsChain) > 2 {
+					zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
+					assign := fmt.Sprintf("in%s = %s", embeddedRels, zero)
+					str := mustWrapFilling("in"+embeddedRels, "nil", "nil", template.HTML(assign), false, false)
+					initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
+					hasAlreadyPrepared = true
 				}
-
-				zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
-				assign := fmt.Sprintf("%s = %s", embeddedRels, zero)
-				str := mustWrapFilling(embeddedRels, "nil", "nil", template.HTML(assign), false, false)
-				initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
-				hasAlreadyPrepared = true
 			}
+
+			if _, ok := alreadyPrepared[curEntity.Name]; !ok {
+				chainsToFill := walkThroughRels(root.Relations, embeddedRels, "", curEntity.Name)
+				alreadyPrepared[curEntity.Name] = struct{}{}
+				skipFirstRel := strings.Replace(embeddedRels, rootRelName, "", 1)
+				for _, chain := range chainsToFill {
+					cleaned := strings.TrimLeft(rootRelName, ".")
+					assignNestedRelsByRel[cleaned] = append(assignNestedRelsByRel[cleaned], template.HTML(fmt.Sprintf("in%[1]s.%[2]s = rel%[3]s.%[2]s", chain, curEntity.Name, skipFirstRel)))
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func walkThroughRels(curRels []RelationData, curEmbeddedPosition, embeddedRels, targetEntityName string) (res []string) {
+	for _, curEntity := range curRels {
+		res = append(res, walkThroughRels(curEntity.Entity.Relations, curEmbeddedPosition, embeddedRels+"."+curEntity.Name, targetEntityName)...)
+
+		if curEmbeddedPosition == embeddedRels {
+			continue
+		}
+
+		if targetEntityName == curEntity.Name {
+			res = append(res, embeddedRels)
 		}
 	}
 
@@ -417,17 +448,6 @@ func initRels(relByName map[string]RelationData) []template.HTML {
 		assign := fmt.Sprintf("in.%s = %s", relName, zero)
 		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false, false)
 		res = append(res, str)
-	}
-
-	slices.Sort(res)
-
-	return res
-}
-
-func packPrepareSameAsRootRels(sameRelNames map[string]RelationData) []string {
-	res := make([]string, 0, len(sameRelNames))
-	for name := range sameRelNames {
-		res = append(res, fmt.Sprintf("in.%[1]s = rel.%[1]s", name))
 	}
 
 	slices.Sort(res)

@@ -251,10 +251,14 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		{{- range .Entity.FillingCreatedOrFoundRels }}
 		{{.}}
 		{{- end }}
-		{{- if .Entity.NeedPreparingFillingSameAsRootRels }}
+		{{- if $entity.NeedPreparingFillingSameAsRootRels }}
+		{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
+		{{- if eq $relName $relation.Name}}
 		// Fill the same relations as in {{$relation.Name}}
-		{{- range .Entity.PreparingFillingSameAsRootRels }}
+		{{- range $vals }}
 		{{.}}
+		{{- end }}
+		{{- end }}
 		{{- end }}
 		{{- end }}
 		
