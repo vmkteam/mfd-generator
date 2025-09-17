@@ -75,8 +75,6 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 		in.Region = &db.Region{}
 	}
 
-	// Prepare nested relations which have the same relations
-
 	// Inject relation IDs into relations which have the same relations
 	in.Region.CountryID = in.CountryID
 

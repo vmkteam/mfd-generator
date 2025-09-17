@@ -177,8 +177,10 @@ type EntityData struct {
 	FakeFilling     []template.HTML
 
 	NeedPreparingDependedRelsFromRoot bool
-	InitDependedRelsFromRoot          []template.HTML
 	PreparingDependedRelsFromRoot     []template.HTML
+
+	NeedInitDependedRelsFromRoot bool
+	InitDependedRelsFromRoot     []template.HTML
 
 	NeedPreparingFillingSameAsRootRels bool
 	PreparingFillingSameAsRootRels     map[string][]template.HTML
@@ -357,6 +359,7 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 	res.PreparingFillingSameAsRootRels = make(map[string][]template.HTML)
 	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "", "", make(map[string]struct{}), res.PreparingFillingSameAsRootRels)
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
+	res.NeedInitDependedRelsFromRoot = len(res.InitDependedRelsFromRoot) > 0
 	res.InitRels = initRels(relNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
 	res.fillingRels(te, relNamesMap)

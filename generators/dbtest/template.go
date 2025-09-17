@@ -224,10 +224,14 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	// Prepare main relations
 	{{- range .InitRels }}{{.}}{{ end }}
 
-	{{- if .NeedPreparingDependedRelsFromRoot }}
+	{{- if .NeedInitDependedRelsFromRoot }}
 	// Prepare nested relations which have the same relations
-	{{- range .InitDependedRelsFromRoot }}{{.}}{{ end }}
+	{{- range .InitDependedRelsFromRoot }}{{.}}
+	{{- end }}
+	{{- end }}
 
+
+	{{- if .NeedPreparingDependedRelsFromRoot }}
 	// Inject relation IDs into relations which have the same relations
 	{{- range .PreparingDependedRelsFromRoot }}
 	{{.}}
