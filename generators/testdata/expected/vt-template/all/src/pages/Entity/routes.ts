@@ -84,4 +84,144 @@ export default [
       breadcrumbs: ["dashboard", "tagList", "tagAdd"]
     }
   },
+  /* City */
+  {
+    name: "cityList",
+    path: "/cities",
+    component: () =>
+      import("@/pages/Entity/City/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "cityList"]
+    }
+  },
+  {
+    name: "cityEdit",
+    path: "/cities/:id/edit",
+    component: () =>
+      import("@/pages/Entity/City/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "cityList", "cityEdit"]
+    }
+  },
+  {
+    name: "cityAdd",
+    path: "/cities/add",
+    component: () =>
+      import("@/pages/Entity/City/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "cityList", "cityAdd"]
+    }
+  },
+  /* Country */
+  {
+    name: "countryList",
+    path: "/countries",
+    component: () =>
+      import("@/pages/Entity/Country/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "countryList"]
+    }
+  },
+  {
+    name: "countryEdit",
+    path: "/countries/:id/edit",
+    component: () =>
+      import("@/pages/Entity/Country/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "countryList", "countryEdit"]
+    }
+  },
+  {
+    name: "countryAdd",
+    path: "/countries/add",
+    component: () =>
+      import("@/pages/Entity/Country/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "countryList", "countryAdd"]
+    }
+  },
+  /* Region */
+  {
+    name: "regionList",
+    path: "/regions",
+    component: () =>
+      import("@/pages/Entity/Region/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "regionList"]
+    }
+  },
+  {
+    name: "regionEdit",
+    path: "/regions/:id/edit",
+    component: () =>
+      import("@/pages/Entity/Region/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "regionList", "regionEdit"]
+    }
+  },
+  {
+    name: "regionAdd",
+    path: "/regions/add",
+    component: () =>
+      import("@/pages/Entity/Region/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "regionList", "regionAdd"]
+    }
+  },
+  /* VfsFile */
+  {
+    name: "vfsFileList",
+    path: "/vfs-files",
+    component: () =>
+      import("@/pages/Entity/VfsFile/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList"]
+    }
+  },
+  {
+    name: "vfsFileEdit",
+    path: "/vfs-files/:id/edit",
+    component: () =>
+      import("@/pages/Entity/VfsFile/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileEdit"]
+    }
+  },
+  {
+    name: "vfsFileAdd",
+    path: "/vfs-files/add",
+    component: () =>
+      import("@/pages/Entity/VfsFile/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileAdd"]
+    }
+  },
+  /* VfsFolder */
+  {
+    name: "vfsFolderList",
+    path: "/vfs-folders",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList"]
+    }
+  },
+  {
+    name: "vfsFolderEdit",
+    path: "/vfs-folders/:id/edit",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderEdit"]
+    }
+  },
+  {
+    name: "vfsFolderAdd",
+    path: "/vfs-folders/add",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
+    }
+  },
 ];

@@ -12,32 +12,37 @@ import ({{range .Imports}}
     "{{.}}"{{end}}
 ){{end}}
 
-var Columns = struct { {{range .Entities}}
-	{{.Name}} struct{ 
+var Columns = struct {
+	{{- range .Entities}}
+	{{.Name}} struct{
 		{{range $i, $e := .Columns}}{{if $i}}, {{end}}{{.Name}}{{end}} string{{if .HasRelations}}
 
 		{{range $i, $e := .Relations}}{{if $i}}, {{end}}{{.Name}}{{end}} string{{end}}
 	}{{end}}
-}{ {{range .Entities}}
-	{{.Name}}: struct { 
+}{
+	{{- range .Entities}}
+	{{.Name}}: struct {
 		{{range $i, $e := .Columns}}{{if $i}}, {{end}}{{.Name}}{{end}} string{{if .HasRelations}}
 
 		{{range $i, $e := .Relations}}{{if $i}}, {{end}}{{.Name}}{{end}} string{{end}}
-	}{ {{range .Columns}}
+	}{
+	{{- range .Columns}}
 		{{.Name}}: "{{.DBName}}",{{end}}{{if .HasRelations}}
 		{{range .Relations}}
 		{{.Name}}: "{{.Name}}",{{end}}{{end}}
 	},{{end}}
 }
 
-var Tables = struct { {{range .Entities}}
+var Tables = struct {
+	{{- range .Entities}}
 	{{.Name}} struct {
 		Name, Alias string
 	}{{end}}
-}{ {{range .Entities}}
+}{
+	{{- range .Entities}}
 	{{.Name}}: struct {
 		Name, Alias string
-	}{ 
+	}{
 		Name: "{{.Table}}",
 		Alias: "{{.Alias}}",
 	},{{end}}
@@ -119,7 +124,9 @@ func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Qu
 	if {{$model.ShortVarName}}s == nil {
 		return query
 	} {{range .Columns}}
-	{{if .IsArray}} if len({{$model.ShortVarName}}s.{{.Name}}) > 0 { {{else}}if {{$model.ShortVarName}}s.{{.Name}} != nil { {{end}}{{if .UseCustomRender}}
+	{{if .IsArray}} if len({{$model.ShortVarName}}s.{{.Name}}) > 0 {
+	{{- else}}if {{$model.ShortVarName}}s.{{.Name}} != nil {
+	{{- end}}{{if .UseCustomRender}}
 		{{.CustomRender}}{{else}} 
 		{{$model.ShortVarName}}s.where(query, Tables.{{$model.Name}}.Alias, Columns.{{$model.Name}}.{{.Name}}, {{$model.ShortVarName}}s.{{.Name}}){{end}}
 	}{{end}}

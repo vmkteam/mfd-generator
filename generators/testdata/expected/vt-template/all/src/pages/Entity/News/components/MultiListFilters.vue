@@ -65,6 +65,48 @@ export default class MultiListFilters extends EntityListFilters {
       }
     },
     {
+      id: 'countryId',
+      type: 'select',
+      title: this.$t('news.list.filter.countryId'),
+      value: null,
+      values: null,
+      settings: {
+        placeholder: '',
+        entity: 'country',
+        searchBy: 'title',
+        async: true,
+        component: 'vt-entity-autocomplete'
+      }
+    },
+    {
+      id: 'regionId',
+      type: 'select',
+      title: this.$t('news.list.filter.regionId'),
+      value: null,
+      values: null,
+      settings: {
+        placeholder: '',
+        entity: 'region',
+        searchBy: 'title',
+        async: true,
+        component: 'vt-entity-autocomplete'
+      }
+    },
+    {
+      id: 'cityId',
+      type: 'select',
+      title: this.$t('news.list.filter.cityId'),
+      value: null,
+      values: null,
+      settings: {
+        placeholder: '',
+        entity: 'city',
+        searchBy: 'title',
+        async: true,
+        component: 'vt-entity-autocomplete'
+      }
+    },
+    {
       id: 'createdAt',
       type: 'datetime',
       title: this.$t('news.list.filter.createdAt'),

@@ -30,6 +30,8 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
 				"portal.vt.xml": {},
+				"geo.vt.xml":    {},
+				"vfs.vt.xml":    {},
 			}
 
 			for f := range expectedFilenames {
@@ -42,7 +44,7 @@ func TestGenerator_Generate(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				So(content, ShouldResemble, expectedContent)
+				So(string(content), ShouldResemble, string(expectedContent))
 			}
 		})
 	})
@@ -60,6 +62,26 @@ func prepareFiles() error {
 	}
 
 	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(testdata.PathActual, testdata.FilenameXML))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(testdata.PathActual, "geo.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(testdata.PathActual, "geo.vt.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(testdata.PathActual, "vfs.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(testdata.PathActual, "vfs.vt.xml"))
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

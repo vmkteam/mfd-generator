@@ -19,7 +19,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Output = testdata.PathActualDB
 			generator.options.MFDPath = testdata.PathExpectedMFD
 			generator.options.Package = testdata.PackageDB
-			generator.options.Namespaces = []string{"portal"}
+			generator.options.Namespaces = []string{"portal", "geo"}
 
 			t.Log("Generate repo")
 			So(generator.Generate(), ShouldBeNil)
@@ -28,6 +28,7 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check generated files", func() {
 			expectedFilenames := map[string]struct{}{
 				"portal.go": {},
+				"geo.go":    {},
 			}
 
 			for f := range expectedFilenames {

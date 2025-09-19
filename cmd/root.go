@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/vmkteam/mfd-generator/api"
+	"github.com/vmkteam/mfd-generator/generators/dbtest"
 	"github.com/vmkteam/mfd-generator/generators/model"
 	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/generators/vt"
@@ -48,6 +49,7 @@ func init() {
 		xmlvt.CreateCommand(),
 		xmllang.CreateCommand(),
 		model.CreateCommand(),
+		dbtest.CreateCommand(),
 		repo.CreateCommand(),
 		vt.CreateCommand(),
 		vttmpl.CreateCommand(),

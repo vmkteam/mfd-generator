@@ -202,8 +202,10 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 type RelationData struct {
 	mfd.Attribute
 
-	Name string
-	Type string
+	Name     string
+	Type     string
+	Nullable bool
+	Entity   *mfd.Entity
 
 	Tag     template.HTML
 	Comment template.HTML
@@ -237,8 +239,10 @@ func PackRelation(relation mfd.Attribute, options Options) RelationData {
 		Attribute: relation,
 
 		// ObjectID -> Object, UserID -> User
-		Name: util.ReplaceSuffix(util.ColumnName(relation.DBName), util.ID, ""),
-		Type: relation.ForeignKey,
+		Name:     util.ReplaceSuffix(util.ColumnName(relation.DBName), util.ID, ""),
+		Type:     relation.ForeignKey,
+		Entity:   relation.ForeignEntity,
+		Nullable: relation.Nullable(),
 
 		Tag:     template.HTML(fmt.Sprintf("`%s`", tags.String())),
 		Comment: template.HTML(comment),

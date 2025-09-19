@@ -3,6 +3,8 @@ package dbtest
 import (
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/mfd"
+
 	"github.com/dizzyfool/genna/util"
 )
 
@@ -32,7 +34,11 @@ type Options struct {
 	// Entities to generate
 	Entities []string
 
-	ConnTemplatePath string
+	// Force Replaces existing functions
+	Force bool
+
+	// custom types
+	CustomTypes mfd.CustomTypes
 }
 
 // Def fills default values of an options
@@ -40,4 +46,6 @@ func (o *Options) Def() {
 	if strings.Trim(o.Package, " ") == "" {
 		o.Package = util.DefaultPackage
 	}
+
+	o.CustomTypes = mfd.CustomTypes{}
 }

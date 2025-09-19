@@ -1,0 +1,94 @@
+<VTNamespace xmlns:xsi="" xmlns:xsd="">
+    <Name>geo</Name>
+    <VTEntities>
+        <Entity Name="City" Mode="Full">
+            <TerminalPath>cities</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="RegionID" AttrName="RegionID" SearchName="RegionID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="CountryID" AttrName="CountryID" SearchName="CountryID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Title" AttrName="Title" SearchName="TitleILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="AltTitle" AttrName="AltTitle" SearchName="AltTitleILike" Summary="true" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Alias" AttrName="Alias" SearchName="Alias" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate="alias"></Attribute>
+                <Attribute Name="OrderNumber" AttrName="OrderNumber" SearchName="OrderNumber" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="NotID" SearchName="NotID" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="RegionID" VTAttrName="RegionID" List="false" FKOpts="title" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Region" VTAttrName="RegionID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="CountryID" VTAttrName="CountryID" List="false" FKOpts="title" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Country" VTAttrName="CountryID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="Title" VTAttrName="Title" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="AltTitle" VTAttrName="AltTitle" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Alias" VTAttrName="Alias" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="OrderNumber" VTAttrName="OrderNumber" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+                <Attribute Name="NotID" VTAttrName="NotID" List="false" Form="HTML_NONE" Search="HTML_INPUT"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Country" Mode="Full">
+            <TerminalPath>countries</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Title" AttrName="Title" SearchName="TitleILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="AltTitle" AttrName="AltTitle" SearchName="AltTitleILike" Summary="true" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Alias" AttrName="Alias" SearchName="Alias" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate="alias"></Attribute>
+                <Attribute Name="OrderNumber" AttrName="OrderNumber" SearchName="OrderNumber" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="H1" AttrName="H1" SearchName="H1ILike" Summary="true" Search="true" Max="500" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="PageTitle" AttrName="PageTitle" SearchName="PageTitleILike" Summary="true" Search="true" Max="500" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="MetaDescription" AttrName="MetaDescription" SearchName="MetaDescriptionILike" Summary="true" Search="true" Max="1000" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="NotID" SearchName="NotID" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="Title" VTAttrName="Title" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="AltTitle" VTAttrName="AltTitle" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Alias" VTAttrName="Alias" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="OrderNumber" VTAttrName="OrderNumber" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="H1" VTAttrName="H1" List="true" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="PageTitle" VTAttrName="PageTitle" List="true" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="MetaDescription" VTAttrName="MetaDescription" List="false" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+                <Attribute Name="NotID" VTAttrName="NotID" List="false" Form="HTML_NONE" Search="HTML_INPUT"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Region" Mode="Full">
+            <TerminalPath>regions</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CountryID" AttrName="CountryID" SearchName="CountryID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Title" AttrName="Title" SearchName="TitleILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="AltTitle" AttrName="AltTitle" SearchName="AltTitleILike" Summary="true" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Alias" AttrName="Alias" SearchName="Alias" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate="alias"></Attribute>
+                <Attribute Name="OrderNumber" AttrName="OrderNumber" SearchName="OrderNumber" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Image" AttrName="Image" SearchName="ImageILike" Summary="true" Search="true" Max="32" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="H1" AttrName="H1" SearchName="H1ILike" Summary="true" Search="true" Max="500" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="PageTitle" AttrName="PageTitle" SearchName="PageTitleILike" Summary="true" Search="true" Max="500" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="MetaDescription" AttrName="MetaDescription" SearchName="MetaDescriptionILike" Summary="true" Search="true" Max="1000" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="NotID" SearchName="NotID" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="CountryID" VTAttrName="CountryID" List="false" FKOpts="title" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Country" VTAttrName="CountryID" List="false" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="Title" VTAttrName="Title" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="AltTitle" VTAttrName="AltTitle" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Alias" VTAttrName="Alias" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="OrderNumber" VTAttrName="OrderNumber" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Image" VTAttrName="Image" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="H1" VTAttrName="H1" List="true" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="PageTitle" VTAttrName="PageTitle" List="false" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="MetaDescription" VTAttrName="MetaDescription" List="false" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+                <Attribute Name="NotID" VTAttrName="NotID" List="false" Form="HTML_NONE" Search="HTML_INPUT"></Attribute>
+            </Template>
+        </Entity>
+    </VTEntities>
+</VTNamespace>

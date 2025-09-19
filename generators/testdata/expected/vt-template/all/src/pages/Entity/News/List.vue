@@ -137,8 +137,11 @@
                 <template #item.category="{ item }">
                   {{ item.category | getField("title") }}
                 </template>
-                <template #item.publishedAt="{ item }">
-                  {{ item.publishedAt | tableDate }}
+                <template #item.country="{ item }">
+                  {{ item.country | getField("title") }}
+                </template>
+                <template #item.region="{ item }">
+                  {{ item.region | getField("title") }}
                 </template>
                 <template #item.status="{ item }">
                   <span class="text-no-wrap">
@@ -212,8 +215,14 @@ export default class List extends EntityList {
         sortable: false
       },
       {
-        text: this.$t('news.list.headers.publishedAt'),
-        value: 'publishedAt'
+        text: this.$t('news.list.headers.country'),
+        value: 'country',
+        sortable: false
+      },
+      {
+        text: this.$t('news.list.headers.region'),
+        value: 'region',
+        sortable: false
       },
       {
         text: this.$t('news.list.headers.status'),

@@ -94,7 +94,7 @@ func TestGenerator_Generate(t *testing.T) {
 			// added entity what need updated
 			generator.options.Entities = []string{"news"}
 			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
-			generator.options.EmbedLogPackage = "github.com/vmkteam/embedlog"
+			generator.options.EmbedLogPackage = defaultLoggerPkg
 
 			t.Log("Generate vt")
 			err := generator.Generate()
@@ -126,7 +126,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Package = testdata.PackageVT
 			generator.options.Namespaces = []string{"portal"}
 			generator.options.ModelPackage = "github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
-			generator.options.EmbedLogPackage = "github.com/vmkteam/embedlog"
+			generator.options.EmbedLogPackage = defaultLoggerPkg
 
 			t.Log("Generate vt")
 			So(generator.Generate(), ShouldBeNil)

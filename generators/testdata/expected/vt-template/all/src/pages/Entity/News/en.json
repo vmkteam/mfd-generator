@@ -7,9 +7,12 @@
     "news": {
         "form": {
             "categoryIdLabel": "Category",
+            "cityIdLabel": "City",
             "contentLabel": "Content",
+            "countryIdLabel": "Country",
             "previewLabel": "Preview",
             "publishedAtLabel": "Published At",
+            "regionIdLabel": "Region",
             "statusIdLabel": "Status",
             "tagIdsLabel": "Tags",
             "titleLabel": "Title"
@@ -18,12 +21,15 @@
             "title": "News",
             "filter": {
                 "categoryId": "Category",
+                "cityId": "City",
                 "content": "Content",
+                "countryId": "Country",
                 "createdAt": "Created at",
                 "ids": "Ids",
                 "preview": "Preview",
                 "publishedAt": "Published At",
                 "quickFilterPlaceholder": "",
+                "regionId": "Region",
                 "statusId": "Status",
                 "title": "Title"
             },
@@ -31,8 +37,9 @@
                 "actions": "Actions",
                 "category": "Category",
                 "content": "Content",
+                "country": "Country",
                 "preview": "Preview",
-                "publishedAt": "Published At",
+                "region": "Region",
                 "status": "Status",
                 "title": "Title"
             }

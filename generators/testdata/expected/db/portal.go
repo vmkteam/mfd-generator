@@ -31,7 +31,7 @@ func NewPortalRepo(db orm.DB) PortalRepo {
 		},
 		join: map[string][]string{
 			Tables.Category.Name: {TableColumns},
-			Tables.News.Name:     {TableColumns, Columns.News.Category},
+			Tables.News.Name:     {TableColumns, Columns.News.Category, Columns.News.Country, Columns.News.Region, Columns.News.City},
 			Tables.Tag.Name:      {TableColumns},
 		},
 	}

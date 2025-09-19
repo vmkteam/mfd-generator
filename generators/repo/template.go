@@ -24,14 +24,17 @@ type {{.Name}}Repo struct {
 func New{{.Name}}Repo(db orm.DB) {{.Name}}Repo {
 	return {{.Name}}Repo{
 		db:     db,
-		filters: map[string][]Filter{ {{range .Entities}}{{if .HasStatus}}
+		filters: map[string][]Filter{
+			{{- range .Entities}}{{if .HasStatus}}
 			Tables.{{.Name}}.Name: {StatusFilter}, {{end}}{{end}} 
 		},
-		sort: map[string][]SortField{ {{range .Entities}} {{if ne .SortField ""}}
+		sort: map[string][]SortField{
+			{{- range .Entities}}{{if ne .SortField ""}}
 			Tables.{{.Name}}.Name: { {Column: Columns.{{.Name}}.{{.SortField}}, Direction: {{.SortDir}}} },{{end}}{{end}}
 		},
-		join: map[string][]string{ {{range $i, $e := .Entities}}
-			Tables.{{$e.Name}}.Name: {TableColumns{{range .Relations}}, Columns.{{$e.Name}}.{{.}}{{end}} },{{end}} 
+		join: map[string][]string{
+			{{- range $i, $e := .Entities}}
+			Tables.{{$e.Name}}.Name: {TableColumns{{range .Relations}}, Columns.{{$e.Name}}.{{.Name}}{{end}} },{{end}} 
 		},
 	}
 }

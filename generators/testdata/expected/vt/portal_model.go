@@ -67,12 +67,18 @@ type News struct {
 	Preview     *string    `json:"preview" validate:"omitempty,max=255"`
 	Content     *string    `json:"content"`
 	CategoryID  int        `json:"categoryId" validate:"required"`
+	CountryID   *int       `json:"countryId"`
+	RegionID    *int       `json:"regionId"`
+	CityID      *int       `json:"cityId"`
 	TagIDs      []int      `json:"tagIds"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
 	StatusID    int        `json:"statusId" validate:"required,status"`
 
 	Category *CategorySummary `json:"category"`
+	Country  *CountrySummary  `json:"country"`
+	Region   *RegionSummary   `json:"region"`
+	City     *CitySummary     `json:"city"`
 	Status   *Status          `json:"status"`
 }
 
@@ -87,6 +93,9 @@ func (n *News) ToDB() *db.News {
 		Preview:     n.Preview,
 		Content:     n.Content,
 		CategoryID:  n.CategoryID,
+		CountryID:   n.CountryID,
+		RegionID:    n.RegionID,
+		CityID:      n.CityID,
 		TagIDs:      n.TagIDs,
 		CreatedAt:   n.CreatedAt,
 		PublishedAt: n.PublishedAt,
@@ -102,6 +111,9 @@ type NewsSearch struct {
 	Preview     *string    `json:"preview"`
 	Content     *string    `json:"content"`
 	CategoryID  *int       `json:"categoryId"`
+	CountryID   *int       `json:"countryId"`
+	RegionID    *int       `json:"regionId"`
+	CityID      *int       `json:"cityId"`
 	CreatedAt   *time.Time `json:"createdAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
 	StatusID    *int       `json:"statusId"`
@@ -119,6 +131,9 @@ func (ns *NewsSearch) ToDB() *db.NewsSearch {
 		PreviewILike: ns.Preview,
 		ContentILike: ns.Content,
 		CategoryID:   ns.CategoryID,
+		CountryID:    ns.CountryID,
+		RegionID:     ns.RegionID,
+		CityID:       ns.CityID,
 		CreatedAt:    ns.CreatedAt,
 		PublishedAt:  ns.PublishedAt,
 		StatusID:     ns.StatusID,
@@ -132,10 +147,16 @@ type NewsSummary struct {
 	Preview     *string    `json:"preview"`
 	Content     *string    `json:"content"`
 	CategoryID  int        `json:"categoryId"`
+	CountryID   *int       `json:"countryId"`
+	RegionID    *int       `json:"regionId"`
+	CityID      *int       `json:"cityId"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
 
 	Category *CategorySummary `json:"category"`
+	Country  *CountrySummary  `json:"country"`
+	Region   *RegionSummary   `json:"region"`
+	City     *CitySummary     `json:"city"`
 	Status   *Status          `json:"status"`
 }
 

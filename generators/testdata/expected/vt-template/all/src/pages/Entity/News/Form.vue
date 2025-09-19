@@ -107,6 +107,39 @@
                     placeholder=""
                     required
                   /><vt-form-field
+                    v-model="store.model.countryId"
+                    entity="country"
+                    search-by="title"
+                    prefetch
+                    component="vt-entity-autocomplete"
+                    :label="$t('news.form.countryIdLabel')"
+                    :error-messages="$t(i18nFieldError(store.errors.countryId))"
+                    :disabled="store.isLoading"
+                    placeholder=""
+                    clearable
+                  /><vt-form-field
+                    v-model="store.model.regionId"
+                    entity="region"
+                    search-by="title"
+                    prefetch
+                    component="vt-entity-autocomplete"
+                    :label="$t('news.form.regionIdLabel')"
+                    :error-messages="$t(i18nFieldError(store.errors.regionId))"
+                    :disabled="store.isLoading"
+                    placeholder=""
+                    clearable
+                  /><vt-form-field
+                    v-model="store.model.cityId"
+                    entity="city"
+                    search-by="title"
+                    prefetch
+                    component="vt-entity-autocomplete"
+                    :label="$t('news.form.cityIdLabel')"
+                    :error-messages="$t(i18nFieldError(store.errors.cityId))"
+                    :disabled="store.isLoading"
+                    placeholder=""
+                    clearable
+                  /><vt-form-field
                     v-model="store.model.tagIds"
                     entity="tag"
                     search-by="title"
