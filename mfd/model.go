@@ -127,19 +127,24 @@ type NSMapping struct {
 
 // Project is xml element
 type Project struct {
-	XMLName        xml.Name    `xml:"Project" json:"-"`
-	XMLxsi         string      `xml:"xmlns:xsi,attr" json:"-"`
-	XMLxsd         string      `xml:"xmlns:xsd,attr" json:"-"`
-	Name           string      `json:"name"`
-	NamespaceNames []string    `xml:"PackageNames>string" json:"-"`
-	Languages      []string    `xml:"Languages>string" json:"languages"`
-	GoPGVer        int         `xml:"GoPGVer" json:"goPGVer"`
-	CustomTypes    CustomTypes `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
-	Dictionary     *Dictionary `xml:"Dictionary" json:"dict,omitempty"`
+	XMLName        xml.Name     `xml:"Project" json:"-"`
+	XMLxsi         string       `xml:"xmlns:xsi,attr" json:"-"`
+	XMLxsd         string       `xml:"xmlns:xsd,attr" json:"-"`
+	Name           string       `json:"name"`
+	NamespaceNames []string     `xml:"PackageNames>string" json:"-"`
+	Languages      []string     `xml:"Languages>string" json:"languages"`
+	GoPGVer        int          `xml:"GoPGVer" json:"goPGVer"`
+	CustomTypes    CustomTypes  `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
+	Dictionary     *Dictionary  `xml:"Dictionary" json:"dict,omitempty"`
+	TableMapping   TableMapping `xml:"TableMapping" json:"tableMapping,omitempty"`
 
 	Namespaces   []*Namespace   `xml:"-" json:"-"`
 	VTNamespaces []*VTNamespace `xml:"-" json:"-"`
 	NSMapping    []NSMapping    `xml:"-" json:"namespaces"`
+}
+
+type TableMapping struct {
+	Entries []Entry `xml:",any"`
 }
 
 type Dictionary struct {
@@ -149,6 +154,21 @@ type Dictionary struct {
 type Entry struct {
 	XMLName xml.Name
 	Value   string `xml:",chardata"`
+}
+
+func (tm *TableMapping) Packages() map[string]string {
+	if len(tm.Entries) == 0 {
+		return nil
+	}
+
+	packages := make(map[string]string, len(tm.Entries))
+	for _, entry := range tm.Entries {
+		ss := strings.Split(entry.Value, ",")
+		for _, s := range ss {
+			packages[s] = entry.XMLName.Local
+		}
+	}
+	return packages
 }
 
 func NewProject(name string, goPGVer int) *Project {

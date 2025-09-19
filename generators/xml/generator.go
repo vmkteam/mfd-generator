@@ -202,6 +202,19 @@ func (g *Generator) Generate() (err error) {
 		return nil
 	}
 
+	if g.options.Packages == nil {
+		// if options.Packages is nil check TableMapping.Packages
+		g.options.Packages = project.TableMapping.Packages()
+		// fill tables from namespaces if not set
+		if len(g.options.Tables) == 0 && len(g.options.Packages) != 0 {
+			for table := range g.options.Packages {
+				g.options.Tables = append(g.options.Tables, table)
+			}
+		} else if len(g.options.Tables) == 0 {
+			g.options.Tables = []string{"public.*"}
+		}
+	}
+
 	addedCustomTypes := project.AddCustomTypes(g.options.CustomTypes)
 
 	// reading tables from db
