@@ -122,6 +122,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
 	switch dbType {
 	case model.TypePGPoint:
+		ff.imports["fmt"] = struct{}{}
 		return FakeIt(fmt.Sprintf(`"("+%s+","+%s+")"`, fakeLat, fakeLon)).assign(colName).Tmpl(), true
 	case model.TypePGUuid:
 		return fakeUUID.assign(colName).Tmpl(), true

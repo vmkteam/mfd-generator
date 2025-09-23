@@ -32,7 +32,7 @@ var (
 
 // CreateCommand creates generator command
 func CreateCommand() *cobra.Command {
-	return base.CreateCommand("dbtest", "Create or update functions for insert testdata by namespaces and entities", New())
+	return base.CreateCommand("dbtest", "Create or update functions from xml for inserting testdata into tables", New())
 }
 
 // Generator represents mfd generator

@@ -5,7 +5,6 @@ package {{.Package}}
 
 import (
 	"context"
-	"errors"
 	"log"
 	"math/rand"
 	"os"
@@ -16,10 +15,6 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
-)
-
-var (
-	errNotFound = errors.New("not found")
 )
 
 type Cleaner func()
@@ -135,7 +130,6 @@ const funcFileTemplate = `
 package {{.Package}}
 
 import (
-	"fmt"
 	"testing"
 	{{- if .HasImports}}{{- range .Imports}}
 	"{{.}}"
@@ -173,16 +167,28 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 			t.Fatal(err)
 		}
 
-		// We must find the entity by PK
-		if {{.VarName}} == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity {{.Name}} by
-			{{- range $i, $e := .PKs}} {{.Field}}=%v
-			{{- if gt $i 0 }}, {{ end -}} 
-			{{- end}}, err=%w"{{- range .PKs}}, in.{{.Field}}{{- end}}, errNotFound))
+		{{- if .AddIfNotFoundByPKFlow }}
+		// Return if found without real cleanup
+		if {{.VarName}} != nil {
+			return {{.VarName}}, emptyClean
 		}
 
-		// Return if found without real cleanup
+		// If we're here, we don't find the entity by PKs. Just try to add the entity by provided PK
+		t.Logf("the entity {{.Name}} is not found by provided PKs,
+		{{- range $i, $e := .PKs}} {{.Field}}=%v
+		{{- if gt $i 0 }}, {{ end -}} 
+		{{- end}}. Trying to create one"{{- range .PKs}}, in.{{.Field}}{{- end}})
+		{{- else }}
+		// We must find the entity by PK
+		if {{.VarName}} == nil {
+			t.Fatalf("the entity {{.Name}} is not found by provided PKs
+			{{- range $i, $e := .PKs}} {{.Field}}=%v
+			{{- if gt $i 0 }}, {{ end -}} 
+			{{- end}}, err=%w"{{- range .PKs}}, in.{{.Field}}{{- end}})
+		}
+
 		return {{.VarName}}, emptyClean
+		{{- end }}
 	}
 	{{- end}}
 

@@ -663,6 +663,18 @@ func (e *Entity) PKs() Attributes {
 	return pks
 }
 
+// AreNotNullablePKs Returns false if at least one of PKs attribute doesn't have "not null" DB property.
+// Returns true if all of PKs have "not null" DB property.
+func (e *Entity) AreNotNullablePKs() bool {
+	for _, a := range e.PKs() {
+		if a.DBNullable {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (e *Entity) TitleAttribute() *Attribute {
 	for _, attr := range e.Attributes {
 		if attr.Name == "Title" || attr.Name == "Name" || attr.Name == "Login" || attr.Name == "Alias" {
@@ -691,12 +703,13 @@ type Attribute struct {
 	ForeignKey    string  `xml:"FK,attr,omitempty" json:"fk"`
 	ForeignEntity *Entity `xml:"-" json:"-"`
 
-	Null      string `xml:"Nullable,attr" json:"nullable"`
-	Addable   *bool  `xml:"Addable,attr" json:"addable"`
-	Updatable *bool  `xml:"Updatable,attr" json:"updatable"`
-	Min       int    `xml:"Min,attr" json:"min"`
-	Max       int    `xml:"Max,attr" json:"max"`
-	Default   string `xml:"Default,attr,omitempty" json:"defaultVal"`
+	Null       string `xml:"Nullable,attr" json:"nullable"`
+	DBNullable bool
+	Addable    *bool  `xml:"Addable,attr" json:"addable"`
+	Updatable  *bool  `xml:"Updatable,attr" json:"updatable"`
+	Min        int    `xml:"Min,attr" json:"min"`
+	Max        int    `xml:"Max,attr" json:"max"`
+	Default    string `xml:"Default,attr,omitempty" json:"defaultVal"`
 }
 
 // Merge fills attribute (from file) values from db

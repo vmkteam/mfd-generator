@@ -153,10 +153,11 @@ type EntityData struct {
 	VarName       string
 	VarNamePlural string
 
-	HasStatus  bool
-	HasPKs     bool
-	PKs        []PKPair
-	FillingPKs []template.HTML
+	HasStatus             bool
+	HasPKs                bool
+	AddIfNotFoundByPKFlow bool
+	PKs                   []PKPair
+	FillingPKs            []template.HTML
 
 	SortField string
 	SortDir   string
@@ -333,9 +334,10 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 		VarName:       varName,
 		VarNamePlural: varNamePlural,
 
-		HasStatus: hasStatus,
-		PKs:       pks,
-		HasPKs:    len(pks) > 0,
+		HasStatus:             hasStatus,
+		PKs:                   pks,
+		HasPKs:                len(pks) > 0,
+		AddIfNotFoundByPKFlow: te.AreNotNullablePKs(),
 
 		SortField: sortField,
 		SortDir:   sortDir,
