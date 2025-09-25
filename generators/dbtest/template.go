@@ -179,14 +179,16 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 		{{- if gt $i 0 }}, {{ end -}} 
 		{{- end}}. Trying to create one"{{- range .PKs}}, in.{{.Field}}{{- end}})
 		{{- else }}
+
 		// We must find the entity by PK
 		if {{.VarName}} == nil {
 			t.Fatalf("the entity {{.Name}} is not found by provided PKs
 			{{- range $i, $e := .PKs}} {{.Field}}=%v
 			{{- if gt $i 0 }}, {{ end -}} 
-			{{- end}}, err=%w"{{- range .PKs}}, in.{{.Field}}{{- end}})
+			{{- end}}"{{- range .PKs}}, in.{{.Field}}{{- end}})
 		}
 
+		// Return if found without real cleanup
 		return {{.VarName}}, emptyClean
 		{{- end }}
 	}

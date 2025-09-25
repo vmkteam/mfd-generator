@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -32,7 +31,7 @@ func VfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile, ops ...VfsFileOpFunc) (*d
 
 		// We must find the entity by PK
 		if vfsFile == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity VfsFile by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity VfsFile is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup
@@ -149,7 +148,7 @@ func VfsFolder(t *testing.T, dbo orm.DB, in *db.VfsFolder, ops ...VfsFolderOpFun
 
 		// We must find the entity by PK
 		if vfsFolder == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity VfsFolder by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity VfsFolder is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup

@@ -667,7 +667,7 @@ func (e *Entity) PKs() Attributes {
 // Returns true if all of PKs have "not null" DB property.
 func (e *Entity) AreNotNullablePKs() bool {
 	for _, a := range e.PKs() {
-		if a.DBNullable {
+		if a.DBNullable || a.HasDefault {
 			return false
 		}
 	}
@@ -704,12 +704,13 @@ type Attribute struct {
 	ForeignEntity *Entity `xml:"-" json:"-"`
 
 	Null       string `xml:"Nullable,attr" json:"nullable"`
-	DBNullable bool
+	DBNullable bool   `xml:"-" json:"-"`
 	Addable    *bool  `xml:"Addable,attr" json:"addable"`
 	Updatable  *bool  `xml:"Updatable,attr" json:"updatable"`
 	Min        int    `xml:"Min,attr" json:"min"`
 	Max        int    `xml:"Max,attr" json:"max"`
 	Default    string `xml:"Default,attr,omitempty" json:"defaultVal"`
+	HasDefault bool   `xml:"HasDefault,attr" json:"hasDefaultVal"`
 }
 
 // Merge fills attribute (from file) values from db
@@ -722,6 +723,7 @@ func (a *Attribute) Merge(with *Attribute, overwriteGoType bool) {
 	a.ForeignEntity = with.ForeignEntity
 	a.Max = with.Max
 	a.Min = with.Min
+	a.HasDefault = with.HasDefault
 
 	if a.Addable == nil {
 		addable := true

@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -32,7 +31,7 @@ func City(t *testing.T, dbo orm.DB, in *db.City, ops ...CityOpFunc) (*db.City, C
 
 		// We must find the entity by PK
 		if city == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity City by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity City is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup
@@ -177,7 +176,7 @@ func Country(t *testing.T, dbo orm.DB, in *db.Country, ops ...CountryOpFunc) (*d
 
 		// We must find the entity by PK
 		if country == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity Country by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity Country is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup
@@ -249,7 +248,7 @@ func Region(t *testing.T, dbo orm.DB, in *db.Region, ops ...RegionOpFunc) (*db.R
 
 		// We must find the entity by PK
 		if region == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity Region by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity Region is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup

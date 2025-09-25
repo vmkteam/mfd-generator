@@ -3,10 +3,10 @@
     <Entities>
         <Entity Name="Category" Namespace="portal" Table="categories">
             <Attributes>
-                <Attribute Name="ID" DBName="categoryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="categoryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
@@ -15,18 +15,18 @@
         </Entity>
         <Entity Name="News" Namespace="portal" Table="news">
             <Attributes>
-                <Attribute Name="ID" DBName="newsId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="Preview" DBName="preview" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="Content" DBName="content" DBType="text" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="CategoryID" DBName="categoryId" DBType="int4" GoType="int" PK="false" FK="Category" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="*int" PK="false" FK="Country" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="RegionID" DBName="regionId" DBType="int4" GoType="*int" PK="false" FK="Region" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="CityID" DBName="cityId" DBType="int4" GoType="*int" PK="false" FK="City" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="TagIDs" DBName="tagIds" IsArray="true" DBType="int4" GoType="[]int" PK="false" FK="Tag" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="PublishedAt" DBName="publishedAt" DBType="timestamptz" GoType="*time.Time" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="newsId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="Preview" DBName="preview" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="Content" DBName="content" DBType="text" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="CategoryID" DBName="categoryId" DBType="int4" GoType="int" PK="false" FK="Category" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="*int" PK="false" FK="Country" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="RegionID" DBName="regionId" DBType="int4" GoType="*int" PK="false" FK="Region" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="CityID" DBName="cityId" DBType="int4" GoType="*int" PK="false" FK="City" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="TagIDs" DBName="tagIds" IsArray="true" DBType="int4" GoType="[]int" PK="false" FK="Tag" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="PublishedAt" DBName="publishedAt" DBType="timestamptz" GoType="*time.Time" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
@@ -37,9 +37,9 @@
         </Entity>
         <Entity Name="Tag" Namespace="portal" Table="tags">
             <Attributes>
-                <Attribute Name="ID" DBName="tagId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="tagId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>

@@ -3,7 +3,6 @@ package test
 
 import (
 	"context"
-	"errors"
 	"log"
 	"math/rand"
 	"os"
@@ -14,10 +13,6 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 
 	"github.com/go-pg/pg/v10"
-)
-
-var (
-	errNotFound = errors.New("not found")
 )
 
 type Cleaner func()

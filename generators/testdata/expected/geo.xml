@@ -3,14 +3,14 @@
     <Entities>
         <Entity Name="City" Namespace="geo" Table="cities">
             <Attributes>
-                <Attribute Name="ID" DBName="cityId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="RegionID" DBName="regionId" DBType="int4" GoType="int" PK="false" FK="Region" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="int" PK="false" FK="Country" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="cityId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="RegionID" DBName="regionId" DBType="int4" GoType="int" PK="false" FK="Region" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="int" PK="false" FK="Country" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
@@ -21,15 +21,15 @@
         </Entity>
         <Entity Name="Country" Namespace="geo" Table="countries">
             <Attributes>
-                <Attribute Name="ID" DBName="countryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="H1" DBName="h1" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500"></Attribute>
-                <Attribute Name="PageTitle" DBName="pageTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500"></Attribute>
-                <Attribute Name="MetaDescription" DBName="metaDescription" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="1000"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="countryId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="H1" DBName="h1" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500" HasDefault="false"></Attribute>
+                <Attribute Name="PageTitle" DBName="pageTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500" HasDefault="false"></Attribute>
+                <Attribute Name="MetaDescription" DBName="metaDescription" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="1000" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
@@ -43,17 +43,17 @@
         </Entity>
         <Entity Name="Region" Namespace="geo" Table="regions">
             <Attributes>
-                <Attribute Name="ID" DBName="regionId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
-                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="int" PK="false" FK="Country" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
-                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
-                <Attribute Name="Image" DBName="image" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="32"></Attribute>
-                <Attribute Name="H1" DBName="h1" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500"></Attribute>
-                <Attribute Name="PageTitle" DBName="pageTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500"></Attribute>
-                <Attribute Name="MetaDescription" DBName="metaDescription" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="1000"></Attribute>
-                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ID" DBName="regionId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="CountryID" DBName="countryId" DBType="int4" GoType="int" PK="false" FK="Country" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="Title" DBName="title" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="AltTitle" DBName="altTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="Alias" DBName="alias" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255" HasDefault="false"></Attribute>
+                <Attribute Name="OrderNumber" DBName="orderNumber" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
+                <Attribute Name="Image" DBName="image" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="32" HasDefault="false"></Attribute>
+                <Attribute Name="H1" DBName="h1" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500" HasDefault="false"></Attribute>
+                <Attribute Name="PageTitle" DBName="pageTitle" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="500" HasDefault="false"></Attribute>
+                <Attribute Name="MetaDescription" DBName="metaDescription" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="1000" HasDefault="false"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="false"></Attribute>
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>

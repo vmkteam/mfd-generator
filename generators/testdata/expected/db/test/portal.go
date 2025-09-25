@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -32,7 +31,7 @@ func Category(t *testing.T, dbo orm.DB, in *db.Category, ops ...CategoryOpFunc) 
 
 		// We must find the entity by PK
 		if category == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity Category by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity Category is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup
@@ -100,7 +99,7 @@ func News(t *testing.T, dbo orm.DB, in *db.News, ops ...NewsOpFunc) (*db.News, C
 
 		// We must find the entity by PK
 		if news == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity News by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity News is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup
@@ -326,7 +325,7 @@ func Tag(t *testing.T, dbo orm.DB, in *db.Tag, ops ...TagOpFunc) (*db.Tag, Clean
 
 		// We must find the entity by PK
 		if tag == nil {
-			t.Fatal(fmt.Errorf("fetch the main entity Tag by ID=%v, err=%w", in.ID, errNotFound))
+			t.Fatalf("the entity Tag is not found by provided PKs ID=%v", in.ID)
 		}
 
 		// Return if found without real cleanup

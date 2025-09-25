@@ -106,6 +106,7 @@ func newAttribute(entity model.Entity, column model.Column) *mfd.Attribute {
 		Updatable:  updatable(column),
 		Null:       nullable(column),
 		DBNullable: column.Nullable,
+		HasDefault: column.HasDefault,
 		Min:        0,
 		Max:        column.MaxLen,
 	}
