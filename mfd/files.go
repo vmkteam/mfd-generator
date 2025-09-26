@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+	textTemplate "text/template"
 
 	"github.com/dizzyfool/genna/util"
 	"golang.org/x/text/cases"
@@ -183,49 +185,28 @@ func MarshalToFile(filename string, v interface{}) error {
 	return nil
 }
 
-func FormatAndSave(data interface{}, output, tmpl string, format bool) (bool, error) {
-	buffer, err := renderTemplate(data, tmpl)
-	if err != nil {
+func FormatAndSave(data any, output, tmpl string, format bool) (bool, error) {
+	buf := new(bytes.Buffer)
+	if err := Render(buf, tmpl, data); err != nil {
 		return false, fmt.Errorf("render template, err=%w", err)
 	}
 
 	if format {
-		return util.FmtAndSave(buffer.Bytes(), output)
+		return util.FmtAndSave(buf.Bytes(), output)
 	}
 
-	return Save(buffer.Bytes(), output)
+	return Save(buf.Bytes(), output)
 }
 
-// renderTemplate generates data based on a template and returns it in a buffer.
-//
-// Parameters:
-//   - data: the data used to populate the template.
-//   - tmpl: the string containing the template for data generation.
-//
-// Returns:
-//   - bytes.Buffer: a buffer containing the generated data.
-//   - error: an error if there was an issue parsing or executing the template.
-//
-// Example usage:
-//
-//		data := ... // data for the template
-//		tmpl := "Template string with {{.}}"
-//		buffer, err := renderTemplate(data, tmpl)
-//		if err != nil {
-//	    log.Fatal(err)
-//		}
-//		fmt.Println("Rendered template:", buffer.String())
-func renderTemplate(data interface{}, tmpl string) (bytes.Buffer, error) {
-	var buffer bytes.Buffer
-	parsed, err := template.New("base").Funcs(TemplateFunctions).Parse(tmpl)
-	if err != nil {
-		return buffer, fmt.Errorf("parsing template error: %w", err)
-	}
+// Render renders text/template to Writer.
+func Render(wr io.Writer, tmpl string, data any) error {
+	t := template.Must(template.New("base").Funcs(TemplateFunctions).Parse(tmpl))
+	return t.Execute(wr, data)
+}
 
-	if err := parsed.ExecuteTemplate(&buffer, "base", data); err != nil {
-		return buffer, fmt.Errorf("processing model template error: %w", err)
-	}
-	return buffer, nil
+func RenderText(wr io.Writer, tmpl string, data any) error {
+	t := textTemplate.Must(textTemplate.New("base").Funcs(TemplateFunctions).Parse(tmpl))
+	return t.Execute(wr, data)
 }
 
 // replaceFragmentInFile replaces fragments of text in a file with new data if they match a given regular expression.
@@ -254,41 +235,57 @@ func renderTemplate(data interface{}, tmpl string) (bytes.Buffer, error) {
 //		}
 //
 // fmt.Println("Replacement successful:", success)
-func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Regexp) (bool, error) {
+func replaceFragmentInFile(output, findData, newData, openingToken, closeningToken string, pattern *regexp.Regexp, force bool) (bool, error) {
 	content, err := os.ReadFile(output)
 	if err != nil {
-		return false, fmt.Errorf("read file err: %w", err)
+		if !os.IsNotExist(err) {
+			return false, fmt.Errorf("read file err: %w", err)
+		}
+
+		if _, err := os.Create(output); err != nil {
+			return false, fmt.Errorf("output file was not found, attemtion to create it is failed, output=%s, err=%w", output, err)
+		}
 	}
 
 	lines := strings.Split(string(content), "\n")
-	ff, err := extractFragments(pattern, lines)
-	if err != nil {
-		return false, fmt.Errorf("extract fragments error: %w", err)
+	ff := extractFragments(pattern, lines, openingToken, closeningToken)
+	if len(ff) == 0 {
+		lines = append(lines, strings.Split(newData, "\n")...)
+		newContent := strings.Join(lines, "\n")
+		return util.FmtAndSave([]byte(newContent), output)
 	}
 
-	var replaced bool
+	var found, changed bool
 	for _, fragment := range ff {
 		s, end := fragment[0], fragment[1]
 		extractedFragment := lines[s:end]
 		for _, extline := range extractedFragment {
 			if strings.Contains(extline, findData) {
-				var resultLines []string
-				resultLines = append(resultLines, lines[:s]...)
-				resultLines = append(resultLines, strings.Split(newData, "\n")...)
-				resultLines = append(resultLines, lines[end:]...)
+				found = true
+				if force {
+					var resultLines []string
+					resultLines = append(resultLines, lines[:s]...)
+					resultLines = append(resultLines, strings.Split(newData, "\n")...)
+					resultLines = append(resultLines, lines[end:]...)
 
-				lines = resultLines
-				replaced = true
+					lines = resultLines
+					changed = true
+				}
 				break
 			}
 		}
-		if replaced {
+		if found {
 			break
 		}
 	}
 
-	if !replaced {
+	if !found {
 		lines = append(lines, strings.Split(newData, "\n")...)
+		changed = true
+	}
+
+	if !changed {
+		return false, nil
 	}
 
 	newContent := strings.Join(lines, "\n")
@@ -320,7 +317,7 @@ func replaceFragmentInFile(output, findData, newData string, pattern *regexp.Reg
 //		}
 //
 // fmt.Println(fragments) // [[2, 5]]
-func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
+func extractFragments(re *regexp.Regexp, lines []string, openingToken, closeningToken string) [][2]int {
 	var (
 		reFragments [][2]int
 		start       = -1
@@ -344,33 +341,60 @@ func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
 	}
 
 	if len(reFragments) == 0 {
-		return nil, errors.New("no reFragments found with pattern")
+		return nil
 	}
 
 	var ff [][2]int
 
+	checkOpeningCloseninigTokens := openingToken != closeningToken
+
+	reInlineOpeningAndClosing := regexp.MustCompile(`\{.*}$`)
 	// split big fragment
 	for _, fragment := range reFragments {
 		ll := lines[fragment[0]:fragment[1]]
 		var subStart = fragment[0]
 
+		// How many closening tokens we need to ignore
+		var openTokenCnt int
+
 		for i, line := range ll {
-			if line == "}" {
+			if !checkOpeningCloseninigTokens {
+				if line == "" {
+					continue
+				}
+				ff = append(ff, [2]int{subStart, fragment[0] + i + 1})
+				subStart = fragment[0] + i + 1
+				continue
+			}
+
+			if reInlineOpeningAndClosing.MatchString(line) {
+				continue
+			}
+
+			if strings.HasSuffix(line, openingToken) {
+				openTokenCnt++
+				continue
+			}
+			if strings.HasSuffix(line, closeningToken) {
+				openTokenCnt--
+				if openTokenCnt > 0 {
+					continue
+				}
+
 				ff = append(ff, [2]int{subStart, fragment[0] + i + 1})
 				subStart = fragment[0] + i + 1
 			}
 		}
 	}
 
-	return ff, nil
+	return ff
 }
 
 // UpdateFile updates a file by replacing specific fragments with new data generated from a template.
 //
 // Parameters:
-//   - data: the data used to populate the template.
+//   - buffer: consists a rendered template.
 //   - output: the path to the file where the replacement will take place.
-//   - tmpl: the path to the template file.
 //   - pattern: a pointer to a compiled regular expression used to find the fragments.
 //
 // Returns:
@@ -379,9 +403,8 @@ func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
 //
 // Example usage:
 //
-//		data := ... // data for the template
+//		buffer := ... // data for the template
 //		output := "path/to/file.txt"
-//		tmpl := "path/to/template.tmpl"
 //		pattern := regexp.MustCompile(`pattern`)
 //		success, err := UpdateFile(data, output, tmpl, pattern)
 //		if err != nil {
@@ -389,19 +412,14 @@ func extractFragments(re *regexp.Regexp, lines []string) ([][2]int, error) {
 //		}
 //
 // fmt.Println("Update successful:", success)
-func UpdateFile(data interface{}, output, tmpl string, pattern *regexp.Regexp) (bool, error) {
-	buffer, err := renderTemplate(data, tmpl)
-	if err != nil {
-		return false, fmt.Errorf("generating data error: %w", err)
-	}
-
+func UpdateFile(buffer *bytes.Buffer, output, openingToken, closeningToken string, pattern *regexp.Regexp, force bool) (bool, error) {
 	// get []string from generate template
 	lines := strings.Split(buffer.String(), "\n")
 
 	// search fragment from our template
-	fragments, err := extractFragments(pattern, lines)
-	if err != nil {
-		return false, fmt.Errorf("extract fragments err=%w", err)
+	fragments := extractFragments(pattern, lines, openingToken, closeningToken)
+	if len(fragments) == 0 {
+		return false, errors.New("no reFragments found with pattern in the new content")
 	}
 
 	for _, fragment := range fragments {
@@ -415,7 +433,7 @@ func UpdateFile(data interface{}, output, tmpl string, pattern *regexp.Regexp) (
 				break
 			}
 		}
-		if _, err := replaceFragmentInFile(output, strings.TrimSuffix(findRow, " "), strings.Join(filePart, "\n"), pattern); err != nil {
+		if _, err := replaceFragmentInFile(output, strings.TrimSuffix(findRow, " "), strings.Join(filePart, "\n"), openingToken, closeningToken, pattern, force); err != nil {
 			return false, fmt.Errorf("replace fragment error: %w", err)
 		}
 	}

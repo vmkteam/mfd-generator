@@ -32,6 +32,7 @@
 **Вторая группа:**  
 [model](/generators/model) - генератор golang модели для взаимодействия с базой данных. В качестве источника данных используется результат xml генератора.  
 [repo](/generators/repo) - генератор golang репозиториев для манипуляций с данными в базе с помощью моделей.  
+[dbtest](/generators/dbtest) - генератор golang функций-хелперов для упрощения написания тестов с использованием БД.  
 
 **Третья группа:**  
 [vt](/generators/vt) - генератор golang файлов для создания vt-сервиса, серверной части интерфейса vt.  
@@ -51,6 +52,7 @@ Available Commands:
   help        Help about any command
   model       Create golang model from xml
   repo        Create repo from xml
+  dbtest      Create or update functions from xml for inserting testdata into tables
   server      Run web server with generators
   template    Create vt template from xml
   version     Print mfd-generator version

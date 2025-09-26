@@ -102,11 +102,13 @@ func newAttribute(entity model.Entity, column model.Column) *mfd.Attribute {
 		PrimaryKey: column.IsPK,
 		ForeignKey: fkModel,
 
-		Addable:   addable(column),
-		Updatable: updatable(column),
-		Null:      nullable(column),
-		Min:       0,
-		Max:       column.MaxLen,
+		Addable:    addable(column),
+		Updatable:  updatable(column),
+		Null:       nullable(column),
+		DBNullable: column.Nullable,
+		HasDefault: column.HasDefault,
+		Min:        0,
+		Max:        column.MaxLen,
 	}
 }
 

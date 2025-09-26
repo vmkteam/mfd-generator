@@ -26,6 +26,8 @@ const (
 	converterTemplateFlag = "converter-tmpl"
 	serviceTemplateFlag   = "service-tmpl"
 	serverTemplateFlag    = "server-tmpl"
+
+	defaultLoggerPkg = "github.com/vmkteam/embedlog"
 )
 
 // CreateCommand creates generator command
@@ -99,7 +101,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	}
 
 	if g.options.EmbedLogPackage == "" {
-		g.options.EmbedLogPackage = "github.com/vmkteam/embedlog"
+		g.options.EmbedLogPackage = defaultLoggerPkg
 	}
 
 	if g.options.Package, err = flags.GetString(pkgFlag); err != nil {
@@ -298,8 +300,12 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			// generate service file
 			output := path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
 			serviceData.Entities = []ServiceEntityData{e}
-			if _, err := mfd.UpdateFile(serviceData, output, serviceTemplate, structRe); err != nil {
-				return fmt.Errorf("generate service %s error: %w", namespace, err)
+			buf := new(bytes.Buffer)
+			if err := mfd.Render(buf, serviceTemplate, serviceData); err != nil {
+				return fmt.Errorf("render service, err=%w", err)
+			}
+			if _, err := mfd.UpdateFile(buf, output, "{", "}", structRe, true); err != nil {
+				return fmt.Errorf("update file, service=%s, err=%w", namespace, err)
 			}
 		}
 
@@ -307,13 +313,21 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			// generate model file
 			output := path.Join(g.options.Output, fmt.Sprintf("%s_model.go", baseName))
 			modelData.Entities = []EntityData{entity}
-			if _, err := mfd.UpdateFile(modelData, output, modelTemplate, structRe); err != nil {
-				return fmt.Errorf("generate vt model error: %w", err)
+			modelBuf := new(bytes.Buffer)
+			if err := mfd.Render(modelBuf, modelTemplate, modelData); err != nil {
+				return fmt.Errorf("render model, model=%s, err=%w", entity.Name, err)
+			}
+			if _, err := mfd.UpdateFile(modelBuf, output, "{", "}", structRe, true); err != nil {
+				return fmt.Errorf("update model file, entity=%s, err=%w", entity.Name, err)
 			}
 			// generate converter file
+			converterBuf := new(bytes.Buffer)
+			if err := mfd.Render(converterBuf, converterTemplate, modelData); err != nil {
+				return fmt.Errorf("render converer, model=%s, err=%w", entity.Name, err)
+			}
 			output = path.Join(g.options.Output, fmt.Sprintf("%s_converter.go", baseName))
-			if _, err := mfd.UpdateFile(modelData, output, converterTemplate, funcRe); err != nil {
-				return fmt.Errorf("generate vt converter error: %w", err)
+			if _, err := mfd.UpdateFile(converterBuf, output, "{", "}", funcRe, true); err != nil {
+				return fmt.Errorf("update converter file, entity=%s, err=%w", entity.Name, err)
 			}
 		}
 	}

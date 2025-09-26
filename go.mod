@@ -3,7 +3,7 @@ module github.com/vmkteam/mfd-generator
 go 1.24
 
 require (
-	github.com/dizzyfool/genna v1.2.0
+	github.com/dizzyfool/genna v1.3.1
 	github.com/fatih/camelcase v1.0.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/manifoldco/promptui v0.9.0

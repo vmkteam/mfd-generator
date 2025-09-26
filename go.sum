@@ -15,8 +15,8 @@ github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6N
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/dizzyfool/genna v1.2.0 h1:7huVuAs612S2K3w/Cnj2DWiCb4hOrQSJtkBjFgzJ2g8=
-github.com/dizzyfool/genna v1.2.0/go.mod h1:BzyC6YR1CISYbMAtiTfNRzHfINsGta8lhVwpv06L8fI=
+github.com/dizzyfool/genna v1.3.1 h1:eXcYNHwAu5x3tZW6mnqFQtkouMkuv8IXH54tHIjknM8=
+github.com/dizzyfool/genna v1.3.1/go.mod h1:BzyC6YR1CISYbMAtiTfNRzHfINsGta8lhVwpv06L8fI=
 github.com/fatih/camelcase v1.0.0 h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8=
 github.com/fatih/camelcase v1.0.0/go.mod h1:yN2Sb0lFhZJUdVvtELVWefmrXpuZESvPmqwoZc+/fpc=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=

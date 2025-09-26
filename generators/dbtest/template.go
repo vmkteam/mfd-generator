@@ -1,6 +1,6 @@
 package dbtest
 
-const connTemplate = `//nolint:all
+const baseFileTemplate = `//nolint:all
 package {{.Package}}
 
 import (
@@ -15,7 +15,6 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
-	"github.com/google/uuid"
 )
 
 type Cleaner func()
@@ -50,7 +49,12 @@ func (d testDBLogQuery) BeforeQuery(ctx context.Context, _ *pg.QueryEvent) (cont
 }
 
 func (d testDBLogQuery) AfterQuery(_ context.Context, q *pg.QueryEvent) error {
-	log.Println(q.FormattedQuery())
+	fq, err := q.FormattedQuery()
+	if err != nil {
+		return err
+	}
+	log.Println(string(fq))
+
 	return nil
 }
 
@@ -77,20 +81,218 @@ func Setup(t *testing.T) db.DB {
 }
 
 func setup() (*pg.DB, error) {
-	url := "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable"
-	if r := os.Getenv("DB_CONN"); r != "" {
-		url = r
-	}
-	cfg, err := pg.ParseURL(url)
+	u := env("DB_CONN", "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable")
+	cfg, err := pg.ParseURL(u)
 	if err != nil {
 		return nil, err
 	}
 	conn := pg.Connect(cfg)
 
-	if r := os.Getenv("DB_LOG_QUERY"); r == "true" {
+	if r := env("DB_LOG_QUERY", "true"); r == "true" {
 		conn.AddQueryHook(testDBLogQuery{})
 	}
 
 	return conn, nil
 }
+
+func env(v, def string) string {
+	if r := os.Getenv(v); r != "" {
+		return r
+	}
+
+	return def
+}
+
+func val[T any, P *T](p P) T {
+	if p != nil {
+		return *p
+	}
+	var def T
+	return def
+}
+
+func cutS(str string, maxLen int) string {
+	if maxLen == 0 {
+		return str
+	}
+	return string([]rune(str)[:min(len(str), maxLen)])
+}
+
+func cutB(str string, maxLen int) []byte {
+	if maxLen == 0 {
+		return []byte(str)
+	}
+	return []byte(str)[:min(len(str), maxLen)]
+}
 `
+
+const funcFileTemplate = `
+package {{.Package}}
+
+import (
+	"testing"
+	{{- if .HasImports}}{{- range .Imports}}
+	"{{.}}"
+	{{- end }}
+	{{- end }}
+
+	"{{.DBPackage}}"
+
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
+	"github.com/brianvoe/gofakeit/v7"
+)
+
+`
+
+const opFuncTypeTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner
+`
+
+const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFunc) (*db.{{.Name}}, Cleaner) {
+	repo := db.New{{.Namespace}}Repo(dbo)
+	var cleaners []Cleaner
+
+	// Fill the incoming entity
+	if in == nil {
+		in = &db.{{.Name}}{}
+	}
+
+	{{if .HasPKs}}
+	// Check if PKs are provided
+	if {{ range $i, $e := .PKs}}
+    {{- if gt $i 0 }} && {{ end -}} in.{{$e.Field}} != {{$e.Zero}}
+	{{- end}} {
+		// Fetch the entity by PK
+		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		{{- if .AddIfNotFoundByPKFlow }}
+		// Return if found without real cleanup
+		if {{.VarName}} != nil {
+			return {{.VarName}}, emptyClean
+		}
+
+		// If we're here, we don't find the entity by PKs. Just try to add the entity by provided PK
+		t.Logf("the entity {{.Name}} is not found by provided PKs,
+		{{- range $i, $e := .PKs}} {{.Field}}=%v
+		{{- if gt $i 0 }}, {{ end -}} 
+		{{- end}}. Trying to create one"{{- range .PKs}}, in.{{.Field}}{{- end}})
+		{{- else }}
+
+		// We must find the entity by PK
+		if {{.VarName}} == nil {
+			t.Fatalf("the entity {{.Name}} is not found by provided PKs
+			{{- range $i, $e := .PKs}} {{.Field}}=%v
+			{{- if gt $i 0 }}, {{ end -}} 
+			{{- end}}"{{- range .PKs}}, in.{{.Field}}{{- end}})
+		}
+
+		// Return if found without real cleanup
+		return {{.VarName}}, emptyClean
+		{{- end }}
+	}
+	{{- end}}
+
+	for _, op := range ops {
+		if cl := op(t, dbo, in); cl != nil {
+			cleaners = append(cleaners, cl)
+		}
+	}
+
+	// Create the main entity
+	{{.VarName}}, err := repo.Add{{.Name}}(t.Context(), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return {{.VarName}}, func() {
+		{{- if .HasPKs}}
+		if _, err := dbo.ModelContext(t.Context(), &db.{{.Name}}{ 
+		{{- range $i, $e := .PKs}}
+		{{- if gt $i 0 }}, {{ end -}}
+		{{.Field}}: {{$.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
+			t.Fatal(err)
+		}
+		{{- end}}
+
+		// Clean up related entities from the last to the first
+		for i := len(cleaners) - 1; i >= 0; i-- {
+			cleaners[i]()
+		}
+	}
+}
+
+`
+
+const funcOpWithRelTemplate = `{{- if .HasRelations }}
+func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+	var cleaners []Cleaner
+
+	// Prepare main relations
+	{{- range .InitRels }}{{.}}{{ end }}
+
+	{{- if .NeedInitDependedRelsFromRoot }}
+	// Prepare nested relations which have the same relations
+	{{- range .InitDependedRelsFromRoot }}{{.}}
+	{{- end }}
+	{{- end }}
+
+
+	{{- if .NeedPreparingDependedRelsFromRoot }}
+	// Inject relation IDs into relations which have the same relations
+	{{- range .PreparingDependedRelsFromRoot }}
+	{{.}}
+	{{- end}}
+	{{- end}}
+
+	// Check embedded entities by FK
+	{{- $entity := . }}
+	{{- range .Relations }}
+
+	// {{.Name}}. Check if all FKs are provided.
+	{{- $relation := .}}
+	{{- range $entity.FillingPKs }}
+	{{.}}
+	{{- end }}
+	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
+	{
+		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
+		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
+		, {{- if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}}) 
+		{{- range .Entity.FillingCreatedOrFoundRels }}
+		{{.}}
+		{{- end }}
+		{{- if $entity.NeedPreparingFillingSameAsRootRels }}
+		{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
+		{{- if eq $relName $relation.Name}}
+		// Fill the same relations as in {{$relation.Name}}
+		{{- range $vals }}
+		{{.}}
+		{{- end }}
+		{{- end }}
+		{{- end }}
+		{{- end }}
+		
+		cleaners = append(cleaners, relatedCleaner)
+	}
+	{{end}}
+
+	return func() {
+		// Clean up related entities from the last to the first
+		for i := len(cleaners) - 1; i >= 0; i-- {
+			cleaners[i]()
+		}
+	}
+}
+
+{{- end}}`
+
+const funcOpWithFakeTemplate = `{{- if .NeedFakeFilling }}
+func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+	{{- range .FakeFilling }}{{.}}{{ end }}
+	
+	return emptyClean
+}
+
+{{- end}}`

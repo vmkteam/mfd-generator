@@ -10,10 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/vmkteam/mfd-generator/generators/testdata/expected/db"
+	"github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 
 	"github.com/go-pg/pg/v10"
-	"github.com/google/uuid"
 )
 
 type Cleaner func()
@@ -48,7 +47,12 @@ func (d testDBLogQuery) BeforeQuery(ctx context.Context, _ *pg.QueryEvent) (cont
 }
 
 func (d testDBLogQuery) AfterQuery(_ context.Context, q *pg.QueryEvent) error {
-	log.Println(q.FormattedQuery())
+	fq, err := q.FormattedQuery()
+	if err != nil {
+		return err
+	}
+	log.Println(string(fq))
+
 	return nil
 }
 
@@ -75,19 +79,46 @@ func Setup(t *testing.T) db.DB {
 }
 
 func setup() (*pg.DB, error) {
-	url := "postgresql://localhost:5432/newsportal?sslmode=disable"
-	if r := os.Getenv("DB_CONN"); r != "" {
-		url = r
-	}
-	cfg, err := pg.ParseURL(url)
+	u := env("DB_CONN", "postgresql://localhost:5432/newsportal?sslmode=disable")
+	cfg, err := pg.ParseURL(u)
 	if err != nil {
 		return nil, err
 	}
 	conn := pg.Connect(cfg)
 
-	if r := os.Getenv("DB_LOG_QUERY"); r == "true" {
+	if r := env("DB_LOG_QUERY", "true"); r == "true" {
 		conn.AddQueryHook(testDBLogQuery{})
 	}
 
 	return conn, nil
+}
+
+func env(v, def string) string {
+	if r := os.Getenv(v); r != "" {
+		return r
+	}
+
+	return def
+}
+
+func val[T any, P *T](p P) T {
+	if p != nil {
+		return *p
+	}
+	var def T
+	return def
+}
+
+func cutS(str string, maxLen int) string {
+	if maxLen == 0 {
+		return str
+	}
+	return string([]rune(str)[:min(len(str), maxLen)])
+}
+
+func cutB(str string, maxLen int) []byte {
+	if maxLen == 0 {
+		return []byte(str)
+	}
+	return []byte(str)[:min(len(str), maxLen)]
 }

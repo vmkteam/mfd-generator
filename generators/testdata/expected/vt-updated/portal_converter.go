@@ -46,10 +46,16 @@ func NewNewsSummary(in *db.News) *NewsSummary {
 		Preview:     in.Preview,
 		Content:     in.Content,
 		CategoryID:  in.CategoryID,
+		CountryID:   in.CountryID,
+		RegionID:    in.RegionID,
+		CityID:      in.CityID,
 		CreatedAt:   in.CreatedAt,
 		PublishedAt: in.PublishedAt,
 
 		Category: NewCategorySummary(in.Category),
+		Country:  NewCountrySummary(in.Country),
+		Region:   NewRegionSummary(in.Region),
+		City:     NewCitySummary(in.City),
 		Status:   NewStatus(in.StatusID),
 	}
 }
@@ -65,12 +71,18 @@ func NewNews(in *db.News) *News {
 		Preview:     in.Preview,
 		Content:     in.Content,
 		CategoryID:  in.CategoryID,
+		CountryID:   in.CountryID,
+		RegionID:    in.RegionID,
+		CityID:      in.CityID,
 		TagIDs:      in.TagIDs,
 		CreatedAt:   in.CreatedAt,
 		PublishedAt: in.PublishedAt,
 		StatusID:    in.StatusID,
 
 		Category: NewCategorySummary(in.Category),
+		Country:  NewCountrySummary(in.Country),
+		Region:   NewRegionSummary(in.Region),
+		City:     NewCitySummary(in.City),
 		Status:   NewStatus(in.StatusID),
 	}
 
