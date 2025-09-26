@@ -21,8 +21,8 @@ github.com/fatih/camelcase v1.0.0 h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8
 github.com/fatih/camelcase v1.0.0/go.mod h1:yN2Sb0lFhZJUdVvtELVWefmrXpuZESvPmqwoZc+/fpc=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
-github.com/go-pg/pg/v10 v10.14.0 h1:giXuPsJaWjzwzFJTxy39eBgGE44jpqH1jwv0uI3kBUU=
-github.com/go-pg/pg/v10 v10.14.0/go.mod h1:6kizZh54FveJxw9XZdNg07x7DDBWNsQrSiJS04MLwO8=
+github.com/go-pg/pg/v10 v10.15.0 h1:6DQwbaxJz/e4wvgzbxBkBLiL/Uuk87MGgHhkURtzx24=
+github.com/go-pg/pg/v10 v10.15.0/go.mod h1:FIn/x04hahOf9ywQ1p68rXqaDVbTRLYlu4MQR0lhoB8=
 github.com/go-pg/zerochecker v0.2.0 h1:pp7f72c3DobMWOb2ErtZsnrPaSvHd2W4o9//8HtF4mU=
 github.com/go-pg/zerochecker v0.2.0/go.mod h1:NJZ4wKL0NmTtz0GKCoJ8kym6Xn/EQzXRl2OnAe7MmDo=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
