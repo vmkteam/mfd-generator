@@ -113,10 +113,6 @@ func WithFakeVfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 		in.MimeType = cutS(gofakeit.Sentence(10), 255)
 	}
 
-	if in.FileExists == false {
-		in.FileExists = gofakeit.Bool()
-	}
-
 	if in.CreatedAt.IsZero() {
 		in.CreatedAt = time.Now()
 	}

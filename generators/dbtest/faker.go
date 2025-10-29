@@ -180,8 +180,8 @@ func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFil
 			return fakeEmpty.sentence(maxFiledLen).cutBytes(maxFiledLen).assign(colName).Tmpl(), true
 		}
 		return fakeWord.cutBytes(maxFiledLen).assign(colName).Tmpl(), true
-	case model.TypeBool:
-		return fakeBool.assign(colName).Tmpl(), true
+	case model.TypeBool: // Do not generate random bool if the field is false
+		return "", false
 	case model.TypeTime:
 		ff.imports["time"] = struct{}{}
 		return fakeRangeDateFuture.assign(colName).Tmpl(), true
@@ -223,7 +223,6 @@ const (
 	fakeLat             FakeIt = `fmt.Sprintf("%f", gofakeit.Latitude())`
 	fakeLon             FakeIt = `fmt.Sprintf("%f", gofakeit.Longitude())`
 	fakeByte            FakeIt = "byte(gofakeit.UintRange(0, 255))"
-	fakeBool            FakeIt = "gofakeit.Bool()"
 	fakeWord            FakeIt = "gofakeit.Word()"
 	fakePhone           FakeIt = "gofakeit.Phone()"
 	fakeEmail           FakeIt = "gofakeit.Email()"
