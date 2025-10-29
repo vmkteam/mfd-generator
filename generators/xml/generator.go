@@ -182,7 +182,7 @@ func parseNamespacesFlag(v string) map[string]string {
 
 // Generate runs generator
 func (g *Generator) Generate() (err error) {
-	var logger *log.Logger
+	logger := log.Default()
 	if g.verbose {
 		logger = log.New(os.Stdout, "", log.LstdFlags)
 	}

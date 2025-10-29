@@ -39,9 +39,21 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		return "", false
 	case "Phone":
 		switch gotype {
-		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+		case model.TypeInt:
 			ff.imports["strconv"] = struct{}{}
 			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeInt32:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseInt(%s, 10, 32)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeInt64:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseInt(%s, 10, 64)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeFloat32:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseFloat(%s, 32)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeFloat64:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseFloat(%s, 64)", fakePhone.cutString(maxFiledLen))), true
 		case model.TypeString:
 			return fakePhone.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
@@ -73,8 +85,16 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		return "", false
 	case "Login":
 		switch gotype {
-		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+		case model.TypeInt:
 			return fakeIntRange.assign(columnName).Tmpl(), true
+		case model.TypeInt32:
+			return fakeIntRange.assign(columnName).toInt32().Tmpl(), true
+		case model.TypeInt64:
+			return fakeIntRange.assign(columnName).toInt64().Tmpl(), true
+		case model.TypeFloat32:
+			return fakeFloat32Range.assign(columnName).Tmpl(), true
+		case model.TypeFloat64:
+			return fakeFloat64Range.assign(columnName).Tmpl(), true
 		case model.TypeString:
 			return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
@@ -133,8 +153,12 @@ func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFil
 	}
 
 	switch goType {
-	case model.TypeInt, model.TypeInt32, model.TypeInt64:
+	case model.TypeInt:
 		return fakeIntRange.assign(colName).Tmpl(), true
+	case model.TypeInt32:
+		return fakeIntRange.assign(colName).toInt32().Tmpl(), true
+	case model.TypeInt64:
+		return fakeIntRange.assign(colName).toInt64().Tmpl(), true
 	case model.TypeFloat32:
 		return fakeFloat32Range.assign(colName).Tmpl(), true
 	case model.TypeFloat64:
@@ -232,6 +256,14 @@ func (fi FakeIt) cutString(maxFiledLen int) FakeIt {
 
 func (fi FakeIt) cutBytes(maxFiledLen int) FakeIt {
 	return FakeIt(fmt.Sprintf("cutB(%s, %d)", fi, maxFiledLen))
+}
+
+func (fi FakeIt) toInt32() FakeIt {
+	return FakeIt(fmt.Sprintf("int32(%s)", fi))
+}
+
+func (fi FakeIt) toInt64() FakeIt {
+	return FakeIt(fmt.Sprintf("int64(%s)", fi))
 }
 
 func (fi FakeIt) formatRFC3339() FakeIt {
