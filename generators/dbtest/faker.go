@@ -139,6 +139,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 	return "", false
 }
 
+//nolint:funlen
 func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
 	switch dbType {
 	case model.TypePGPoint:
