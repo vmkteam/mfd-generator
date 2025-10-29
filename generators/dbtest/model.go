@@ -46,6 +46,7 @@ type PKPair struct {
 	Type     string
 	FK       *mfd.Entity
 	Nullable bool
+	IsCustom bool
 	Zero     template.HTML
 }
 
@@ -55,13 +56,16 @@ func PackPKPair(column model.AttributeData) PKPair {
 		arg = "id"
 	}
 
+	zv, found := mfd.MakeZeroValue2(column.GoType)
+
 	return PKPair{
 		Field:    column.Name,
 		Arg:      arg,
 		Type:     column.GoType,
 		FK:       column.ForeignEntity,
 		Nullable: column.Nullable(),
-		Zero:     template.HTML(mfd.MakeZeroValue(column.GoType)),
+		Zero:     template.HTML(zv),
+		IsCustom: !found,
 	}
 }
 

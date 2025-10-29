@@ -273,3 +273,24 @@ ALTER TABLE "vfsFolders" ADD CONSTRAINT "vfsFolders_statusId_fkey" FOREIGN KEY (
     ON DELETE RESTRICT
     ON UPDATE RESTRICT
     NOT DEFERRABLE;
+
+CREATE TABLE "encryptionKeys" (
+    "encryptionKeyId" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "issuedCount" int4 NOT NULL DEFAULT 0,
+    "createdAt" timestamp with time zone NOT NULL DEFAULT now(),
+    "updatedAt" timestamp with time zone,
+    "expiresAt" timestamp with time zone NOT NULL,
+    "statusId" int4 NOT NULL,
+    PRIMARY KEY("encryptionKeyId")
+);
+
+CREATE INDEX "encryptionKeys_issuedCount_index" ON "encryptionKeys" ("issuedCount");
+
+CREATE INDEX "encryptionKeys_statusId_index" ON "encryptionKeys" ("statusId");
+
+ALTER TABLE "encryptionKeys" ADD CONSTRAINT "Ref_encryptionKeys_to_statuses" FOREIGN KEY ("statusId")
+    REFERENCES "statuses"("statusId")
+    MATCH SIMPLE
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+    NOT DEFERRABLE;

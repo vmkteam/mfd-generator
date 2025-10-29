@@ -159,8 +159,13 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 
 	{{if .HasPKs}}
 	// Check if PKs are provided
-	if {{ range $i, $e := .PKs}}
-    {{- if gt $i 0 }} && {{ end -}} in.{{$e.Field}} != {{$e.Zero}}
+	{{- range $i, $e := .PKs}}
+    {{- if $e.IsCustom }}
+    var def{{$e.Field}} {{$e.Type}}
+    {{- end}}
+    {{- end}}
+    if {{ range $i, $e := .PKs}}
+    {{- if gt $i 0 }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
 	{{- end}} {
 		// Fetch the entity by PK
 		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())

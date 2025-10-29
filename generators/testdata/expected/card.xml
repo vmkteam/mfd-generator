@@ -1,0 +1,18 @@
+<Package xmlns:xsi="" xmlns:xsd="">
+    <Name>card</Name>
+    <Entities>
+        <Entity Name="EncryptionKey" Namespace="card" Table="encryptionKeys">
+            <Attributes>
+                <Attribute Name="ID" DBName="encryptionKeyId" DBType="uuid" GoType="uuid.UUID" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="IssuedCount" DBName="issuedCount" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="UpdatedAt" DBName="updatedAt" DBType="timestamptz" GoType="*time.Time" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="ExpiresAt" DBName="expiresAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+            </Attributes>
+            <Searches>
+                <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+            </Searches>
+        </Entity>
+    </Entities>
+</Package>

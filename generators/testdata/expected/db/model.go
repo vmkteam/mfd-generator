@@ -5,6 +5,7 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -32,6 +33,9 @@ var Columns = struct {
 		ID, CountryID, Title, AltTitle, Alias, OrderNumber, Image, H1, PageTitle, MetaDescription, StatusID string
 
 		Country string
+	}
+	EncryptionKey struct {
+		ID, IssuedCount, CreatedAt, UpdatedAt, ExpiresAt, StatusID string
 	}
 	VfsFile struct {
 		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
@@ -131,6 +135,16 @@ var Columns = struct {
 
 		Country: "Country",
 	},
+	EncryptionKey: struct {
+		ID, IssuedCount, CreatedAt, UpdatedAt, ExpiresAt, StatusID string
+	}{
+		ID:          "encryptionKeyId",
+		IssuedCount: "issuedCount",
+		CreatedAt:   "createdAt",
+		UpdatedAt:   "updatedAt",
+		ExpiresAt:   "expiresAt",
+		StatusID:    "statusId",
+	},
 	VfsFile: struct {
 		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
 
@@ -185,6 +199,9 @@ var Tables = struct {
 	Region struct {
 		Name, Alias string
 	}
+	EncryptionKey struct {
+		Name, Alias string
+	}
 	VfsFile struct {
 		Name, Alias string
 	}
@@ -226,6 +243,12 @@ var Tables = struct {
 		Name, Alias string
 	}{
 		Name:  "regions",
+		Alias: "t",
+	},
+	EncryptionKey: struct {
+		Name, Alias string
+	}{
+		Name:  "encryptionKeys",
 		Alias: "t",
 	},
 	VfsFile: struct {
@@ -327,6 +350,17 @@ type Region struct {
 	StatusID        int     `pg:"statusId,use_zero"`
 
 	Country *Country `pg:"fk:countryId,rel:has-one"`
+}
+
+type EncryptionKey struct {
+	tableName struct{} `pg:"encryptionKeys,alias:t,discard_unknown_columns"`
+
+	ID          uuid.UUID  `pg:"encryptionKeyId,pk,type:uuid"`
+	IssuedCount int        `pg:"issuedCount,use_zero"`
+	CreatedAt   time.Time  `pg:"createdAt,use_zero"`
+	UpdatedAt   *time.Time `pg:"updatedAt"`
+	ExpiresAt   time.Time  `pg:"expiresAt,use_zero"`
+	StatusID    int        `pg:"statusId,use_zero"`
 }
 
 type VfsFile struct {

@@ -5,6 +5,7 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -485,6 +486,58 @@ func (rs *RegionSearch) Q() applier {
 			return query, nil
 		}
 		return rs.Apply(query), nil
+	}
+}
+
+type EncryptionKeySearch struct {
+	search
+
+	ID          *uuid.UUID
+	IssuedCount *int
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	ExpiresAt   *time.Time
+	StatusID    *int
+	IDs         []uuid.UUID
+}
+
+func (eks *EncryptionKeySearch) Apply(query *orm.Query) *orm.Query {
+	if eks == nil {
+		return query
+	}
+	if eks.ID != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.ID, eks.ID)
+	}
+	if eks.IssuedCount != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.IssuedCount, eks.IssuedCount)
+	}
+	if eks.CreatedAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.CreatedAt, eks.CreatedAt)
+	}
+	if eks.UpdatedAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.UpdatedAt, eks.UpdatedAt)
+	}
+	if eks.ExpiresAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.ExpiresAt, eks.ExpiresAt)
+	}
+	if eks.StatusID != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.StatusID, eks.StatusID)
+	}
+	if len(eks.IDs) > 0 {
+		Filter{Columns.EncryptionKey.ID, eks.IDs, SearchTypeArray, false}.Apply(query)
+	}
+
+	eks.apply(query)
+
+	return query
+}
+
+func (eks *EncryptionKeySearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if eks == nil {
+			return query, nil
+		}
+		return eks.Apply(query), nil
 	}
 }
 
