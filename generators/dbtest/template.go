@@ -127,6 +127,7 @@ func cutB(str string, maxLen int) []byte {
 `
 
 const funcFileTemplate = `
+//nolint:dupl
 package {{.Package}}
 
 import (
