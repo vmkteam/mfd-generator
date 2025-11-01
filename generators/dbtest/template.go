@@ -274,11 +274,8 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		{{- if $relation.IsArray}}
 		for i := range in.{{$relation.Name}} {
 			{{- $pk := index $relation.Entity.PKs 0 }}
-			rel, relatedCleaner := {{.Type}}(t, dbo, &db.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
+			_, relatedCleaner := {{.Type}}(t, dbo, &db.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
 			{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
-			{{- range .Entity.FillingCreatedOrFoundRels }}
-			{{.}}
-			{{- end }}
 			{{- if $entity.NeedPreparingFillingSameAsRootRels }}
 			{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
 			{{- if eq $relName $relation.Name}}
