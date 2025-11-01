@@ -47,6 +47,14 @@ var Columns = struct {
 
 		ParentFolder string
 	}
+	LoginCode struct {
+		ID, Code, CreatedAt, SiteUserID, Attempts string
+
+		SiteUser string
+	}
+	SiteUser struct {
+		ID, StatusID, Email, DefaultRole, Password, FirstName, LastName, OwnerExternalID, CreatedAt, LastActivityAt string
+	}
 }{
 	Category: struct {
 		ID, Title, OrderNumber, StatusID string
@@ -178,6 +186,33 @@ var Columns = struct {
 
 		ParentFolder: "ParentFolder",
 	},
+	LoginCode: struct {
+		ID, Code, CreatedAt, SiteUserID, Attempts string
+
+		SiteUser string
+	}{
+		ID:         "state",
+		Code:       "code",
+		CreatedAt:  "createdAt",
+		SiteUserID: "siteUserId",
+		Attempts:   "attempts",
+
+		SiteUser: "SiteUser",
+	},
+	SiteUser: struct {
+		ID, StatusID, Email, DefaultRole, Password, FirstName, LastName, OwnerExternalID, CreatedAt, LastActivityAt string
+	}{
+		ID:              "siteUserId",
+		StatusID:        "statusId",
+		Email:           "email",
+		DefaultRole:     "defaultRole",
+		Password:        "password",
+		FirstName:       "firstName",
+		LastName:        "lastName",
+		OwnerExternalID: "ownerExternalId",
+		CreatedAt:       "createdAt",
+		LastActivityAt:  "lastActivityAt",
+	},
 }
 
 var Tables = struct {
@@ -206,6 +241,12 @@ var Tables = struct {
 		Name, Alias string
 	}
 	VfsFolder struct {
+		Name, Alias string
+	}
+	LoginCode struct {
+		Name, Alias string
+	}
+	SiteUser struct {
 		Name, Alias string
 	}
 }{
@@ -261,6 +302,18 @@ var Tables = struct {
 		Name, Alias string
 	}{
 		Name:  "vfsFolders",
+		Alias: "t",
+	},
+	LoginCode: struct {
+		Name, Alias string
+	}{
+		Name:  "loginCodes",
+		Alias: "t",
+	},
+	SiteUser: struct {
+		Name, Alias string
+	}{
+		Name:  "siteUsers",
 		Alias: "t",
 	},
 }
@@ -392,4 +445,31 @@ type VfsFolder struct {
 	StatusID       int       `pg:"statusId,use_zero"`
 
 	ParentFolder *VfsFolder `pg:"fk:parentFolderId,rel:has-one"`
+}
+
+type LoginCode struct {
+	tableName struct{} `pg:"loginCodes,alias:t,discard_unknown_columns"`
+
+	ID         string    `pg:"state,pk"`
+	Code       string    `pg:"code,use_zero"`
+	CreatedAt  time.Time `pg:"createdAt,use_zero"`
+	SiteUserID int       `pg:"siteUserId,use_zero"`
+	Attempts   int       `pg:"attempts,use_zero"`
+
+	SiteUser *SiteUser `pg:"fk:siteUserId,rel:has-one"`
+}
+
+type SiteUser struct {
+	tableName struct{} `pg:"siteUsers,alias:t,discard_unknown_columns"`
+
+	ID              int        `pg:"siteUserId,pk"`
+	StatusID        int        `pg:"statusId,use_zero"`
+	Email           string     `pg:"email,use_zero"`
+	DefaultRole     string     `pg:"defaultRole,use_zero"`
+	Password        *string    `pg:"password"`
+	FirstName       *string    `pg:"firstName"`
+	LastName        *string    `pg:"lastName"`
+	OwnerExternalID *int64     `pg:"ownerExternalId"`
+	CreatedAt       time.Time  `pg:"createdAt,use_zero"`
+	LastActivityAt  *time.Time `pg:"lastActivityAt"`
 }

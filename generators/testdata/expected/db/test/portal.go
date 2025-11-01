@@ -290,10 +290,6 @@ func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
 
-	if in.CategoryID == 0 {
-		in.CategoryID = gofakeit.IntRange(1, 10)
-	}
-
 	if in.CreatedAt.IsZero() {
 		in.CreatedAt = time.Now()
 	}

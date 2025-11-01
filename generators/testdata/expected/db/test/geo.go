@@ -129,14 +129,6 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 }
 
 func WithFakeCity(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
-	if in.RegionID == 0 {
-		in.RegionID = gofakeit.IntRange(1, 10)
-	}
-
-	if in.CountryID == 0 {
-		in.CountryID = gofakeit.IntRange(1, 10)
-	}
-
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
@@ -314,10 +306,6 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 }
 
 func WithFakeRegion(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
-	if in.CountryID == 0 {
-		in.CountryID = gofakeit.IntRange(1, 10)
-	}
-
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}

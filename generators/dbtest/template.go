@@ -15,6 +15,7 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
 )
 
 type Cleaner func()
@@ -78,6 +79,16 @@ func Setup(t *testing.T) db.DB {
 	}
 
 	return db.New(conn)
+}
+
+func RefreshPK(t *testing.T, dbo orm.DB, tableName, columnName string) error {
+	_, err := dbo.ExecContext(t.Context(),` + "`" + `
+SELECT setval(
+pg_get_serial_sequence('?2', ?0),
+(SELECT MAX(?1) FROM ?2) + 1, false);
+` + "`" + `, columnName, pg.Ident(columnName), pg.Ident(tableName))
+
+	return err
 }
 
 func setup() (*pg.DB, error) {
@@ -244,6 +255,10 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	{{- end }}
 	{{- end }}
 
+	// Check if all FKs are provided. Fill them into the main struct rels
+	{{- $entity := . }}{{- range $entity.FillingPKs }}
+	{{.}}
+	{{- end }}
 
 	{{- if .NeedPreparingDependedRelsFromRoot }}
 	// Inject relation IDs into relations which have the same relations
@@ -252,20 +267,34 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	{{- end}}
 	{{- end}}
 
-	// Check embedded entities by FK
-	{{- $entity := . }}
 	{{- range .Relations }}
-
-	// {{.Name}}. Check if all FKs are provided.
 	{{- $relation := .}}
-	{{- range $entity.FillingPKs }}
-	{{.}}
-	{{- end }}
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
+		{{- if $relation.IsArray}}
+		for i := range in.{{$relation.Name}} {
+			{{- $pk := index $relation.Entity.PKs 0 }}
+			rel, relatedCleaner := {{.Type}}(t, dbo, &db.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
+			{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
+			{{- range .Entity.FillingCreatedOrFoundRels }}
+			{{.}}
+			{{- end }}
+			{{- if $entity.NeedPreparingFillingSameAsRootRels }}
+			{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
+			{{- if eq $relName $relation.Name}}
+			// Fill the same relations as in {{$relation.Name}}
+			{{- range $vals }}
+			{{.}}
+			{{- end }}
+			{{- end }}
+			{{- end }}
+			{{- end }}
+
+			cleaners = append(cleaners, relatedCleaner)
+		}
+		{{- else}}
 		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
-		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
-		, {{- if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}}) 
+		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
 		{{- range .Entity.FillingCreatedOrFoundRels }}
 		{{.}}
 		{{- end }}
@@ -279,8 +308,9 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		{{- end }}
 		{{- end }}
 		{{- end }}
-		
+
 		cleaners = append(cleaners, relatedCleaner)
+		{{- end}}
 	}
 	{{end}}
 

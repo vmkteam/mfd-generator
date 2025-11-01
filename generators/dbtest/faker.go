@@ -302,7 +302,7 @@ type wrapperTemplateData struct {
 
 func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray, nilCheck, isNotEqual bool) template.HTML {
 	if isArray {
-		zeroVal = "nil"
+		zeroVal = "0"
 	}
 
 	comparationSign := "=="
@@ -317,6 +317,14 @@ func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, 
 			condition = fmt.Sprintf("{{.Name}} %[1]s nil && *{{.Name}} %[1]s {{.Zero}}", comparationSign)
 		}
 	}
+
+	if isArray {
+		condition = fmt.Sprintf("len({{.Name}}) %s {{.Zero}}", comparationSign)
+		if nilCheck {
+			condition = fmt.Sprintf("{{.Name}} %s nil", comparationSign)
+		}
+	}
+
 	//nolint:gocritic
 	switch goType {
 	case model.TypeTime:

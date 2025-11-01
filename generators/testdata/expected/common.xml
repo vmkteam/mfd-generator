@@ -1,0 +1,40 @@
+<Package xmlns:xsi="" xmlns:xsd="">
+    <Name>common</Name>
+    <Entities>
+        <Entity Name="LoginCode" Namespace="common" Table="loginCodes">
+            <Attributes>
+                <Attribute Name="ID" DBName="state" DBType="text" GoType="string" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0"></Attribute>
+                <Attribute Name="Code" DBName="code" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="8"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="SiteUserID" DBName="siteUserId" DBType="int4" GoType="int" PK="false" FK="SiteUser" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="Attempts" DBName="attempts" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0" HasDefault="true"></Attribute>
+            </Attributes>
+            <Searches>
+                <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+                <Search Name="IDILike" AttrName="ID" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="CodeILike" AttrName="Code" SearchType="SEARCHTYPE_ILIKE"></Search>
+            </Searches>
+        </Entity>
+        <Entity Name="SiteUser" Namespace="common" Table="siteUsers">
+            <Attributes>
+                <Attribute Name="ID" DBName="siteUserId" DBType="int4" GoType="int" PK="true" Nullable="Yes" Addable="true" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="StatusID" DBName="statusId" DBType="int4" GoType="int" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="Email" DBName="email" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="DefaultRole" DBName="defaultRole" DBType="varchar" GoType="string" PK="false" Nullable="No" Addable="true" Updatable="true" Min="0" Max="32"></Attribute>
+                <Attribute Name="Password" DBName="password" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="FirstName" DBName="firstName" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="LastName" DBName="lastName" DBType="varchar" GoType="*string" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="255"></Attribute>
+                <Attribute Name="OwnerExternalID" DBName="ownerExternalId" DBType="int8" GoType="*int64" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+                <Attribute Name="CreatedAt" DBName="createdAt" DBType="timestamptz" GoType="time.Time" PK="false" Nullable="No" Addable="false" Updatable="false" Min="0" Max="0" HasDefault="true"></Attribute>
+                <Attribute Name="LastActivityAt" DBName="lastActivityAt" DBType="timestamptz" GoType="*time.Time" PK="false" Nullable="Yes" Addable="true" Updatable="true" Min="0" Max="0"></Attribute>
+            </Attributes>
+            <Searches>
+                <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+                <Search Name="EmailILike" AttrName="Email" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="DefaultRoleILike" AttrName="DefaultRole" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="FirstNameILike" AttrName="FirstName" SearchType="SEARCHTYPE_ILIKE"></Search>
+                <Search Name="LastNameILike" AttrName="LastName" SearchType="SEARCHTYPE_ILIKE"></Search>
+            </Searches>
+        </Entity>
+    </Entities>
+</Package>

@@ -33,7 +33,7 @@ func TestGenerator_Generate(t *testing.T) {
 				GoType:   "uuid.UUID",
 				GoImport: "github.com/google/uuid",
 			}}
-			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities;vfs:vfsFiles,vfsFolders;card:encryptionKeys")
+			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities;vfs:vfsFiles,vfsFolders;card:encryptionKeys;common:siteUsers,loginCodes")
 
 			t.Log("Generate xml")
 			So(generator.Generate(), ShouldBeNil)
@@ -44,6 +44,7 @@ func TestGenerator_Generate(t *testing.T) {
 				"portal.xml":     {},
 				"geo.xml":        {},
 				"card.xml":       {},
+				"common.xml":     {},
 				"newsportal.mfd": {},
 			}
 

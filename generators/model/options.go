@@ -29,6 +29,8 @@ type Options struct {
 
 	// custom types
 	CustomTypes mfd.CustomTypes
+
+	ArrayAsRelation bool
 }
 
 // Def fills default values of an options

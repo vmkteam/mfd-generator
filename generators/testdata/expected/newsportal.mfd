@@ -5,6 +5,7 @@
         <string>geo</string>
         <string>card</string>
         <string>vfs</string>
+        <string>common</string>
     </PackageNames>
     <Languages>
         <string>en</string>

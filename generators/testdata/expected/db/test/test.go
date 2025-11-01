@@ -13,6 +13,7 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 
 	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 type Cleaner func()
@@ -76,6 +77,16 @@ func Setup(t *testing.T) db.DB {
 	}
 
 	return db.New(conn)
+}
+
+func RefreshPK(t *testing.T, dbo orm.DB, tableName, columnName string) error {
+	_, err := dbo.ExecContext(t.Context(), `
+SELECT setval(
+pg_get_serial_sequence('?2', ?0),
+(SELECT MAX(?1) FROM ?2) + 1, false);
+`, columnName, pg.Ident(columnName), pg.Ident(tableName))
+
+	return err
 }
 
 func setup() (*pg.DB, error) {
