@@ -161,3 +161,39 @@ func (vf VfsFolder) Validate() (errors map[string]string, valid bool) {
 
 	return errors, len(errors) == 0
 }
+
+func (lc LoginCode) Validate() (errors map[string]string, valid bool) {
+	errors = map[string]string{}
+
+	if utf8.RuneCountInString(lc.Code) > 8 {
+		errors[Columns.LoginCode.Code] = ErrMaxLength
+	}
+
+	return errors, len(errors) == 0
+}
+
+func (su SiteUser) Validate() (errors map[string]string, valid bool) {
+	errors = map[string]string{}
+
+	if utf8.RuneCountInString(su.Email) > 255 {
+		errors[Columns.SiteUser.Email] = ErrMaxLength
+	}
+
+	if utf8.RuneCountInString(su.DefaultRole) > 32 {
+		errors[Columns.SiteUser.DefaultRole] = ErrMaxLength
+	}
+
+	if su.Password != nil && utf8.RuneCountInString(*su.Password) > 255 {
+		errors[Columns.SiteUser.Password] = ErrMaxLength
+	}
+
+	if su.FirstName != nil && utf8.RuneCountInString(*su.FirstName) > 255 {
+		errors[Columns.SiteUser.FirstName] = ErrMaxLength
+	}
+
+	if su.LastName != nil && utf8.RuneCountInString(*su.LastName) > 255 {
+		errors[Columns.SiteUser.LastName] = ErrMaxLength
+	}
+
+	return errors, len(errors) == 0
+}

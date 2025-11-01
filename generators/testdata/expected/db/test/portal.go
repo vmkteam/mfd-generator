@@ -1,3 +1,4 @@
+//nolint:dupl
 package test
 
 import (
@@ -287,10 +288,6 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 func WithFakeNews(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
-	}
-
-	if in.CategoryID == 0 {
-		in.CategoryID = gofakeit.IntRange(1, 10)
 	}
 
 	if in.CreatedAt.IsZero() {

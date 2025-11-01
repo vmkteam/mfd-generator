@@ -168,6 +168,34 @@ export default [
       breadcrumbs: ["dashboard", "regionList", "regionAdd"]
     }
   },
+  /* EncryptionKey */
+  {
+    name: "encryptionKeyList",
+    path: "/encryption-keys",
+    component: () =>
+      import("@/pages/Entity/EncryptionKey/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "encryptionKeyList"]
+    }
+  },
+  {
+    name: "encryptionKeyEdit",
+    path: "/encryption-keys/:id/edit",
+    component: () =>
+      import("@/pages/Entity/EncryptionKey/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyEdit"]
+    }
+  },
+  {
+    name: "encryptionKeyAdd",
+    path: "/encryption-keys/add",
+    component: () =>
+      import("@/pages/Entity/EncryptionKey/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyAdd"]
+    }
+  },
   /* VfsFile */
   {
     name: "vfsFileList",

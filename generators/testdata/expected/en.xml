@@ -239,6 +239,42 @@
                 </Entity>
             </Entities>
         </Namespace>
+        <Namespace Name="card">
+            <Entities>
+                <Entity Name="EncryptionKey" Key="encryptionKey">
+                    <Crumbs>
+                        <encryptionKeyAdd>Add</encryptionKeyAdd>
+                        <encryptionKeyEdit>Edit</encryptionKeyEdit>
+                        <encryptionKeyList>Encryption Keys</encryptionKeyList>
+                    </Crumbs>
+                    <Form>
+                        <issuedCountLabel>Issued Count</issuedCountLabel>
+                        <updatedAtLabel>Updated At</updatedAtLabel>
+                        <expiresAtLabel>Expires At</expiresAtLabel>
+                        <statusIdLabel>Status</statusIdLabel>
+                    </Form>
+                    <List>
+                        <Title>Encryption Keys</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <issuedCount>Issued Count</issuedCount>
+                            <createdAt>Created at</createdAt>
+                            <updatedAt>Updated At</updatedAt>
+                            <expiresAt>Expires At</expiresAt>
+                            <statusId>Status</statusId>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <issuedCount>Issued Count</issuedCount>
+                            <updatedAt>Updated At</updatedAt>
+                            <expiresAt>Expires At</expiresAt>
+                            <status>Status</status>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
         <Namespace Name="vfs">
             <Entities>
                 <Entity Name="VfsFile" Key="vfsFile">

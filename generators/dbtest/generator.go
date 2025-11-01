@@ -124,6 +124,7 @@ func (g *Generator) Generate() (err error) {
 
 	g.options.GoPGVer = project.GoPGVer
 	g.options.ProjectName = strings.TrimSuffix(project.Name, filepath.Ext(project.Name)) // Trim extension
+	g.options.CustomTypes = project.CustomTypes
 
 	// validate names
 	if err := project.ValidateNames(); err != nil {

@@ -5,6 +5,7 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -488,6 +489,58 @@ func (rs *RegionSearch) Q() applier {
 	}
 }
 
+type EncryptionKeySearch struct {
+	search
+
+	ID          *uuid.UUID
+	IssuedCount *int
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	ExpiresAt   *time.Time
+	StatusID    *int
+	IDs         []uuid.UUID
+}
+
+func (eks *EncryptionKeySearch) Apply(query *orm.Query) *orm.Query {
+	if eks == nil {
+		return query
+	}
+	if eks.ID != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.ID, eks.ID)
+	}
+	if eks.IssuedCount != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.IssuedCount, eks.IssuedCount)
+	}
+	if eks.CreatedAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.CreatedAt, eks.CreatedAt)
+	}
+	if eks.UpdatedAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.UpdatedAt, eks.UpdatedAt)
+	}
+	if eks.ExpiresAt != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.ExpiresAt, eks.ExpiresAt)
+	}
+	if eks.StatusID != nil {
+		eks.where(query, Tables.EncryptionKey.Alias, Columns.EncryptionKey.StatusID, eks.StatusID)
+	}
+	if len(eks.IDs) > 0 {
+		Filter{Columns.EncryptionKey.ID, eks.IDs, SearchTypeArray, false}.Apply(query)
+	}
+
+	eks.apply(query)
+
+	return query
+}
+
+func (eks *EncryptionKeySearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if eks == nil {
+			return query, nil
+		}
+		return eks.Apply(query), nil
+	}
+}
+
 type VfsFileSearch struct {
 	search
 
@@ -629,5 +682,145 @@ func (vfs *VfsFolderSearch) Q() applier {
 			return query, nil
 		}
 		return vfs.Apply(query), nil
+	}
+}
+
+type LoginCodeSearch struct {
+	search
+
+	ID         *string
+	Code       *string
+	CreatedAt  *time.Time
+	SiteUserID *int
+	Attempts   *int
+	IDs        []string
+	IDILike    *string
+	CodeILike  *string
+}
+
+func (lcs *LoginCodeSearch) Apply(query *orm.Query) *orm.Query {
+	if lcs == nil {
+		return query
+	}
+	if lcs.ID != nil {
+		lcs.where(query, Tables.LoginCode.Alias, Columns.LoginCode.ID, lcs.ID)
+	}
+	if lcs.Code != nil {
+		lcs.where(query, Tables.LoginCode.Alias, Columns.LoginCode.Code, lcs.Code)
+	}
+	if lcs.CreatedAt != nil {
+		lcs.where(query, Tables.LoginCode.Alias, Columns.LoginCode.CreatedAt, lcs.CreatedAt)
+	}
+	if lcs.SiteUserID != nil {
+		lcs.where(query, Tables.LoginCode.Alias, Columns.LoginCode.SiteUserID, lcs.SiteUserID)
+	}
+	if lcs.Attempts != nil {
+		lcs.where(query, Tables.LoginCode.Alias, Columns.LoginCode.Attempts, lcs.Attempts)
+	}
+	if len(lcs.IDs) > 0 {
+		Filter{Columns.LoginCode.ID, lcs.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if lcs.IDILike != nil {
+		Filter{Columns.LoginCode.ID, *lcs.IDILike, SearchTypeILike, false}.Apply(query)
+	}
+	if lcs.CodeILike != nil {
+		Filter{Columns.LoginCode.Code, *lcs.CodeILike, SearchTypeILike, false}.Apply(query)
+	}
+
+	lcs.apply(query)
+
+	return query
+}
+
+func (lcs *LoginCodeSearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if lcs == nil {
+			return query, nil
+		}
+		return lcs.Apply(query), nil
+	}
+}
+
+type SiteUserSearch struct {
+	search
+
+	ID               *int
+	StatusID         *int
+	Email            *string
+	DefaultRole      *string
+	Password         *string
+	FirstName        *string
+	LastName         *string
+	OwnerExternalID  *int64
+	CreatedAt        *time.Time
+	LastActivityAt   *time.Time
+	IDs              []int
+	EmailILike       *string
+	DefaultRoleILike *string
+	FirstNameILike   *string
+	LastNameILike    *string
+}
+
+func (sus *SiteUserSearch) Apply(query *orm.Query) *orm.Query {
+	if sus == nil {
+		return query
+	}
+	if sus.ID != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.ID, sus.ID)
+	}
+	if sus.StatusID != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.StatusID, sus.StatusID)
+	}
+	if sus.Email != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.Email, sus.Email)
+	}
+	if sus.DefaultRole != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.DefaultRole, sus.DefaultRole)
+	}
+	if sus.Password != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.Password, sus.Password)
+	}
+	if sus.FirstName != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.FirstName, sus.FirstName)
+	}
+	if sus.LastName != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.LastName, sus.LastName)
+	}
+	if sus.OwnerExternalID != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.OwnerExternalID, sus.OwnerExternalID)
+	}
+	if sus.CreatedAt != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.CreatedAt, sus.CreatedAt)
+	}
+	if sus.LastActivityAt != nil {
+		sus.where(query, Tables.SiteUser.Alias, Columns.SiteUser.LastActivityAt, sus.LastActivityAt)
+	}
+	if len(sus.IDs) > 0 {
+		Filter{Columns.SiteUser.ID, sus.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if sus.EmailILike != nil {
+		Filter{Columns.SiteUser.Email, *sus.EmailILike, SearchTypeILike, false}.Apply(query)
+	}
+	if sus.DefaultRoleILike != nil {
+		Filter{Columns.SiteUser.DefaultRole, *sus.DefaultRoleILike, SearchTypeILike, false}.Apply(query)
+	}
+	if sus.FirstNameILike != nil {
+		Filter{Columns.SiteUser.FirstName, *sus.FirstNameILike, SearchTypeILike, false}.Apply(query)
+	}
+	if sus.LastNameILike != nil {
+		Filter{Columns.SiteUser.LastName, *sus.LastNameILike, SearchTypeILike, false}.Apply(query)
+	}
+
+	sus.apply(query)
+
+	return query
+}
+
+func (sus *SiteUserSearch) Q() applier {
+	return func(query *orm.Query) (*orm.Query, error) {
+		if sus == nil {
+			return query, nil
+		}
+		return sus.Apply(query), nil
 	}
 }

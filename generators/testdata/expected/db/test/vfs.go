@@ -1,3 +1,4 @@
+//nolint:dupl
 package test
 
 import (
@@ -96,10 +97,6 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 }
 
 func WithFakeVfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
-	if in.FolderID == 0 {
-		in.FolderID = gofakeit.IntRange(1, 10)
-	}
-
 	if in.Title == "" {
 		in.Title = cutS(gofakeit.Sentence(10), 255)
 	}
@@ -110,10 +107,6 @@ func WithFakeVfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 
 	if in.MimeType == "" {
 		in.MimeType = cutS(gofakeit.Sentence(10), 255)
-	}
-
-	if in.FileExists == false {
-		in.FileExists = gofakeit.Bool()
 	}
 
 	if in.CreatedAt.IsZero() {

@@ -69,7 +69,7 @@ func MakeZeroValue(typ string) string {
 	case model.TypeString:
 		return `""`
 	case model.TypeBool:
-		return "false"
+		return falseS
 	case model.TypeTime:
 		return "time.Time{}"
 	case model.TypeIP:
@@ -79,6 +79,26 @@ func MakeZeroValue(typ string) string {
 	}
 
 	return "nil"
+}
+
+// MakeZeroValue2 Is same as MakeZeroValue, but returns false if the type has not been found
+func MakeZeroValue2(typ string) (string, bool) {
+	switch typ {
+	case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64, model.TypeDuration:
+		return "0", true
+	case model.TypeString:
+		return `""`, true
+	case model.TypeBool:
+		return falseS, true
+	case model.TypeTime:
+		return "time.Time{}", true
+	case model.TypeIP:
+		return "new.IP{}", true
+	case model.TypeIPNet:
+		return "new.IPNet{}", true
+	}
+
+	return "nil", false
 }
 
 func MakeJSType(typ string, isArray bool) string {

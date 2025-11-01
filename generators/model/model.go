@@ -96,7 +96,7 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 		}
 
 		// adding relation from column
-		if attribute.ForeignKey != "" && !attribute.IsArray {
+		if attribute.ForeignKey != "" && (!attribute.IsArray || options.ArrayAsRelation) {
 			relations = append(relations, PackRelation(*attribute, options))
 		}
 	}

@@ -15,6 +15,7 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
+	"github.com/go-pg/pg{{.GoPGVer}}/orm"
 )
 
 type Cleaner func()
@@ -80,6 +81,16 @@ func Setup(t *testing.T) db.DB {
 	return db.New(conn)
 }
 
+func RefreshPK(t *testing.T, dbo orm.DB, tableName, columnName string) error {
+	_, err := dbo.ExecContext(t.Context(),` + "`" + `
+SELECT setval(
+pg_get_serial_sequence('?2', ?0),
+(SELECT MAX(?1) FROM ?2) + 1, false);
+` + "`" + `, columnName, pg.Ident(columnName), pg.Ident(tableName))
+
+	return err
+}
+
 func setup() (*pg.DB, error) {
 	u := env("DB_CONN", "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable")
 	cfg, err := pg.ParseURL(u)
@@ -127,6 +138,7 @@ func cutB(str string, maxLen int) []byte {
 `
 
 const funcFileTemplate = `
+//nolint:dupl
 package {{.Package}}
 
 import (
@@ -158,8 +170,13 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 
 	{{if .HasPKs}}
 	// Check if PKs are provided
-	if {{ range $i, $e := .PKs}}
-    {{- if gt $i 0 }} && {{ end -}} in.{{$e.Field}} != {{$e.Zero}}
+	{{- range $i, $e := .PKs}}
+    {{- if $e.IsCustom }}
+    var def{{$e.Field}} {{$e.Type}}
+    {{- end}}
+    {{- end}}
+    if {{ range $i, $e := .PKs}}
+    {{- if gt $i 0 }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
 	{{- end}} {
 		// Fetch the entity by PK
 		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
@@ -238,6 +255,10 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	{{- end }}
 	{{- end }}
 
+	// Check if all FKs are provided. Fill them into the main struct rels
+	{{- $entity := . }}{{- range $entity.FillingPKs }}
+	{{.}}
+	{{- end }}
 
 	{{- if .NeedPreparingDependedRelsFromRoot }}
 	// Inject relation IDs into relations which have the same relations
@@ -246,20 +267,31 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	{{- end}}
 	{{- end}}
 
-	// Check embedded entities by FK
-	{{- $entity := . }}
 	{{- range .Relations }}
-
-	// {{.Name}}. Check if all FKs are provided.
 	{{- $relation := .}}
-	{{- range $entity.FillingPKs }}
-	{{.}}
-	{{- end }}
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
+		{{- if $relation.IsArray}}
+		for i := range in.{{$relation.Name}} {
+			{{- $pk := index $relation.Entity.PKs 0 }}
+			_, relatedCleaner := {{.Type}}(t, dbo, &db.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
+			{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
+			{{- if $entity.NeedPreparingFillingSameAsRootRels }}
+			{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
+			{{- if eq $relName $relation.Name}}
+			// Fill the same relations as in {{$relation.Name}}
+			{{- range $vals }}
+			{{.}}
+			{{- end }}
+			{{- end }}
+			{{- end }}
+			{{- end }}
+
+			cleaners = append(cleaners, relatedCleaner)
+		}
+		{{- else}}
 		rel, relatedCleaner := {{.Type}}(t, dbo, in.{{$relation.Name}}
-		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end -}}
-		, {{- if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}}) 
+		{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
 		{{- range .Entity.FillingCreatedOrFoundRels }}
 		{{.}}
 		{{- end }}
@@ -273,8 +305,9 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		{{- end }}
 		{{- end }}
 		{{- end }}
-		
+
 		cleaners = append(cleaners, relatedCleaner)
+		{{- end}}
 	}
 	{{end}}
 

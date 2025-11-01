@@ -46,6 +46,7 @@ type PKPair struct {
 	Type     string
 	FK       *mfd.Entity
 	Nullable bool
+	IsCustom bool
 	Zero     template.HTML
 }
 
@@ -55,13 +56,16 @@ func PackPKPair(column model.AttributeData) PKPair {
 		arg = "id"
 	}
 
+	zv, found := mfd.MakeZeroValue2(column.GoType)
+
 	return PKPair{
 		Field:    column.Name,
 		Arg:      arg,
 		Type:     column.GoType,
 		FK:       column.ForeignEntity,
 		Nullable: column.Nullable(),
-		Zero:     template.HTML(mfd.MakeZeroValue(column.GoType)),
+		Zero:     template.HTML(zv),
+		IsCustom: !found,
 	}
 }
 
@@ -92,7 +96,7 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 	entities := make([]EntityData, len(namespace.Entities))
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 	for i, entity := range namespace.Entities {
-		packed := PackEntity(*entity, nil, name, options)
+		packed := PackEntity(*entity, name, options)
 		entities[i] = packed
 
 		for _, imp := range packed.Imports {
@@ -168,8 +172,7 @@ type EntityData struct {
 	FillingCreatedOrFoundRels []template.HTML
 
 	// Helpers for filling NeedPreparingDependedRelsFromRoot and PreparingDependedRelsFromRoot
-	relationByName            map[string]RelationData
-	relationNamesHasRelations map[string]struct{}
+	relationByName map[string]RelationData
 
 	HasNestedSameRelations bool
 	NestedSameRelations    []string
@@ -198,9 +201,9 @@ type EntityData struct {
 // PackEntity packs mfd entity to template data
 //
 //nolint:funlen,gocognit
-func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace string, options Options) EntityData {
+func PackEntity(entity mfd.Entity, namespace string, options Options, previous ...string) EntityData {
 	// base template entity - repo depends on int
-	te := model.PackEntity(entity, model.Options{})
+	te := model.PackEntity(entity, model.Options{ArrayAsRelation: true})
 
 	var (
 		notAddable      []string
@@ -259,7 +262,7 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 		}
 
 		// Filling OpFunc which generates fake data
-		if !column.Nullable() && !column.PrimaryKey && !hasSameRel {
+		if !column.Nullable() && !column.PrimaryKey && column.ForeignKey == "" && !hasSameRel {
 			// Check if the column has a known field name
 			byFieldName, ok := fakeFiller.ByNameAndType(column.Name, column.GoType, column.Max)
 			if ok {
@@ -278,29 +281,29 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 
 	// store all relation names for join field
 	relNames := make([]RelationData, 0, len(te.Relations))
-	relNamesMap := make(map[string]RelationData, len(te.Relations))
-	sameRelNamesMap := make(map[string]RelationData, len(te.Relations))
-	relNamesWhichHasRels := make(map[string]struct{}, len(te.Relations))
+	relByNamesMap := make(map[string]RelationData, len(te.Relations))
+	relByNamesTypesMap := make(map[string]RelationData, len(te.Relations))
 	for i := range te.Relations {
 		if te.Relations[i].Entity.Name == te.Name {
 			continue
 		}
 
-		relationData := PackRelationData(te.Relations[i], &te, namespace, options)
-		relNames = append(relNames, relationData)
-		relNamesMap[relationData.Name] = relationData
-
-		// Check what if we have the same relations as a parent has
-		if parentEntity != nil && parentEntity.HasRelations {
-			for _, rel := range parentEntity.Relations {
-				if rel.Name == relationData.Name {
-					sameRelNamesMap[relationData.Name] = relationData
-				}
-			}
+		// Skip if the same entity appeared before
+		if slices.Contains(previous, te.Relations[i].Entity.Name) {
+			continue
 		}
 
-		if relationData.Entity.HasRelations {
-			relNamesWhichHasRels[relationData.Name] = struct{}{}
+		// Skip if a relation can be nil
+		if te.Relations[i].Nullable {
+			continue
+		}
+
+		relationData := PackRelationData(te.Relations[i], namespace, options, append(previous, te.Name)...)
+		relNames = append(relNames, relationData)
+		relByNamesMap[relationData.Name] = relationData
+		relByNamesTypesMap[relationData.Name] = relationData
+		if relationData.IsArray {
+			relByNamesTypesMap[relationData.Type] = relationData
 		}
 	}
 
@@ -342,10 +345,9 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 		SortField: sortField,
 		SortDir:   sortDir,
 
-		Relations:                 relNames,
-		HasRelations:              len(relNames) > 0,
-		relationByName:            relNamesMap,
-		relationNamesHasRelations: relNamesWhichHasRels,
+		Relations:      relNames,
+		HasRelations:   len(relNames) > 0,
+		relationByName: relByNamesTypesMap,
 
 		NeedFakeFilling: len(fakeFillingData) > 0,
 		FakeFilling:     fakeFillingData,
@@ -362,10 +364,10 @@ func PackEntity(entity mfd.Entity, parentEntity *model.EntityData, namespace str
 	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "", "", make(map[string]struct{}), res.PreparingFillingSameAsRootRels)
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 	res.NeedInitDependedRelsFromRoot = len(res.InitDependedRelsFromRoot) > 0
-	res.InitRels = initRels(relNamesMap)
+	res.InitRels = initRels(relByNamesMap)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
-	res.fillingRels(te, relNamesMap)
-	res.fillingRelPKs(relNamesMap)
+	res.fillingRels(te, relByNamesMap)
+	res.fillingRelPKs(relByNamesMap)
 
 	return res
 }
@@ -383,23 +385,15 @@ func walkThroughDependedEntities(curRels []RelationData, root EntityData, embedd
 
 	var hasAlreadyPrepared bool
 	for _, curEntity := range curRels {
+		if curEntity.IsArray {
+			continue
+		}
 		init, filling := walkThroughDependedEntities(curEntity.Entity.Relations, root, embeddedRels+"."+curEntity.Name, embeddedRels+"."+curEntity.Type, alreadyPrepared, assignNestedRelsByRel)
 		initNestedRels = append(initNestedRels, init...) // Fill from the end to the start
 		fillNestedRels = append(fillNestedRels, filling...)
 
 		if rootRel, ok := root.relationByName[curEntity.Name]; ok && embeddedRels != "" {
-			for _, pk := range curEntity.Entity.PKs {
-				needAmpersand := curEntity.NilCheck && !rootRel.NilCheck
-				needVal := !curEntity.NilCheck && rootRel.NilCheck
-				switch {
-				case needAmpersand:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = &in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field)))
-				case needVal:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = val(in.%[2]s%[3]s)", embeddedRels, curEntity.Name, pk.Field)))
-				default:
-					fillNestedRels = append(fillNestedRels, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = in.%[2]s%[3]s", embeddedRels, curEntity.Name, pk.Field)))
-				}
-			}
+			fillNestedRels = append(fillNestedRels, prepareFillingConsideringIsArr(rootRel, curEntity, embeddedRels)...)
 		}
 
 		if embeddedRels != "" {
@@ -432,11 +426,17 @@ func walkThroughDependedEntities(curRels []RelationData, root EntityData, embedd
 
 func walkThroughRels(curRels []RelationData, curEmbeddedPosition, embeddedRels, targetEntityName string) (res []string) {
 	for _, curEntity := range curRels {
-		res = append(res, walkThroughRels(curEntity.Entity.Relations, curEmbeddedPosition, embeddedRels+"."+curEntity.Name, targetEntityName)...)
+		// Skip arrays
+		if curEntity.IsArray {
+			continue
+		}
 
+		// Skip same assignment
 		if curEmbeddedPosition == embeddedRels {
 			continue
 		}
+
+		res = append(res, walkThroughRels(curEntity.Entity.Relations, curEmbeddedPosition, embeddedRels+"."+curEntity.Name, targetEntityName)...)
 
 		if targetEntityName == curEntity.Name {
 			res = append(res, embeddedRels)
@@ -446,10 +446,61 @@ func walkThroughRels(curRels []RelationData, curEmbeddedPosition, embeddedRels, 
 	return
 }
 
+func prepareFillingConsideringIsArr(rootRel, curRel RelationData, embeddedRels string) (res []template.HTML) {
+	if curRel.IsArray && rootRel.IsArray {
+		return []template.HTML{template.HTML(fmt.Sprintf("in%[1]s.%[2]s = &in.%[2]s", embeddedRels, curRel.Name))}
+	}
+
+	if curRel.IsArray && !rootRel.IsArray {
+		if curRel.NilCheck {
+			return nil
+		}
+
+		for _, pk := range rootRel.Entity.PKs {
+			res = append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s = append(in%[1]s.%[2]s, in.%[3]s%[4]s)", embeddedRels, curRel.Name, rootRel.Name, pk.Field)))
+		}
+
+		return
+	}
+
+	if !curRel.IsArray && rootRel.IsArray {
+		pk := curRel.Entity.PKs[0]
+		needAmpersand := rootRel.NilCheck
+		var assign string
+		switch {
+		case needAmpersand:
+			assign = fmt.Sprintf("in%[1]s.%[2]s%[3]s = &in.%[4]s[0]", embeddedRels, curRel.Type, pk.Field, rootRel.Name)
+		default:
+			assign = fmt.Sprintf("in%[1]s.%[2]s%[3]s = in.%[4]s[0]", embeddedRels, curRel.Type, pk.Field, rootRel.Name)
+		}
+
+		condition := mustWrapFilling("in."+rootRel.Name, "nil", "0", template.HTML(assign), true, false, true)
+		return []template.HTML{condition}
+	}
+
+	for _, pk := range curRel.Entity.PKs {
+		needAmpersand := curRel.NilCheck && !rootRel.NilCheck
+		needVal := !curRel.NilCheck && rootRel.NilCheck
+		switch {
+		case needAmpersand:
+			res = append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = &in.%[2]s%[3]s", embeddedRels, curRel.Name, pk.Field)))
+		case needVal:
+			res = append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = val(in.%[2]s%[3]s)", embeddedRels, curRel.Name, pk.Field)))
+		default:
+			res = append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s%[3]s = in.%[2]s%[3]s", embeddedRels, curRel.Name, pk.Field)))
+		}
+	}
+
+	return append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s = in.%[2]s", embeddedRels, curRel.Name)))
+}
+
 func initRels(relByName map[string]RelationData) []template.HTML {
 	res := make([]template.HTML, 0, len(relByName))
 	for relName, rel := range relByName {
 		zero := fmt.Sprintf("&db.%s{}", rel.Type)
+		if rel.IsArray {
+			zero = fmt.Sprintf("%s{}", rel.GoType)
+		}
 		assign := fmt.Sprintf("in.%s = %s", relName, zero)
 		str := mustWrapFilling("in."+relName, "nil", "nil", template.HTML(assign), false, false, false)
 		res = append(res, str)
@@ -462,6 +513,10 @@ func initRels(relByName map[string]RelationData) []template.HTML {
 
 func (e *EntityData) fillingRelPKs(relByName map[string]RelationData) {
 	for _, rel := range e.Relations {
+		if rel.IsArray {
+			continue
+		}
+
 		for _, pk := range relByName[rel.Name].Entity.PKs {
 			var res string
 			needVal := rel.NilCheck
@@ -489,6 +544,11 @@ func (e *EntityData) fillingRels(rawEntity model.EntityData, relNamesMap map[str
 	for _, r := range rawEntity.Relations {
 		rel, ok := relNamesMap[r.Name]
 		if !ok {
+			continue
+		}
+
+		if rel.IsArray {
+			byRelName[r.Name] = append(byRelName[r.Name], template.HTML(fmt.Sprintf("in.%s = append(in.%s, rel.%s)", r.Name, r.Name, rel.Entity.PKs[0].Field)))
 			continue
 		}
 
@@ -528,26 +588,30 @@ type AttributeData struct {
 type RelationData struct {
 	Name     string
 	Type     string
+	GoType   string
 	VarName  string
 	NilCheck bool
+	IsArray  bool
 	Entity   EntityData
 
 	Tag     template.HTML
 	Comment template.HTML
 }
 
-func PackRelationData(in model.RelationData, parentEntity *model.EntityData, namespace string, options Options) RelationData {
+func PackRelationData(in model.RelationData, namespace string, options Options, previous ...string) RelationData {
 	res := RelationData{
 		Name:     in.Name,
 		Type:     in.Type,
+		GoType:   in.GoType,
 		VarName:  mfd.VarName(in.Name),
 		Tag:      in.Tag,
 		Comment:  in.Comment,
 		NilCheck: in.Nullable,
+		IsArray:  in.IsArray,
 	}
 
 	if in.ForeignEntity != nil {
-		res.Entity = PackEntity(*in.Entity, parentEntity, namespace, Options{GoPGVer: options.GoPGVer})
+		res.Entity = PackEntity(*in.Entity, namespace, Options{GoPGVer: options.GoPGVer}, previous...)
 	}
 
 	return res

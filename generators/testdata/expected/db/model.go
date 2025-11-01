@@ -5,6 +5,7 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -33,6 +34,9 @@ var Columns = struct {
 
 		Country string
 	}
+	EncryptionKey struct {
+		ID, IssuedCount, CreatedAt, UpdatedAt, ExpiresAt, StatusID string
+	}
 	VfsFile struct {
 		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
 
@@ -42,6 +46,14 @@ var Columns = struct {
 		ID, ParentFolderID, Title, IsFavorite, CreatedAt, StatusID string
 
 		ParentFolder string
+	}
+	LoginCode struct {
+		ID, Code, CreatedAt, SiteUserID, Attempts string
+
+		SiteUser string
+	}
+	SiteUser struct {
+		ID, StatusID, Email, DefaultRole, Password, FirstName, LastName, OwnerExternalID, CreatedAt, LastActivityAt string
 	}
 }{
 	Category: struct {
@@ -131,6 +143,16 @@ var Columns = struct {
 
 		Country: "Country",
 	},
+	EncryptionKey: struct {
+		ID, IssuedCount, CreatedAt, UpdatedAt, ExpiresAt, StatusID string
+	}{
+		ID:          "encryptionKeyId",
+		IssuedCount: "issuedCount",
+		CreatedAt:   "createdAt",
+		UpdatedAt:   "updatedAt",
+		ExpiresAt:   "expiresAt",
+		StatusID:    "statusId",
+	},
 	VfsFile: struct {
 		ID, FolderID, Title, Path, Params, IsFavorite, MimeType, FileSize, FileExists, CreatedAt, StatusID string
 
@@ -164,6 +186,33 @@ var Columns = struct {
 
 		ParentFolder: "ParentFolder",
 	},
+	LoginCode: struct {
+		ID, Code, CreatedAt, SiteUserID, Attempts string
+
+		SiteUser string
+	}{
+		ID:         "state",
+		Code:       "code",
+		CreatedAt:  "createdAt",
+		SiteUserID: "siteUserId",
+		Attempts:   "attempts",
+
+		SiteUser: "SiteUser",
+	},
+	SiteUser: struct {
+		ID, StatusID, Email, DefaultRole, Password, FirstName, LastName, OwnerExternalID, CreatedAt, LastActivityAt string
+	}{
+		ID:              "siteUserId",
+		StatusID:        "statusId",
+		Email:           "email",
+		DefaultRole:     "defaultRole",
+		Password:        "password",
+		FirstName:       "firstName",
+		LastName:        "lastName",
+		OwnerExternalID: "ownerExternalId",
+		CreatedAt:       "createdAt",
+		LastActivityAt:  "lastActivityAt",
+	},
 }
 
 var Tables = struct {
@@ -185,10 +234,19 @@ var Tables = struct {
 	Region struct {
 		Name, Alias string
 	}
+	EncryptionKey struct {
+		Name, Alias string
+	}
 	VfsFile struct {
 		Name, Alias string
 	}
 	VfsFolder struct {
+		Name, Alias string
+	}
+	LoginCode struct {
+		Name, Alias string
+	}
+	SiteUser struct {
 		Name, Alias string
 	}
 }{
@@ -228,6 +286,12 @@ var Tables = struct {
 		Name:  "regions",
 		Alias: "t",
 	},
+	EncryptionKey: struct {
+		Name, Alias string
+	}{
+		Name:  "encryptionKeys",
+		Alias: "t",
+	},
 	VfsFile: struct {
 		Name, Alias string
 	}{
@@ -238,6 +302,18 @@ var Tables = struct {
 		Name, Alias string
 	}{
 		Name:  "vfsFolders",
+		Alias: "t",
+	},
+	LoginCode: struct {
+		Name, Alias string
+	}{
+		Name:  "loginCodes",
+		Alias: "t",
+	},
+	SiteUser: struct {
+		Name, Alias string
+	}{
+		Name:  "siteUsers",
 		Alias: "t",
 	},
 }
@@ -329,6 +405,17 @@ type Region struct {
 	Country *Country `pg:"fk:countryId,rel:has-one"`
 }
 
+type EncryptionKey struct {
+	tableName struct{} `pg:"encryptionKeys,alias:t,discard_unknown_columns"`
+
+	ID          uuid.UUID  `pg:"encryptionKeyId,pk,type:uuid"`
+	IssuedCount int        `pg:"issuedCount,use_zero"`
+	CreatedAt   time.Time  `pg:"createdAt,use_zero"`
+	UpdatedAt   *time.Time `pg:"updatedAt"`
+	ExpiresAt   time.Time  `pg:"expiresAt,use_zero"`
+	StatusID    int        `pg:"statusId,use_zero"`
+}
+
 type VfsFile struct {
 	tableName struct{} `pg:"vfsFiles,alias:t,discard_unknown_columns"`
 
@@ -358,4 +445,31 @@ type VfsFolder struct {
 	StatusID       int       `pg:"statusId,use_zero"`
 
 	ParentFolder *VfsFolder `pg:"fk:parentFolderId,rel:has-one"`
+}
+
+type LoginCode struct {
+	tableName struct{} `pg:"loginCodes,alias:t,discard_unknown_columns"`
+
+	ID         string    `pg:"state,pk"`
+	Code       string    `pg:"code,use_zero"`
+	CreatedAt  time.Time `pg:"createdAt,use_zero"`
+	SiteUserID int       `pg:"siteUserId,use_zero"`
+	Attempts   int       `pg:"attempts,use_zero"`
+
+	SiteUser *SiteUser `pg:"fk:siteUserId,rel:has-one"`
+}
+
+type SiteUser struct {
+	tableName struct{} `pg:"siteUsers,alias:t,discard_unknown_columns"`
+
+	ID              int        `pg:"siteUserId,pk"`
+	StatusID        int        `pg:"statusId,use_zero"`
+	Email           string     `pg:"email,use_zero"`
+	DefaultRole     string     `pg:"defaultRole,use_zero"`
+	Password        *string    `pg:"password"`
+	FirstName       *string    `pg:"firstName"`
+	LastName        *string    `pg:"lastName"`
+	OwnerExternalID *int64     `pg:"ownerExternalId"`
+	CreatedAt       time.Time  `pg:"createdAt,use_zero"`
+	LastActivityAt  *time.Time `pg:"lastActivityAt"`
 }

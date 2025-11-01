@@ -39,9 +39,21 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		return "", false
 	case "Phone":
 		switch gotype {
-		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+		case model.TypeInt:
 			ff.imports["strconv"] = struct{}{}
 			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.Atoi(%s)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeInt32:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseInt(%s, 10, 32)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeInt64:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseInt(%s, 10, 64)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeFloat32:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseFloat(%s, 32)", fakePhone.cutString(maxFiledLen))), true
+		case model.TypeFloat64:
+			ff.imports["strconv"] = struct{}{}
+			return template.HTML(fmt.Sprintf("in.Phone, _ = strconv.ParseFloat(%s, 64)", fakePhone.cutString(maxFiledLen))), true
 		case model.TypeString:
 			return fakePhone.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
@@ -73,8 +85,16 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		return "", false
 	case "Login":
 		switch gotype {
-		case model.TypeInt, model.TypeInt32, model.TypeInt64, model.TypeFloat32, model.TypeFloat64:
+		case model.TypeInt:
 			return fakeIntRange.assign(columnName).Tmpl(), true
+		case model.TypeInt32:
+			return fakeIntRange.assign(columnName).toInt32().Tmpl(), true
+		case model.TypeInt64:
+			return fakeIntRange.assign(columnName).toInt64().Tmpl(), true
+		case model.TypeFloat32:
+			return fakeFloat32Range.assign(columnName).Tmpl(), true
+		case model.TypeFloat64:
+			return fakeFloat64Range.assign(columnName).Tmpl(), true
 		case model.TypeString:
 			return fakeWord.cutString(maxFiledLen).assign(columnName).Tmpl(), true
 		}
@@ -119,6 +139,7 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 	return "", false
 }
 
+//nolint:funlen
 func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFiledLen int) (res template.HTML, found bool) {
 	switch dbType {
 	case model.TypePGPoint:
@@ -133,8 +154,12 @@ func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFil
 	}
 
 	switch goType {
-	case model.TypeInt, model.TypeInt32, model.TypeInt64:
+	case model.TypeInt:
 		return fakeIntRange.assign(colName).Tmpl(), true
+	case model.TypeInt32:
+		return fakeIntRange.assign(colName).toInt32().Tmpl(), true
+	case model.TypeInt64:
+		return fakeIntRange.assign(colName).toInt64().Tmpl(), true
 	case model.TypeFloat32:
 		return fakeFloat32Range.assign(colName).Tmpl(), true
 	case model.TypeFloat64:
@@ -155,8 +180,8 @@ func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFil
 			return fakeEmpty.sentence(maxFiledLen).cutBytes(maxFiledLen).assign(colName).Tmpl(), true
 		}
 		return fakeWord.cutBytes(maxFiledLen).assign(colName).Tmpl(), true
-	case model.TypeBool:
-		return fakeBool.assign(colName).Tmpl(), true
+	case model.TypeBool: // Do not generate random bool if the field is false
+		return "", false
 	case model.TypeTime:
 		ff.imports["time"] = struct{}{}
 		return fakeRangeDateFuture.assign(colName).Tmpl(), true
@@ -198,7 +223,6 @@ const (
 	fakeLat             FakeIt = `fmt.Sprintf("%f", gofakeit.Latitude())`
 	fakeLon             FakeIt = `fmt.Sprintf("%f", gofakeit.Longitude())`
 	fakeByte            FakeIt = "byte(gofakeit.UintRange(0, 255))"
-	fakeBool            FakeIt = "gofakeit.Bool()"
 	fakeWord            FakeIt = "gofakeit.Word()"
 	fakePhone           FakeIt = "gofakeit.Phone()"
 	fakeEmail           FakeIt = "gofakeit.Email()"
@@ -232,6 +256,14 @@ func (fi FakeIt) cutString(maxFiledLen int) FakeIt {
 
 func (fi FakeIt) cutBytes(maxFiledLen int) FakeIt {
 	return FakeIt(fmt.Sprintf("cutB(%s, %d)", fi, maxFiledLen))
+}
+
+func (fi FakeIt) toInt32() FakeIt {
+	return FakeIt(fmt.Sprintf("int32(%s)", fi))
+}
+
+func (fi FakeIt) toInt64() FakeIt {
+	return FakeIt(fmt.Sprintf("int64(%s)", fi))
 }
 
 func (fi FakeIt) formatRFC3339() FakeIt {
@@ -270,7 +302,7 @@ type wrapperTemplateData struct {
 
 func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, isArray, nilCheck, isNotEqual bool) template.HTML {
 	if isArray {
-		zeroVal = "nil"
+		zeroVal = "0"
 	}
 
 	comparationSign := "=="
@@ -285,6 +317,14 @@ func mustWrapFilling(columnName, goType string, zeroVal, filling template.HTML, 
 			condition = fmt.Sprintf("{{.Name}} %[1]s nil && *{{.Name}} %[1]s {{.Zero}}", comparationSign)
 		}
 	}
+
+	if isArray {
+		condition = fmt.Sprintf("len({{.Name}}) %s {{.Zero}}", comparationSign)
+		if nilCheck {
+			condition = fmt.Sprintf("{{.Name}} %s nil", comparationSign)
+		}
+	}
+
 	//nolint:gocritic
 	switch goType {
 	case model.TypeTime:

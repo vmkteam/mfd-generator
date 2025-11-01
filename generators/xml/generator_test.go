@@ -10,6 +10,7 @@ import (
 	"github.com/vmkteam/mfd-generator/generators/testdata"
 	"github.com/vmkteam/mfd-generator/mfd"
 
+	"github.com/dizzyfool/genna/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -27,7 +28,12 @@ func TestGenerator_Generate(t *testing.T) {
 			generator.options.Def()
 			generator.options.URL = dbdsn
 			generator.options.Output = testdata.PathActualMFD
-			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities;vfs:vfsFiles,vfsFolders")
+			generator.options.CustomTypes = model.CustomTypeMapping{"uuid": {
+				PGType:   "uuid",
+				GoType:   "uuid.UUID",
+				GoImport: "github.com/google/uuid",
+			}}
+			generator.options.Packages = parseNamespacesFlag("portal:news,categories,tags;geo:countries,regions,cities;vfs:vfsFiles,vfsFolders;card:encryptionKeys;common:siteUsers,loginCodes")
 
 			t.Log("Generate xml")
 			So(generator.Generate(), ShouldBeNil)
@@ -37,6 +43,8 @@ func TestGenerator_Generate(t *testing.T) {
 			expectedFilenames := map[string]struct{}{
 				"portal.xml":     {},
 				"geo.xml":        {},
+				"card.xml":       {},
+				"common.xml":     {},
 				"newsportal.mfd": {},
 			}
 
