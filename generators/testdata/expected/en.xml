@@ -356,5 +356,82 @@
                 </Entity>
             </Entities>
         </Namespace>
+        <Namespace Name="common">
+            <Entities>
+                <Entity Name="LoginCode" Key="loginCode">
+                    <Crumbs>
+                        <loginCodeAdd>Add</loginCodeAdd>
+                        <loginCodeEdit>Edit</loginCodeEdit>
+                        <loginCodeList>Login Codes</loginCodeList>
+                    </Crumbs>
+                    <Form>
+                        <codeLabel>Code</codeLabel>
+                        <siteUserIdLabel>Site User</siteUserIdLabel>
+                        <attemptsLabel>Attempts</attemptsLabel>
+                    </Form>
+                    <List>
+                        <Title>Login Codes</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <id>Id</id>
+                            <code>Code</code>
+                            <createdAt>Created at</createdAt>
+                            <siteUserId>Site User</siteUserId>
+                            <attempts>Attempts</attempts>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <code>Code</code>
+                            <siteUser>Site User</siteUser>
+                            <attempts>Attempts</attempts>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+                <Entity Name="SiteUser" Key="siteUser">
+                    <Crumbs>
+                        <siteUserAdd>Add</siteUserAdd>
+                        <siteUserEdit>Edit</siteUserEdit>
+                        <siteUserList>Site Users</siteUserList>
+                    </Crumbs>
+                    <Form>
+                        <statusIdLabel>Status</statusIdLabel>
+                        <emailLabel>Email</emailLabel>
+                        <defaultRoleLabel>Default Role</defaultRoleLabel>
+                        <passwordLabel>Password</passwordLabel>
+                        <firstNameLabel>First Name</firstNameLabel>
+                        <lastNameLabel>Last Name</lastNameLabel>
+                        <ownerExternalIdLabel>Owner External</ownerExternalIdLabel>
+                        <lastActivityAtLabel>Last Activity At</lastActivityAtLabel>
+                    </Form>
+                    <List>
+                        <Title>Site Users</Title>
+                        <Filter>
+                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <statusId>Status</statusId>
+                            <email>Email</email>
+                            <defaultRole>Default Role</defaultRole>
+                            <password>Password</password>
+                            <firstName>First Name</firstName>
+                            <lastName>Last Name</lastName>
+                            <ownerExternalId>Owner External</ownerExternalId>
+                            <createdAt>Created at</createdAt>
+                            <lastActivityAt>Last Activity At</lastActivityAt>
+                            <ids>Ids</ids>
+                        </Filter>
+                        <Headers>
+                            <status>Status</status>
+                            <email>Email</email>
+                            <defaultRole>Default Role</defaultRole>
+                            <firstName>First Name</firstName>
+                            <lastName>Last Name</lastName>
+                            <ownerExternalId>Owner External</ownerExternalId>
+                            <lastActivityAt>Last Activity At</lastActivityAt>
+                            <actions>Actions</actions>
+                        </Headers>
+                    </List>
+                </Entity>
+            </Entities>
+        </Namespace>
     </Namespaces>
 </Translation>

@@ -75,12 +75,7 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 		in.Region = &db.Region{}
 	}
 
-	// Inject relation IDs into relations which have the same relations
-	in.Region.CountryID = in.CountryID
-
-	// Check embedded entities by FK
-
-	// Region. Check if all FKs are provided.
+	// Check if all FKs are provided. Fill them into the main struct rels
 
 	if in.RegionID != 0 {
 		in.Region.ID = in.RegionID
@@ -90,6 +85,9 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 		in.Country.ID = in.CountryID
 	}
 
+	// Inject relation IDs into relations which have the same relations
+	in.Region.CountryID = in.CountryID
+	in.Region.Country = in.Country
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
 	{
 		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
@@ -99,16 +97,6 @@ func WithCityRelations(t *testing.T, dbo orm.DB, in *db.City) Cleaner {
 		in.Country = rel.Country
 
 		cleaners = append(cleaners, relatedCleaner)
-	}
-
-	// Country. Check if all FKs are provided.
-
-	if in.RegionID != 0 {
-		in.Region.ID = in.RegionID
-	}
-
-	if in.CountryID != 0 {
-		in.Country.ID = in.CountryID
 	}
 
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
@@ -280,9 +268,7 @@ func WithRegionRelations(t *testing.T, dbo orm.DB, in *db.Region) Cleaner {
 		in.Country = &db.Country{}
 	}
 
-	// Check embedded entities by FK
-
-	// Country. Check if all FKs are provided.
+	// Check if all FKs are provided. Fill them into the main struct rels
 
 	if in.CountryID != 0 {
 		in.Country.ID = in.CountryID

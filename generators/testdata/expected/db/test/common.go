@@ -70,9 +70,7 @@ func WithLoginCodeRelations(t *testing.T, dbo orm.DB, in *db.LoginCode) Cleaner 
 		in.SiteUser = &db.SiteUser{}
 	}
 
-	// Check embedded entities by FK
-
-	// SiteUser. Check if all FKs are provided.
+	// Check if all FKs are provided. Fill them into the main struct rels
 
 	if in.SiteUserID != 0 {
 		in.SiteUser.ID = in.SiteUserID

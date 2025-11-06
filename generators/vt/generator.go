@@ -210,7 +210,10 @@ func (g *Generator) Generate() error {
 
 		// generate service file
 		output = path.Join(g.options.Output, fmt.Sprintf("%s.go", baseName))
-		serviceData := PackServiceNamespace(ns, g.options)
+		serviceData, err := PackServiceNamespace(ns, g.options)
+		if err != nil {
+			return fmt.Errorf("pack service namespace, err=%w", err)
+		}
 		if _, err := mfd.FormatAndSave(serviceData, output, serviceTemplate, true); err != nil {
 			return fmt.Errorf("generate service %s, err=%w", namespace, err)
 		}
@@ -273,7 +276,10 @@ func (g *Generator) PartialUpdate(project *mfd.Project, modelTemplate, converter
 			return fmt.Errorf("namespace %s not found in project", namespace)
 		}
 
-		serviceData := PackServiceNamespace(ns, g.options)
+		serviceData, err := PackServiceNamespace(ns, g.options)
+		if err != nil {
+			return fmt.Errorf("pack service namespace, err=%w", err)
+		}
 
 		ee, err := g.TargetServiceEntityData(serviceData)
 		if err != nil {

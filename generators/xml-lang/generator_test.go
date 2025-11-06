@@ -108,5 +108,15 @@ func prepareFiles(actualPath string) error {
 		return err
 	}
 
+	err = os.Link(filepath.Join(testdata.PathExpected, "common.xml"), filepath.Join(actualPath, "common.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	err = os.Link(filepath.Join(testdata.PathExpected, "common.vt.xml"), filepath.Join(actualPath, "common.vt.xml"))
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
 	return nil
 }

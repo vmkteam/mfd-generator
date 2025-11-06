@@ -1,0 +1,53 @@
+<VTNamespace xmlns:xsi="" xmlns:xsd="">
+    <Name>common</Name>
+    <VTEntities>
+        <Entity Name="LoginCode" Mode="Full">
+            <TerminalPath>login-codes</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="IDILike" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Code" AttrName="Code" SearchName="CodeILike" Summary="true" Search="true" Max="8" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="SiteUserID" AttrName="SiteUserID" SearchName="SiteUserID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Attempts" AttrName="Attempts" SearchName="Attempts" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="ID" VTAttrName="ID" List="false" Form="HTML_NONE" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="Code" VTAttrName="Code" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="SiteUserID" VTAttrName="SiteUserID" List="false" FKOpts="id" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="SiteUser" VTAttrName="SiteUserID" List="true" FKOpts="id" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="Attempts" VTAttrName="Attempts" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="SiteUser" Mode="Full">
+            <TerminalPath>site-users</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="Email" AttrName="Email" SearchName="EmailILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate="email"></Attribute>
+                <Attribute Name="DefaultRole" AttrName="DefaultRole" SearchName="DefaultRoleILike" Summary="true" Search="true" Max="32" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Password" AttrName="Password" SearchName="Password" Summary="false" Search="false" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="FirstName" AttrName="FirstName" SearchName="FirstNameILike" Summary="true" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="LastName" AttrName="LastName" SearchName="LastNameILike" Summary="true" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="OwnerExternalID" AttrName="OwnerExternalID" SearchName="OwnerExternalID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="LastActivityAt" AttrName="LastActivityAt" SearchName="LastActivityAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Email" VTAttrName="Email" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="DefaultRole" VTAttrName="DefaultRole" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Password" VTAttrName="Password" List="false" Form="HTML_PASSWORD" Search="HTML_PASSWORD"></Attribute>
+                <Attribute Name="FirstName" VTAttrName="FirstName" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="LastName" VTAttrName="LastName" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="OwnerExternalID" VTAttrName="OwnerExternalID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="LastActivityAt" VTAttrName="LastActivityAt" List="true" Form="HTML_DATETIME" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+            </Template>
+        </Entity>
+    </VTEntities>
+</VTNamespace>

@@ -252,4 +252,60 @@ export default [
       breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
     }
   },
+  /* LoginCode */
+  {
+    name: "loginCodeList",
+    path: "/login-codes",
+    component: () =>
+      import("@/pages/Entity/LoginCode/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "loginCodeList"]
+    }
+  },
+  {
+    name: "loginCodeEdit",
+    path: "/login-codes/:id/edit",
+    component: () =>
+      import("@/pages/Entity/LoginCode/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "loginCodeList", "loginCodeEdit"]
+    }
+  },
+  {
+    name: "loginCodeAdd",
+    path: "/login-codes/add",
+    component: () =>
+      import("@/pages/Entity/LoginCode/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "loginCodeList", "loginCodeAdd"]
+    }
+  },
+  /* SiteUser */
+  {
+    name: "siteUserList",
+    path: "/site-users",
+    component: () =>
+      import("@/pages/Entity/SiteUser/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "siteUserList"]
+    }
+  },
+  {
+    name: "siteUserEdit",
+    path: "/site-users/:id/edit",
+    component: () =>
+      import("@/pages/Entity/SiteUser/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "siteUserList", "siteUserEdit"]
+    }
+  },
+  {
+    name: "siteUserAdd",
+    path: "/site-users/add",
+    component: () =>
+      import("@/pages/Entity/SiteUser/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "siteUserList", "siteUserAdd"]
+    }
+  },
 ];

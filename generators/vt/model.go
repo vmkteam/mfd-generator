@@ -151,7 +151,11 @@ func PackEntity(vtEntity mfd.VTEntity, options Options) (EntityData, error) {
 		}
 		// search columns
 		if vtAttr.Search {
-			tmpl.SearchColumns = append(tmpl.SearchColumns, PackSearchAttribute(vtEntity, *vtAttr))
+			sa, err := PackSearchAttribute(vtEntity, *vtAttr)
+			if err != nil {
+				return EntityData{}, fmt.Errorf("pack search attribute, err=%w", err)
+			}
+			tmpl.SearchColumns = append(tmpl.SearchColumns, sa)
 		}
 	}
 
@@ -296,15 +300,22 @@ func PackSummaryAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) Attribu
 }
 
 // PackSearchAttribute packs mfd vt attribute to search template data
-func PackSearchAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) AttributeData {
+func PackSearchAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) (AttributeData, error) {
 	// corresponding entity
 	entity := vtEntity.Entity
 
 	// search column as base
-	var baseColumn base.SearchAttributeData
-	var baseAttr mfd.Attribute
+	var (
+		baseColumn base.SearchAttributeData
+		baseAttr   mfd.Attribute
+		err        error
+	)
+
 	if search := entity.SearchByName(vtAttr.SearchName); search != nil {
-		baseColumn = base.CustomSearchAttribute(*entity, *search, base.Options{})
+		baseColumn, err = base.CustomSearchAttribute(*entity, *search, base.Options{})
+		if err != nil {
+			return AttributeData{}, fmt.Errorf("custom search attribute, err=%w", err)
+		}
 		baseAttr = *search.Attribute
 	} else if attr := entity.AttributeByName(vtAttr.SearchName); attr != nil {
 		baseColumn = base.PackSearchAttribute(*entity, *attr, base.Options{})
@@ -332,7 +343,7 @@ func PackSearchAttribute(vtEntity mfd.VTEntity, vtAttr mfd.VTAttribute) Attribut
 		column.GoType = "*" + model.TypeString
 	}
 
-	return column
+	return column, nil
 }
 
 // RelationData stores relation info

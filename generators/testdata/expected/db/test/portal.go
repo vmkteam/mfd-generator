@@ -139,106 +139,10 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		in.Category = &db.Category{}
 	}
 
-	if in.City == nil {
-		in.City = &db.City{}
-	}
-
-	if in.Country == nil {
-		in.Country = &db.Country{}
-	}
-
-	if in.Region == nil {
-		in.Region = &db.Region{}
-	}
-
-	// Prepare nested relations which have the same relations
-	if in.City.Region == nil {
-		in.City.Region = &db.Region{}
-	}
-
-	// Inject relation IDs into relations which have the same relations
-	in.City.Region.CountryID = val(in.CountryID)
-	in.City.RegionID = val(in.RegionID)
-	in.City.CountryID = val(in.CountryID)
-	in.Region.CountryID = val(in.CountryID)
-
-	// Check embedded entities by FK
-
-	// City. Check if all FKs are provided.
-
-	if in.CityID != nil && *in.CityID != 0 {
-		in.City.ID = val(in.CityID)
-	}
-
-	if in.RegionID != nil && *in.RegionID != 0 {
-		in.Region.ID = val(in.RegionID)
-	}
+	// Check if all FKs are provided. Fill them into the main struct rels
 
 	if in.CategoryID != 0 {
 		in.Category.ID = in.CategoryID
-	}
-
-	if in.CountryID != nil && *in.CountryID != 0 {
-		in.Country.ID = val(in.CountryID)
-	}
-
-	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
-	{
-		rel, relatedCleaner := City(t, dbo, in.City, WithCityRelations, WithFakeCity)
-		in.City = rel
-		in.CityID = &rel.ID
-		// Fill the same relations as in City
-		in.City.Country = rel.Region.Country
-		in.Region.Country = rel.Region.Country
-		in.Country = rel.Region.Country
-		in.Region = rel.Region
-
-		cleaners = append(cleaners, relatedCleaner)
-	}
-
-	// Region. Check if all FKs are provided.
-
-	if in.CityID != nil && *in.CityID != 0 {
-		in.City.ID = val(in.CityID)
-	}
-
-	if in.RegionID != nil && *in.RegionID != 0 {
-		in.Region.ID = val(in.RegionID)
-	}
-
-	if in.CategoryID != 0 {
-		in.Category.ID = in.CategoryID
-	}
-
-	if in.CountryID != nil && *in.CountryID != 0 {
-		in.Country.ID = val(in.CountryID)
-	}
-
-	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
-	{
-		rel, relatedCleaner := Region(t, dbo, in.Region, WithRegionRelations, WithFakeRegion)
-		in.Region = rel
-		in.RegionID = &rel.ID
-
-		cleaners = append(cleaners, relatedCleaner)
-	}
-
-	// Category. Check if all FKs are provided.
-
-	if in.CityID != nil && *in.CityID != 0 {
-		in.City.ID = val(in.CityID)
-	}
-
-	if in.RegionID != nil && *in.RegionID != 0 {
-		in.Region.ID = val(in.RegionID)
-	}
-
-	if in.CategoryID != 0 {
-		in.Category.ID = in.CategoryID
-	}
-
-	if in.CountryID != nil && *in.CountryID != 0 {
-		in.Country.ID = val(in.CountryID)
 	}
 
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
@@ -246,33 +150,6 @@ func WithNewsRelations(t *testing.T, dbo orm.DB, in *db.News) Cleaner {
 		rel, relatedCleaner := Category(t, dbo, in.Category, WithFakeCategory)
 		in.Category = rel
 		in.CategoryID = rel.ID
-
-		cleaners = append(cleaners, relatedCleaner)
-	}
-
-	// Country. Check if all FKs are provided.
-
-	if in.CityID != nil && *in.CityID != 0 {
-		in.City.ID = val(in.CityID)
-	}
-
-	if in.RegionID != nil && *in.RegionID != 0 {
-		in.Region.ID = val(in.RegionID)
-	}
-
-	if in.CategoryID != 0 {
-		in.Category.ID = in.CategoryID
-	}
-
-	if in.CountryID != nil && *in.CountryID != 0 {
-		in.Country.ID = val(in.CountryID)
-	}
-
-	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
-	{
-		rel, relatedCleaner := Country(t, dbo, in.Country, WithFakeCountry)
-		in.Country = rel
-		in.CountryID = &rel.ID
 
 		cleaners = append(cleaners, relatedCleaner)
 	}

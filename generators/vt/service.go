@@ -1,6 +1,7 @@
 package vt
 
 import (
+	"fmt"
 	"html/template"
 
 	"github.com/vmkteam/mfd-generator/generators/model"
@@ -26,7 +27,7 @@ type ServiceNamespaceData struct {
 }
 
 // PackServiceNamespace packs mfd vt namespace to template data
-func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNamespaceData {
+func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) (ServiceNamespaceData, error) {
 	imports := mfd.NewSet()
 	entities := make([]ServiceEntityData, 0, len(namespace.Entities))
 	for _, entity := range namespace.Entities {
@@ -34,7 +35,10 @@ func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNa
 			continue
 		}
 
-		packed := PackServiceEntity(*entity, options)
+		packed, err := PackServiceEntity(*entity, options)
+		if err != nil {
+			return ServiceNamespaceData{}, fmt.Errorf("packing service entity: %w", err)
+		}
 		entities = append(entities, packed)
 		for _, imp := range packed.Imports {
 			imports.Append(imp)
@@ -55,7 +59,7 @@ func PackServiceNamespace(namespace *mfd.VTNamespace, options Options) ServiceNa
 		Imports:    imports.Elements(),
 
 		Entities: entities,
-	}
+	}, nil
 }
 
 func (tp ServiceNamespaceData) Raw(s string) template.HTML {
@@ -90,7 +94,7 @@ type ServiceEntityData struct {
 }
 
 // PackServiceEntity packs mfd vt entity to template data
-func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData {
+func PackServiceEntity(vtEntity mfd.VTEntity, options Options) (ServiceEntityData, error) {
 	baseEntity := base.PackEntity(*vtEntity.Entity, base.Options{
 		Package:     options.Package,
 		GoPGVer:     options.GoPGVer,
@@ -137,7 +141,10 @@ func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData
 				continue
 			}
 
-			column := model.CustomSearchAttribute(*vtEntity.Entity, *search, model.Options{})
+			column, err := model.CustomSearchAttribute(*vtEntity.Entity, *search, model.Options{})
+			if err != nil {
+				return ServiceEntityData{}, fmt.Errorf("custom search attribute: %w", err)
+			}
 			pkSearches = append(pkSearches, base.PKPair{
 				Field: attr.Name,
 				Arg:   column.Name,
@@ -168,7 +175,7 @@ func PackServiceEntity(vtEntity mfd.VTEntity, options Options) ServiceEntityData
 		UniqueRelations: uniqueRelations,
 
 		ReadOnly: vtEntity.Mode == mfd.ModeReadOnly || vtEntity.Mode == mfd.ModeReadOnlyWithTemplates,
-	}
+	}, nil
 }
 
 // ServiceRelationData stores relation info

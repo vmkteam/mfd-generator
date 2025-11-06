@@ -48,13 +48,16 @@ type SearchNamespaceData struct {
 }
 
 // PackSearchNamespace packs mfd namespace to template data
-func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) SearchNamespaceData {
+func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) (SearchNamespaceData, error) {
 	imports := mfd.NewSet()
 
 	var models []SearchEntityData
 	for _, namespace := range namespaces {
 		for _, entity := range namespace.Entities {
-			mdl := PackSearchEntity(*entity, options)
+			mdl, err := PackSearchEntity(*entity, options)
+			if err != nil {
+				return SearchNamespaceData{}, fmt.Errorf("error packing search entity: %w", err)
+			}
 			if len(mdl.Columns) == 0 {
 				continue
 			}
@@ -82,7 +85,7 @@ func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) SearchNam
 		GoPGVer: goPGVer,
 
 		Entities: models,
-	}
+	}, nil
 }
 
 // SearchEntityData stores entity info for template
@@ -95,7 +98,7 @@ type SearchEntityData struct {
 }
 
 // PackSearchEntity packs mfd entity to template data
-func PackSearchEntity(entity mfd.Entity, options Options) SearchEntityData {
+func PackSearchEntity(entity mfd.Entity, options Options) (SearchEntityData, error) {
 	imports := util.NewSet()
 
 	columns := make([]SearchAttributeData, 0, len(entity.Attributes))
@@ -114,7 +117,10 @@ func PackSearchEntity(entity mfd.Entity, options Options) SearchEntityData {
 
 	// adding search from search section
 	for _, search := range entity.Searches {
-		column := CustomSearchAttribute(entity, *search, options)
+		column, err := CustomSearchAttribute(entity, *search, options)
+		if err != nil {
+			return SearchEntityData{}, fmt.Errorf("error generating search attribute: %w", err)
+		}
 		columns = append(columns, column)
 	}
 
@@ -124,7 +130,7 @@ func PackSearchEntity(entity mfd.Entity, options Options) SearchEntityData {
 
 		Columns: columns,
 		Imports: imports.Elements(),
-	}
+	}, nil
 }
 
 // SearchAttributeData stores attribute info for template
@@ -149,7 +155,7 @@ func PackSearchAttribute(entity mfd.Entity, attribute mfd.Attribute, options Opt
 }
 
 // CustomSearchAttribute applies custom search filters by attributes
-func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options) SearchAttributeData {
+func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options) (SearchAttributeData, error) {
 	// use default templateColumn as base
 	templateColumn := PackSearchAttribute(entity, *search.Attribute, options)
 	templateColumn.Name = search.Name
@@ -162,7 +168,11 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 		templateColumn.GoType = mfd.MakeSearchType(templateColumn.GoType, search.SearchType)
 	}
 
-	filterType := mfd.FilterTypeBySearchType[search.SearchType]
+	filterType, found := mfd.FilterTypeBySearchType[search.SearchType]
+	if !found {
+		return SearchAttributeData{}, fmt.Errorf("unknown search type: %s", search.SearchType)
+	}
+
 	templateColumn.IsArray = filterType.IsArray
 
 	// rendering custom template
@@ -181,7 +191,7 @@ func CustomSearchAttribute(entity mfd.Entity, search mfd.Search, options Options
 	templateColumn.CustomRender = template.HTML(buffer.String())
 	templateColumn.UseCustomRender = true
 
-	return templateColumn
+	return templateColumn, nil
 }
 
 func columnRef(entity mfd.Entity, search mfd.Search) string {

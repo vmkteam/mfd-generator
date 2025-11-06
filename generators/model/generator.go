@@ -128,7 +128,10 @@ func (g *Generator) Generate() error {
 
 	// generating search
 	output = path.Join(g.options.Output, "model_search.go")
-	searchData := PackSearchNamespace(project.Namespaces, g.options)
+	searchData, err := PackSearchNamespace(project.Namespaces, g.options)
+	if err != nil {
+		return fmt.Errorf("pack search namespace, err=%w", err)
+	}
 	searchTemplate, err := mfd.LoadTemplate(g.options.SearchTemplatePath, searchDefaultTemplate)
 	if err != nil {
 		return fmt.Errorf("load model template, err=%w", err)

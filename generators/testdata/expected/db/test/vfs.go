@@ -71,9 +71,7 @@ func WithVfsFileRelations(t *testing.T, dbo orm.DB, in *db.VfsFile) Cleaner {
 		in.Folder = &db.VfsFolder{}
 	}
 
-	// Check embedded entities by FK
-
-	// Folder. Check if all FKs are provided.
+	// Check if all FKs are provided. Fill them into the main struct rels
 
 	if in.FolderID != 0 {
 		in.Folder.ID = in.FolderID
