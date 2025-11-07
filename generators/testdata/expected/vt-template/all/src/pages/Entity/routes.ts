@@ -196,62 +196,6 @@ export default [
       breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyAdd"]
     }
   },
-  /* VfsFile */
-  {
-    name: "vfsFileList",
-    path: "/vfs-files",
-    component: () =>
-      import("@/pages/Entity/VfsFile/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList"]
-    }
-  },
-  {
-    name: "vfsFileEdit",
-    path: "/vfs-files/:id/edit",
-    component: () =>
-      import("@/pages/Entity/VfsFile/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileEdit"]
-    }
-  },
-  {
-    name: "vfsFileAdd",
-    path: "/vfs-files/add",
-    component: () =>
-      import("@/pages/Entity/VfsFile/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileAdd"]
-    }
-  },
-  /* VfsFolder */
-  {
-    name: "vfsFolderList",
-    path: "/vfs-folders",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList"]
-    }
-  },
-  {
-    name: "vfsFolderEdit",
-    path: "/vfs-folders/:id/edit",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderEdit"]
-    }
-  },
-  {
-    name: "vfsFolderAdd",
-    path: "/vfs-folders/add",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
-    }
-  },
   /* LoginCode */
   {
     name: "loginCodeList",
@@ -306,6 +250,62 @@ export default [
       import("@/pages/Entity/SiteUser/Form.vue"),
     meta: {
       breadcrumbs: ["dashboard", "siteUserList", "siteUserAdd"]
+    }
+  },
+  /* VfsFile */
+  {
+    name: "vfsFileList",
+    path: "/vfs-files",
+    component: () =>
+      import("@/pages/Entity/VfsFile/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList"]
+    }
+  },
+  {
+    name: "vfsFileEdit",
+    path: "/vfs-files/:id/edit",
+    component: () =>
+      import("@/pages/Entity/VfsFile/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileEdit"]
+    }
+  },
+  {
+    name: "vfsFileAdd",
+    path: "/vfs-files/add",
+    component: () =>
+      import("@/pages/Entity/VfsFile/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileAdd"]
+    }
+  },
+  /* VfsFolder */
+  {
+    name: "vfsFolderList",
+    path: "/vfs-folders",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/List.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList"]
+    }
+  },
+  {
+    name: "vfsFolderEdit",
+    path: "/vfs-folders/:id/edit",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderEdit"]
+    }
+  },
+  {
+    name: "vfsFolderAdd",
+    path: "/vfs-folders/add",
+    component: () =>
+      import("@/pages/Entity/VfsFolder/Form.vue"),
+    meta: {
+      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
     }
   },
 ];
