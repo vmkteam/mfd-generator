@@ -4,8 +4,8 @@
         <string>portal</string>
         <string>geo</string>
         <string>card</string>
-        <string>vfs</string>
         <string>common</string>
+        <string>vfs</string>
     </PackageNames>
     <Languages>
         <string>en</string>
