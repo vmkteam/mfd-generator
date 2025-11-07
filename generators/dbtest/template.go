@@ -82,7 +82,7 @@ func Setup(t *testing.T) db.DB {
 }
 
 func RefreshPK(t *testing.T, dbo orm.DB, tableName, columnName string) error {
-	_, err := dbo.ExecContext(t.Context(),` + "`" + `
+	_, err := dbo.ExecContext(t.Context(), ` + "`" + `
 SELECT setval(
 pg_get_serial_sequence('?2', ?0),
 (SELECT MAX(?1) FROM ?2) + 1, false);
