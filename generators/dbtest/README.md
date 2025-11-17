@@ -23,7 +23,7 @@
 Для генерации перейдите в директорию Вашего проекта. Базовый пример команды с необходимыми ключами:
 ```bash
 # Базовое использование
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd'
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd'
 ```
 ### Обязательные флаги
 
@@ -47,16 +47,16 @@ dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd'
 
 ```bash
 # Генерация для конкретных неймспейсов
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -n portal,geo
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -n portal,geo
 
 # Генерация для конкретных сущностей
-dbtest-x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' news,categories
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -e news,categories
 
 # Принудительная перегенерация
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -f
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -f
 
 # Принудительная регенерация только сущности News
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -e news -f
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -e news -f
 ```
 
 ## Сгенерированный результат

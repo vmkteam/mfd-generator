@@ -24,7 +24,7 @@ and generate helpers for db tests.
 To generate, go to your project directory. A basic command example with required flags:
 ```bash
 # Basic usage
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd'
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd'
 ```
 
 ### Required Flags
@@ -49,16 +49,16 @@ dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd'
 
 ```bash
 # Generate for specific namespaces
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -n portal,geo
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -n portal,geo
 
 # Generate for specific entities
-dbtest-x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' news,categories
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -e news,categories
 
 # Force regeneration
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -f
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -f
 
 # Force regeneration only for the News entity
-dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/uteka.mfd' -e news -f
+dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -e news -f
 ```
 
 ## Generated Output

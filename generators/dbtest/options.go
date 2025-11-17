@@ -34,6 +34,8 @@ type Options struct {
 	// Entities to generate
 	Entities []string
 
+	EntitiesByNamespace map[string][]string
+
 	// Force Replaces existing functions
 	Force bool
 
@@ -48,4 +50,5 @@ func (o *Options) Def() {
 	}
 
 	o.CustomTypes = mfd.CustomTypes{}
+	o.EntitiesByNamespace = make(map[string][]string, len(o.Namespaces))
 }

@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -135,8 +136,36 @@ func (g *Generator) Generate() (err error) {
 		return fmt.Errorf("generate setup file, err=%w", err)
 	}
 
-	if len(g.options.Namespaces) == 0 {
+	// If there is nothing provided in the namespaces and entities, we should generate all entities by all namespaces
+	if len(g.options.Namespaces) == 0 && len(g.options.Entities) == 0 {
 		g.options.Namespaces = project.NamespaceNames
+	}
+
+	// Set namespace names as keys. It can be all if they're not provided
+	for _, ns := range g.options.Namespaces {
+		g.options.EntitiesByNamespace[ns] = nil
+	}
+
+	// Check if we don't have enough namespaces by provided entities.
+	// For instance, somebody runs:
+	//  dbtest -x 'newsportal/pkg/db' -o './pkg/db/test' -m './docs/model/newsportal.mfd' -e news,region -n portal
+	// where news belongs portal but region does not. We have to put regions' namespace "geo"
+	for _, entity := range g.options.Entities {
+		nsName := project.Entity(entity).Namespace
+		if !slices.Contains(g.options.Namespaces, nsName) {
+			g.options.Namespaces = append(g.options.Namespaces, nsName)
+		}
+		entities, ok := g.options.EntitiesByNamespace[nsName]
+		if !ok || len(entities) == 0 {
+			g.options.EntitiesByNamespace[nsName] = []string{entity}
+			continue
+		}
+
+		if slices.Contains(entities, entity) {
+			continue
+		}
+
+		g.options.EntitiesByNamespace[nsName] = append(g.options.EntitiesByNamespace[nsName], entity)
 	}
 
 	for _, namespace := range g.options.Namespaces {
@@ -186,9 +215,10 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 	// Getting file name without dots
 	output := filepath.Join(g.options.Output, mfd.GoFileName(ns.Name)+".go")
 	nsData := PackNamespace(ns, g.options)
-	checkEntities := len(g.options.Entities) > 0 && !nsData.HasAllOfProvidedEntities(g.options.Entities)
+	entitiesToGenerate := g.options.EntitiesByNamespace[ns.Name]
+	checkEntities := len(entitiesToGenerate) > 0 && !nsData.HasAllOfProvidedEntities(entitiesToGenerate)
 
-	if !fileExists(output) || (len(g.options.Entities) == 0 && g.options.Force) {
+	if !fileExists(output) || (len(entitiesToGenerate) == 0 && g.options.Force) {
 		if _, err := g.CreateFuncFile(nsData); err != nil {
 			return fmt.Errorf("create file for functions, ns=%s, err=%w", ns.Name, err)
 		}
