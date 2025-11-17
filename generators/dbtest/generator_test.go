@@ -132,6 +132,39 @@ func TestGenerator_Generate(t *testing.T) {
 			})
 		})
 	})
+	t.Run("News entity with the namespace and Region entity without the namespace", func(t *testing.T) {
+		Convey("News entity with the namespace and Region entity without the namespace", t, func() {
+			Convey("Check correct generate", func() {
+				generator := New()
+				generator.options.Def()
+				generator.options.Output = testdata.PathActualDBTest
+				generator.options.MFDPath = testdata.PathExpectedMFD
+				generator.options.Package = testdata.PackageDBTest
+				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
+				generator.options.Entities = []string{"news", "region"}
+				generator.options.Namespaces = []string{"portal"}
+
+				// Clear output before generating
+				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
+
+				t.Log("Generate model")
+				So(generator.Generate(), ShouldBeNil)
+			})
+
+			Convey("Check generated files", func() {
+				filename := "portal.go"
+				t.Logf("Check %s file", filename)
+				res, err := funcNamesInFile(filepath.Join(testdata.PathActualDBTest, filename))
+				So(err, ShouldBeNil)
+				So(res, ShouldResemble, []string{"News", "WithNewsRelations", "WithFakeNews"})
+				filename = "geo.go"
+				t.Logf("Check %s file", filename)
+				res, err = funcNamesInFile(filepath.Join(testdata.PathActualDBTest, filename))
+				So(err, ShouldBeNil)
+				So(res, ShouldResemble, []string{"Region", "WithRegionRelations", "WithFakeRegion"})
+			})
+		})
+	})
 	t.Run("Force all", func(t *testing.T) {
 		Convey("News entity only", t, func() {
 			filename := "portal.go"
