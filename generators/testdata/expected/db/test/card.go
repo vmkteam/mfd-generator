@@ -1,4 +1,4 @@
-//nolint:dupl
+//nolint:dupl,funlen
 package test
 
 import (
@@ -57,7 +57,6 @@ func EncryptionKey(t *testing.T, dbo orm.DB, in *db.EncryptionKey, ops ...Encryp
 		if _, err := dbo.ModelContext(t.Context(), &db.EncryptionKey{ID: encryptionKey.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()

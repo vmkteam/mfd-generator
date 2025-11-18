@@ -1,4 +1,4 @@
-//nolint:dupl
+//nolint:dupl,funlen
 package test
 
 import (
@@ -55,7 +55,6 @@ func VfsFile(t *testing.T, dbo orm.DB, in *db.VfsFile, ops ...VfsFileOpFunc) (*d
 		if _, err := dbo.ModelContext(t.Context(), &db.VfsFile{ID: vfsFile.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -162,7 +161,6 @@ func VfsFolder(t *testing.T, dbo orm.DB, in *db.VfsFolder, ops ...VfsFolderOpFun
 		if _, err := dbo.ModelContext(t.Context(), &db.VfsFolder{ID: vfsFolder.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()

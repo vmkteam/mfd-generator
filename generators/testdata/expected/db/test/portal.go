@@ -1,4 +1,4 @@
-//nolint:dupl
+//nolint:dupl,funlen
 package test
 
 import (
@@ -55,7 +55,6 @@ func Category(t *testing.T, dbo orm.DB, in *db.Category, ops ...CategoryOpFunc) 
 		if _, err := dbo.ModelContext(t.Context(), &db.Category{ID: category.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -123,7 +122,6 @@ func News(t *testing.T, dbo orm.DB, in *db.News, ops ...NewsOpFunc) (*db.News, C
 		if _, err := dbo.ModelContext(t.Context(), &db.News{ID: news.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -222,7 +220,6 @@ func Tag(t *testing.T, dbo orm.DB, in *db.Tag, ops ...TagOpFunc) (*db.Tag, Clean
 		if _, err := dbo.ModelContext(t.Context(), &db.Tag{ID: tag.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()

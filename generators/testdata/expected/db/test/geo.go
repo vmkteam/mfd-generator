@@ -1,4 +1,4 @@
-//nolint:dupl
+//nolint:dupl,funlen
 package test
 
 import (
@@ -55,7 +55,6 @@ func City(t *testing.T, dbo orm.DB, in *db.City, ops ...CityOpFunc) (*db.City, C
 		if _, err := dbo.ModelContext(t.Context(), &db.City{ID: city.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -180,7 +179,6 @@ func Country(t *testing.T, dbo orm.DB, in *db.Country, ops ...CountryOpFunc) (*d
 		if _, err := dbo.ModelContext(t.Context(), &db.Country{ID: country.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -252,7 +250,6 @@ func Region(t *testing.T, dbo orm.DB, in *db.Region, ops ...RegionOpFunc) (*db.R
 		if _, err := dbo.ModelContext(t.Context(), &db.Region{ID: region.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()

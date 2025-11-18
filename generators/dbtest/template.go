@@ -127,7 +127,7 @@ func cutB(str string, maxLen int) []byte {
 `
 
 const funcFileTemplate = `
-//nolint:dupl
+//nolint:dupl,funlen
 package {{.Package}}
 
 import (
@@ -221,7 +221,6 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 			t.Fatal(err)
 		}
 		{{- end}}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()

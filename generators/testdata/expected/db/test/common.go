@@ -1,4 +1,4 @@
-//nolint:dupl
+//nolint:dupl,funlen
 package test
 
 import (
@@ -54,7 +54,6 @@ func LoginCode(t *testing.T, dbo orm.DB, in *db.LoginCode, ops ...LoginCodeOpFun
 		if _, err := dbo.ModelContext(t.Context(), &db.LoginCode{ID: loginCode.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
@@ -153,7 +152,6 @@ func SiteUser(t *testing.T, dbo orm.DB, in *db.SiteUser, ops ...SiteUserOpFunc) 
 		if _, err := dbo.ModelContext(t.Context(), &db.SiteUser{ID: siteUser.ID}).WherePK().Delete(); err != nil {
 			t.Fatal(err)
 		}
-
 		// Clean up related entities from the last to the first
 		for i := len(cleaners) - 1; i >= 0; i-- {
 			cleaners[i]()
