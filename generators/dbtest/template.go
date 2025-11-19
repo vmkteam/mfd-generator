@@ -165,7 +165,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
     {{- end}}
     {{- end}}
     if {{ range $i, $e := .PKs}}
-    {{- if gt $i 0 }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
+    {{- if and (gt $i 0) (ne $e.Type "bool") }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else if eq $e.Type "bool" }}{{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
 	{{- end}} {
 		// Fetch the entity by PK
 		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
@@ -180,10 +180,9 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 		}
 
 		// If we're here, we don't find the entity by PKs. Just try to add the entity by provided PK
-		t.Logf("the entity {{.Name}} is not found by provided PKs,
-		{{- range $i, $e := .PKs}} {{.Field}}=%v
-		{{- if gt $i 0 }}, {{ end -}} 
-		{{- end}}. Trying to create one"{{- range .PKs}}, in.{{.Field}}{{- end}})
+		t.Logf("the entity {{.Name}} is not found by provided PKs:
+		{{- range $i, $e := .PKs}}{{- if gt $i 0 }}, {{ end -}}{{.Field}}=%v{{- end}}. Trying to create one"
+		{{- range .PKs}}, in.{{.Field}}{{- end}})
 		{{- else }}
 
 		// We must find the entity by PK
