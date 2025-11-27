@@ -17,8 +17,9 @@ import (
 
 // FuncFileRenderData stores data for generating functions template
 type FuncFileRenderData struct {
-	Package   string
-	DBPackage string
+	Package        string
+	DBPackage      string
+	DBPackageAlias string
 
 	ProjectName string
 	GoPGVer     string
@@ -30,12 +31,13 @@ func PackFuncRenderData(options Options) FuncFileRenderData {
 	if options.GoPGVer != mfd.GoPG8 {
 		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
-
+	pkgParts := strings.Split(options.DBPackage, "/")
 	return FuncFileRenderData{
-		GoPGVer:     goPGVer,
-		Package:     options.Package,
-		DBPackage:   options.DBPackage,
-		ProjectName: options.ProjectName,
+		GoPGVer:        goPGVer,
+		Package:        options.Package,
+		DBPackage:      options.DBPackage,
+		DBPackageAlias: pkgParts[len(pkgParts)-1],
+		ProjectName:    options.ProjectName,
 	}
 }
 
@@ -76,8 +78,9 @@ type SortPair struct {
 
 // NamespaceData stores namespace info for template
 type NamespaceData struct {
-	Package   string
-	DBPackage string
+	Package        string
+	DBPackage      string
+	DBPackageAlias string
 
 	Name         string
 	ShortVarName string
@@ -108,10 +111,12 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 	if options.GoPGVer != mfd.GoPG8 {
 		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
 	}
+	pkgParts := strings.Split(options.DBPackage, "/")
 
 	return NamespaceData{
-		Package:   options.Package,
-		DBPackage: options.DBPackage,
+		Package:        options.Package,
+		DBPackage:      options.DBPackage,
+		DBPackageAlias: pkgParts[len(pkgParts)-1],
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
@@ -154,8 +159,9 @@ type EntityData struct {
 	HasImports bool
 	Imports    []string
 
-	VarName       string
-	VarNamePlural string
+	VarName        string
+	VarNamePlural  string
+	DBPackageAlias string
 
 	HasStatus             bool
 	HasPKs                bool
@@ -325,6 +331,7 @@ func PackEntity(entity mfd.Entity, namespace string, options Options, previous .
 		varNamePlural = fmt.Sprintf("%sList", varNamePlural)
 	}
 
+	pkgParts := strings.Split(options.DBPackage, "/")
 	res := EntityData{
 		Name:       te.Name,
 		NamePlural: goNamePlural,
@@ -334,8 +341,9 @@ func PackEntity(entity mfd.Entity, namespace string, options Options, previous .
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
 
-		VarName:       varName,
-		VarNamePlural: varNamePlural,
+		VarName:        varName,
+		VarNamePlural:  varNamePlural,
+		DBPackageAlias: pkgParts[len(pkgParts)-1],
 
 		HasStatus:             hasStatus,
 		PKs:                   pks,
@@ -364,7 +372,7 @@ func PackEntity(entity mfd.Entity, namespace string, options Options, previous .
 	res.InitDependedRelsFromRoot, res.PreparingDependedRelsFromRoot = walkThroughDependedEntities(res.Relations, res, "", "", make(map[string]struct{}), res.PreparingFillingSameAsRootRels)
 	res.NeedPreparingDependedRelsFromRoot = len(res.PreparingDependedRelsFromRoot) > 0
 	res.NeedInitDependedRelsFromRoot = len(res.InitDependedRelsFromRoot) > 0
-	res.InitRels = initRels(relByNamesMap)
+	res.InitRels = initRels(relByNamesMap, res.DBPackageAlias)
 	res.NeedPreparingFillingSameAsRootRels = len(res.PreparingFillingSameAsRootRels) > 0
 	res.fillingRels(te, relByNamesMap)
 	res.fillingRelPKs(relByNamesMap)
@@ -401,7 +409,7 @@ func walkThroughDependedEntities(curRels []RelationData, root EntityData, embedd
 				// Split the chain of relations by dots. We need to extract the last element
 				relsChain := strings.Split(embeddedRelTypes, ".")
 				if len(relsChain) > 2 {
-					zero := fmt.Sprintf("&db.%s{}", relsChain[len(relsChain)-1])
+					zero := fmt.Sprintf("&%s.%s{}", root.DBPackageAlias, relsChain[len(relsChain)-1])
 					assign := fmt.Sprintf("in%s = %s", embeddedRels, zero)
 					str := mustWrapFilling("in"+embeddedRels, "nil", "nil", template.HTML(assign), false, false, false)
 					initNestedRels = append([]template.HTML{str}, initNestedRels...) // Fill from the end to the start
@@ -494,10 +502,10 @@ func prepareFillingConsideringIsArr(rootRel, curRel RelationData, embeddedRels s
 	return append(res, template.HTML(fmt.Sprintf("in%[1]s.%[2]s = in.%[2]s", embeddedRels, curRel.Name)))
 }
 
-func initRels(relByName map[string]RelationData) []template.HTML {
+func initRels(relByName map[string]RelationData, dbPkgAlias string) []template.HTML {
 	res := make([]template.HTML, 0, len(relByName))
 	for relName, rel := range relByName {
-		zero := fmt.Sprintf("&db.%s{}", rel.Type)
+		zero := fmt.Sprintf("&%s.%s{}", dbPkgAlias, rel.Type)
 		if rel.IsArray {
 			zero = fmt.Sprintf("%s{}", rel.GoType)
 		}

@@ -58,7 +58,7 @@ func (d testDBLogQuery) AfterQuery(_ context.Context, q *pg.QueryEvent) error {
 	return nil
 }
 
-func Setup(t *testing.T) db.DB {
+func Setup(t *testing.T) {{.DBPackageAlias}}.DB {
 	// Connect to DB
 	conn, err := setup()
 	if err != nil {
@@ -77,7 +77,7 @@ func Setup(t *testing.T) db.DB {
 		})
 	}
 
-	return db.New(conn)
+	return {{.DBPackageAlias}}.New(conn)
 }
 
 func setup() (*pg.DB, error) {
@@ -145,16 +145,16 @@ import (
 
 `
 
-const opFuncTypeTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner
+const opFuncTypeTemplate = `type {{.Name}}OpFunc func(t *testing.T, dbo orm.DB, in *{{.DBPackageAlias}}.{{.Name}}) Cleaner
 `
 
-const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}, ops ...{{.Name}}OpFunc) (*db.{{.Name}}, Cleaner) {
-	repo := db.New{{.Namespace}}Repo(dbo)
+const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *{{.DBPackageAlias}}.{{.Name}}, ops ...{{.Name}}OpFunc) (*{{.DBPackageAlias}}.{{.Name}}, Cleaner) {
+	repo := {{.DBPackageAlias}}.New{{.Namespace}}Repo(dbo)
 	var cleaners []Cleaner
 
 	// Fill the incoming entity
 	if in == nil {
-		in = &db.{{.Name}}{}
+		in = &{{.DBPackageAlias}}.{{.Name}}{}
 	}
 
 	{{if .HasPKs}}
@@ -165,7 +165,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
     {{- end}}
     {{- end}}
     if {{ range $i, $e := .PKs}}
-    {{- if and (gt $i 0) (ne $e.Type "bool") }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else if eq $e.Type "bool" }}{{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
+    {{- if and (gt $i 0) (ne $e.Type "bool") }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else if eq $e.Type "bool" }}{{else if eq $e.Type "time.Time" }}!in.{{$e.Field}}.IsZero(){{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
 	{{- end}} {
 		// Fetch the entity by PK
 		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
@@ -213,7 +213,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 
 	return {{.VarName}}, func() {
 		{{- if .HasPKs}}
-		if _, err := dbo.ModelContext(t.Context(), &db.{{.Name}}{ 
+		if _, err := dbo.ModelContext(t.Context(), &{{.DBPackageAlias}}.{{.Name}}{ 
 		{{- range $i, $e := .PKs}}
 		{{- if gt $i 0 }}, {{ end -}}
 		{{.Field}}: {{$.VarName}}.{{.Field}}{{end}} }).WherePK().Delete(); err != nil {
@@ -230,7 +230,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}},
 `
 
 const funcOpWithRelTemplate = `{{- if .HasRelations }}
-func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *{{.DBPackageAlias}}.{{.Name}}) Cleaner {
 	var cleaners []Cleaner
 
 	// Prepare main relations
@@ -254,6 +254,7 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 	{{- end}}
 	{{- end}}
 
+	{{- $entity := .}}
 	{{- range .Relations }}
 	{{- $relation := .}}
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
@@ -261,7 +262,7 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 		{{- if $relation.IsArray}}
 		for i := range in.{{$relation.Name}} {
 			{{- $pk := index $relation.Entity.PKs 0 }}
-			_, relatedCleaner := {{.Type}}(t, dbo, &db.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
+			_, relatedCleaner := {{.Type}}(t, dbo, &{{$entity.DBPackageAlias}}.{{.Type}}{ {{ $pk.Field }}: in.{{$relation.Name}}[i] }
 			{{- if .Entity.HasRelations }}, With{{.Type}}Relations {{ end }}, {{ if .Entity.NeedFakeFilling }} WithFake{{.Type}}{{ end -}})
 			{{- if $entity.NeedPreparingFillingSameAsRootRels }}
 			{{- range $relName, $vals := $entity.PreparingFillingSameAsRootRels }}
@@ -309,9 +310,9 @@ func With{{.Name}}Relations(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner 
 {{- end}}`
 
 const funcOpWithFakeTemplate = `{{- if .NeedFakeFilling }}
-func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *db.{{.Name}}) Cleaner {
+func WithFake{{.Name}}(t *testing.T, dbo orm.DB, in *{{.DBPackageAlias}}.{{.Name}}) Cleaner {
 	{{- range .FakeFilling }}{{.}}{{ end }}
-	
+
 	return emptyClean
 }
 

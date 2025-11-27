@@ -237,7 +237,7 @@ func (g *Generator) generateFuncsByNS(ns *mfd.Namespace) error {
 
 		// Render opFunc type struct
 		// Make a regexp with entity name to prevent removing OpFunc types despite the entity
-		typeOpFuncRe := regexp.MustCompile(fmt.Sprintf(`^type %[1]sOpFunc func\(t \*testing\.T, dbo orm\.DB, in \*db\.%[1]s\) Cleaner`, entity.Name))
+		typeOpFuncRe := regexp.MustCompile(fmt.Sprintf(`^type %[1]sOpFunc func\(t \*testing\.T, dbo orm\.DB, in \*%[2]s\.%[1]s\) Cleaner`, entity.Name, entity.DBPackageAlias))
 		if err := g.replaceTargetFromFile(OpFuncType{}, typeOpFuncRe, entity, output, "", ""); err != nil {
 			return fmt.Errorf("replace the main func, entity=%s, err=%w", entity.Name, err)
 		}
