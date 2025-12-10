@@ -35,7 +35,7 @@ func LoginCode(t *testing.T, dbo orm.DB, in *db.LoginCode, ops ...LoginCodeOpFun
 		}
 
 		// If we're here, we don't find the entity by PKs. Just try to add the entity by provided PK
-		t.Logf("the entity LoginCode is not found by provided PKs, ID=%v. Trying to create one", in.ID)
+		t.Logf("the entity LoginCode is not found by provided PKs:ID=%v. Trying to create one", in.ID)
 	}
 
 	for _, op := range ops {

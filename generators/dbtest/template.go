@@ -5,8 +5,9 @@ package {{.Package}}
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"strconv"
 	"sync"
@@ -15,51 +16,27 @@ import (
 	"{{.DBPackage}}"
 
 	"github.com/go-pg/pg{{.GoPGVer}}"
+	"github.com/vmkteam/embedlog"
 )
 
 type Cleaner func()
 
 // For creating unique IDs.
 var (
+	logger     embedlog.Logger
 	existsIds  sync.Map
 	emptyClean Cleaner = func() {}
 )
 
-// NextID Helps to generate unique IDs
-func NextID() int {
-	for {
-		id := rand.Int31n(1<<30 - 1)
-		if _, found := existsIds.LoadOrStore(id, struct{}{}); found {
-			continue
-		}
-		return 1<<30 | int(id)
+func getenv(key, fallback string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
 	}
+	return fallback
 }
 
-// NextStringID The same as NextID, but converts the result to string
-func NextStringID() string {
-	return strconv.Itoa(NextID())
-}
-
-// Setup logger
-type testDBLogQuery struct{}
-
-func (d testDBLogQuery) BeforeQuery(ctx context.Context, _ *pg.QueryEvent) (context.Context, error) {
-	return ctx, nil
-}
-
-func (d testDBLogQuery) AfterQuery(_ context.Context, q *pg.QueryEvent) error {
-	fq, err := q.FormattedQuery()
-	if err != nil {
-		return err
-	}
-	log.Println(string(fq))
-
-	return nil
-}
-
-func Setup(t *testing.T) {{.DBPackageAlias}}.DB {
-	// Connect to DB
+func Setup(t *testing.T) ({{.DBPackageAlias}}.DB, embedlog.Logger) {
+	// Create db connection
 	conn, err := setup()
 	if err != nil {
 		if t == nil {
@@ -68,7 +45,7 @@ func Setup(t *testing.T) {{.DBPackageAlias}}.DB {
 		t.Fatal(err)
 	}
 
-	// Cleanup after testing
+	// Cleanup after tests.
 	if t != nil {
 		t.Cleanup(func() {
 			if err := conn.Close(); err != nil {
@@ -77,30 +54,45 @@ func Setup(t *testing.T) {{.DBPackageAlias}}.DB {
 		})
 	}
 
-	return {{.DBPackageAlias}}.New(conn)
+	logger = embedlog.NewLogger(true, true)
+	return {{.DBPackageAlias}}.New(conn), logger
 }
 
 func setup() (*pg.DB, error) {
-	u := env("DB_CONN", "postgresql://localhost:5432/{{.ProjectName}}?sslmode=disable")
-	cfg, err := pg.ParseURL(u)
+	var (
+		pghost = getenv("PGHOST", "localhost")
+		pgport = getenv("PGPORT", "5432")
+		pgdb   = getenv("PGDATABASE", "test-apisrv")
+		pguser = getenv("PGUSER", "postgres")
+		pgpass = getenv("PGPASSWORD", "postgres")
+	)
+
+	url := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", pguser, pgpass, net.JoinHostPort(pghost, pgport), pgdb)
+
+	cfg, err := pg.ParseURL(url)
 	if err != nil {
 		return nil, err
 	}
 	conn := pg.Connect(cfg)
 
-	if r := env("DB_LOG_QUERY", "true"); r == "true" {
+	if r := getenv("DB_LOG_QUERY", "false"); r == "true" {
 		conn.AddQueryHook(testDBLogQuery{})
 	}
 
 	return conn, nil
 }
 
-func env(v, def string) string {
-	if r := os.Getenv(v); r != "" {
-		return r
-	}
+type testDBLogQuery struct{}
 
-	return def
+func (d testDBLogQuery) BeforeQuery(ctx context.Context, _ *pg.QueryEvent) (context.Context, error) {
+	return ctx, nil
+}
+
+func (d testDBLogQuery) AfterQuery(ctx context.Context, q *pg.QueryEvent) error {
+	if fm, err := q.FormattedQuery(); err == nil {
+		logger.Print(ctx, string(fm))
+	}
+	return nil
 }
 
 func val[T any, P *T](p P) T {
@@ -123,6 +115,22 @@ func cutB(str string, maxLen int) []byte {
 		return []byte(str)
 	}
 	return []byte(str)[:min(len(str), maxLen)]
+}
+
+// NextID Helps to generate unique IDs
+func NextID() int {
+	for {
+		id := rand.Int31n(1<<30 - 1)
+		if _, found := existsIds.LoadOrStore(id, struct{}{}); found {
+			continue
+		}
+		return 1<<30 | int(id)
+	}
+}
+
+// NextStringID The same as NextID, but converts the result to string
+func NextStringID() string {
+	return strconv.Itoa(NextID())
 }
 `
 
