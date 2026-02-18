@@ -1,26 +1,43 @@
 <template>
-  <vt-multi-filter
+  <vt-new-multi-filter
     :items="filterItems"
     :filters="filters"
     autofocus
-    :label="$t('common.list.filter.title')"
+    :label="t('common.list.filter.title')"
     @submitFilters="$emit('submitFilters')"
+    @update:filters="$emit('update:filters', $event)"
   />
 </template>
 
 <script lang="ts">
-import { Component } from 'vue-property-decorator';
-import { Observer } from 'mobx-vue';
-import EntityListFilters from '@/common/Entity/EntityListFilters';
+import { IFilterItem } from '@/common/MultiFilter/types';
+import { useI18n } from '@/composables/useI18n';
+import { defineComponent } from 'vue';
 
-@Observer
-@Component
-export default class MultiListFilters extends EntityListFilters {
-  filterItems = [
+export default defineComponent({
+  name: 'MultiListFilters',
+
+  props: {
+    filters: {
+      type: Object,
+      required: true
+    },
+    activeFilters: {
+      type: Object,
+      required: true
+    }
+  },
+
+  emits: ['submitFilters', 'update:filters'],
+
+  setup () {
+    const { t } = useI18n();
+
+    const filterItems = [
     {
       id: 'title',
       type: 'input',
-      title: this.$t('tag.list.filter.title'),
+      title: t('tag.list.filter.title'),
       value: null,
       values: null,
       settings: {
@@ -31,7 +48,7 @@ export default class MultiListFilters extends EntityListFilters {
     {
       id: 'statusId',
       type: 'select',
-      title: this.$t('tag.list.filter.statusId'),
+      title: t('tag.list.filter.statusId'),
       value: null,
       values: null,
       settings: {
@@ -47,7 +64,7 @@ export default class MultiListFilters extends EntityListFilters {
     {
       id: 'ids',
       type: 'select',
-      title: this.$t('tag.list.filter.ids'),
+      title: t('tag.list.filter.ids'),
       value: null,
       values: null,
       settings: {
@@ -57,6 +74,12 @@ export default class MultiListFilters extends EntityListFilters {
         component: 'v-text-field'
       }
     }
-  ].filter(Boolean)
-}
+  ].filter(Boolean) as IFilterItem[];
+
+    return {
+      t,
+      filterItems
+    };
+  }
+});
 </script>

@@ -15,7 +15,7 @@
         >
           <v-flex>
             <h2 class="ellipsed">
-              {{ store.model.title || "..." }}
+              {{ model.title || "..." }}
             </h2>
           </v-flex>
           <v-spacer />
@@ -23,7 +23,7 @@
             <v-btn
               text
               color="primary"
-              :disabled="store.isLoading"
+              :disabled="isLoading"
               @click.stop="navigateBack"
             >
               <v-icon
@@ -32,7 +32,7 @@
                 arrow_back
               </v-icon>
               <template v-if="!$vuetify.breakpoint.xsOnly">
-                {{ $t("common.form.cancelButtonLabel") }}
+                {{ t("common.form.cancelButtonLabel") }}
               </template>
             </v-btn>
             <v-hover
@@ -61,7 +61,7 @@
             Основные
           </v-tab>
         </v-tabs>
-        <v-card v-if="store.model">
+        <v-card v-if="model">
           <v-form
             ref="form"
             @submit.prevent="onSaveAndBack"
@@ -71,102 +71,102 @@
                 <v-tab-item eager>
                   <!--  generated part -->
                   <vt-form-field
-                    v-model="store.model.title"
+                    v-model="model.title"
                     component="v-text-field"
-                    :label="$t('news.form.titleLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.title))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.titleLabel')"
+                    :error-messages="getErrorMessage(errors.title)"
+                    :disabled="isLoading"
                     placeholder=""
                     required
                   /><vt-form-field
-                    v-model="store.model.preview"
+                    v-model="model.preview"
                     component="v-text-field"
-                    :label="$t('news.form.previewLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.preview))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.previewLabel')"
+                    :error-messages="getErrorMessage(errors.preview)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                   /><vt-form-field
-                    v-model="store.model.content"
+                    v-model="model.content"
                     component="vt-tinymce-editor"
-                    :label="$t('news.form.contentLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.content))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.contentLabel')"
+                    :error-messages="getErrorMessage(errors.content)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                     without-help
                   /><vt-form-field
-                    v-model="store.model.categoryId"
+                    v-model="model.categoryId"
                     entity="category"
                     search-by="title"
                     prefetch
                     component="vt-entity-autocomplete"
-                    :label="$t('news.form.categoryIdLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.categoryId))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.categoryIdLabel')"
+                    :error-messages="getErrorMessage(errors.categoryId)"
+                    :disabled="isLoading"
                     placeholder=""
                     required
                   /><vt-form-field
-                    v-model="store.model.countryId"
+                    v-model="model.countryId"
                     entity="country"
                     search-by="title"
                     prefetch
                     component="vt-entity-autocomplete"
-                    :label="$t('news.form.countryIdLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.countryId))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.countryIdLabel')"
+                    :error-messages="getErrorMessage(errors.countryId)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                   /><vt-form-field
-                    v-model="store.model.regionId"
+                    v-model="model.regionId"
                     entity="region"
                     search-by="title"
                     prefetch
                     component="vt-entity-autocomplete"
-                    :label="$t('news.form.regionIdLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.regionId))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.regionIdLabel')"
+                    :error-messages="getErrorMessage(errors.regionId)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                   /><vt-form-field
-                    v-model="store.model.cityId"
+                    v-model="model.cityId"
                     entity="city"
                     search-by="title"
                     prefetch
                     component="vt-entity-autocomplete"
-                    :label="$t('news.form.cityIdLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.cityId))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.cityIdLabel')"
+                    :error-messages="getErrorMessage(errors.cityId)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                   /><vt-form-field
-                    v-model="store.model.tagIds"
+                    v-model="model.tagIds"
                     entity="tag"
                     search-by="title"
                     prefetch
                     component="vt-entity-autocomplete"
-                    :label="$t('news.form.tagIdsLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.tagIds))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.tagIdsLabel')"
+                    :error-messages="getErrorMessage(errors.tagIds)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                     multiple
                     chips
                   /><vt-form-field
-                    v-model="store.model.publishedAt"
+                    v-model="model.publishedAt"
                     component="vt-datetime-picker"
-                    :label="$t('news.form.publishedAtLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.publishedAt))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.publishedAtLabel')"
+                    :error-messages="getErrorMessage(errors.publishedAt)"
+                    :disabled="isLoading"
                     placeholder=""
                     clearable
                     iso
                   /><vt-form-field
-                    v-model="store.model.statusId"
+                    v-model="model.statusId"
                     component="vt-status-select"
-                    :label="$t('news.form.statusIdLabel')"
-                    :error-messages="$t(i18nFieldError(store.errors.statusId))"
-                    :disabled="store.isLoading"
+                    :label="t('news.form.statusIdLabel')"
+                    :error-messages="getErrorMessage(errors.statusId)"
+                    :disabled="isLoading"
                     placeholder=""
                     required
                     compact
@@ -186,21 +186,21 @@
                     <v-btn
                       type="submit"
                       color="success"
-                      :disabled="!store.isChanged || store.isLoading"
-                      :loading="store.isLoading"
+                      :disabled="!isChanged || isLoading"
+                      :loading="isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="!$vuetify.breakpoint.xsOnly && 'mx-2'"
                     >
                       <v-icon left>
                         done
                       </v-icon>
-                      {{ $t("common.form.saveAndCloseButtonLabel") }}
+                      {{ t("common.form.saveAndCloseButtonLabel") }}
                     </v-btn>
 
                     <v-btn
                       v-if="$route.params.id"
-                      :disabled="!store.isChanged || store.isLoading"
-                      :loading="store.isLoading"
+                      :disabled="!isChanged || isLoading"
+                      :loading="isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="[
                         $vuetify.breakpoint.xsOnly && 'ml-0 mt-2',
@@ -210,7 +210,7 @@
                       color="accent"
                       @click.stop="onSave"
                     >
-                      {{ $t("common.form.saveButtonLabel") }}
+                      {{ t("common.form.saveButtonLabel") }}
                     </v-btn>
                     <v-spacer />
                   </v-layout>
@@ -225,17 +225,58 @@
 </template>
 
 <script lang="ts">
-import { Component } from 'vue-property-decorator';
-import { Observer } from 'mobx-vue';
+import { useEntityForm } from '@/composables/useEntityForm';
+import { useI18n } from '@/composables/useI18n'
 import { News as Model } from '@/services/api/factory';
-import Store from '@/common/Entity/EntityModelStore';
-import EntityForm from '@/common/Entity/EntityForm';
+import { defineComponent } from 'vue';
 
-@Observer
-@Component
-export default class Form extends EntityForm {
-  store: Store<Model> = new Store<Model>(Model);
-}
+export default defineComponent({
+  // eslint-disable-next-line vue/match-component-file-name
+  name: 'NewsForm',
+
+  setup () {
+    const { t } = useI18n();
+
+    const {
+      tab,
+      form,
+      model,
+      errors,
+      isLoading,
+      isChanged,
+      i18nFieldError,
+      tabsHasError,
+
+      onSave,
+      onDelete,
+      navigateBack,
+      onSaveAndBack
+    } = useEntityForm<Model>(Model);
+
+	const getErrorMessage = (errorKey: string | null): string => {
+      const errorMessage = i18nFieldError(errorKey);
+      return errorMessage ? t(errorMessage) : '';
+    };
+
+    return {
+      t,
+      tab,
+      form,
+      model,
+      errors,
+      isLoading,
+      isChanged,
+      i18nFieldError,
+      tabsHasError,
+      getErrorMessage,
+
+      onSave,
+      onDelete,
+      navigateBack,
+      onSaveAndBack
+    };
+  }
+});
 </script>
 
 <style scoped></style>

@@ -93,7 +93,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	if g.options.FiltersTemplatePath, err = flags.GetString(filterTemplateFlag); err != nil {
 		return err
 	}
-	if g.options.FiltersTemplatePath, err = flags.GetString(formTemplateFlag); err != nil {
+	if g.options.FormTemplatePath, err = flags.GetString(formTemplateFlag); err != nil {
 		return err
 	}
 
