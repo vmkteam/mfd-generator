@@ -7,8 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {
@@ -230,7 +231,6 @@ func Test_extractEntityBlock(t *testing.T) {
 			got := extractEntityBlock(tt.args.content, tt.args.entityName)
 
 			if !reflect.DeepEqual(got, tt.want) {
-
 				t.Errorf("extractEntityBlock() =\n%#v\nwant\n%#v", got, tt.want)
 			}
 		})

@@ -117,32 +117,6 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
-	var targetEntities []string
-	isPartial := len(g.options.Namespaces) > 0 || len(g.options.Entities) > 0
-
-	if isPartial {
-		nsList := g.options.Namespaces
-		if len(nsList) == 0 {
-			nsList = project.NamespaceNames
-		}
-		for _, nsName := range nsList {
-			ns := project.VTNamespace(nsName)
-			if ns == nil {
-				continue
-			}
-			entityNames := ns.VTEntityNames()
-			if len(g.options.Entities) != 0 {
-				entityNames = g.options.Entities
-			}
-
-			for _, eName := range entityNames {
-				if entity := ns.VTEntity(eName); entity != nil {
-					targetEntities = append(targetEntities, entity.Name)
-				}
-			}
-		}
-	}
-
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
 	}
@@ -169,7 +143,7 @@ func (g *Generator) Generate() error {
 	}
 
 	// generating routes for all namespaces
-	if _, err := g.SaveRoutes(project.VTNamespaces, routesTemplate, targetEntities); err != nil {
+	if _, err := g.SaveRoutes(project, routesTemplate); err != nil {
 		return fmt.Errorf("generate routes, err=%w", err)
 	}
 
@@ -227,6 +201,32 @@ func (g *Generator) Generate() error {
 	return mfd.SaveMFD(g.options.MFDPath, project)
 }
 
+func (g *Generator) getTargetEntities(project *mfd.Project) []string {
+	var targetEntities []string
+	nsList := g.options.Namespaces
+	if len(nsList) == 0 {
+		nsList = project.NamespaceNames
+	}
+	for _, nsName := range nsList {
+		ns := project.VTNamespace(nsName)
+		if ns == nil {
+			continue
+		}
+		entityNames := ns.VTEntityNames()
+		if len(g.options.Entities) != 0 {
+			entityNames = g.options.Entities
+		}
+
+		for _, eName := range entityNames {
+			if entity := ns.VTEntity(eName); entity != nil {
+				targetEntities = append(targetEntities, entity.Name)
+			}
+		}
+	}
+
+	return targetEntities
+}
+
 // SaveEntity saves vt entity to template with special delims
 func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 	parsed, err := template.New("base").
@@ -249,13 +249,20 @@ func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 }
 
 // SaveRoutes saves all vt namespaces to routes file
-func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string, targetEntities []string) (bool, error) {
+func (g *Generator) SaveRoutes(project *mfd.Project, tmpl string) (bool, error) {
+	var targetEntities []string
+	isPartial := len(g.options.Namespaces) > 0 || len(g.options.Entities) > 0
+
+	if isPartial {
+		targetEntities = g.getTargetEntities(project)
+	}
+
 	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
 	if err != nil {
 		return false, fmt.Errorf("parsing template, err=%w", err)
 	}
 
-	pack, err := PackRoutesNamespace(namespaces)
+	pack, err := PackRoutesNamespace(project.VTNamespaces)
 	if err != nil {
 		return false, fmt.Errorf("packing data, err=%w", err)
 	}
