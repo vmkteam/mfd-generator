@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"os"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -115,6 +118,32 @@ func (g *Generator) Generate() error {
 		return err
 	}
 
+	var targetEntities []string
+	isPartial := len(g.options.Namespaces) > 0 || len(g.options.Entities) > 0
+
+	if isPartial {
+		nsList := g.options.Namespaces
+		if len(nsList) == 0 {
+			nsList = project.NamespaceNames
+		}
+		for _, nsName := range nsList {
+			ns := project.VTNamespace(nsName)
+			if ns == nil {
+				continue
+			}
+			entityNames := ns.VTEntityNames()
+			if len(g.options.Entities) != 0 {
+				entityNames = g.options.Entities
+			}
+
+			for _, eName := range entityNames {
+				if entity := ns.VTEntity(eName); entity != nil {
+					targetEntities = append(targetEntities, entity.Name)
+				}
+			}
+		}
+	}
+
 	if len(g.options.Namespaces) == 0 {
 		g.options.Namespaces = project.NamespaceNames
 	}
@@ -141,7 +170,7 @@ func (g *Generator) Generate() error {
 	}
 
 	// generating routes for all namespaces
-	if _, err := g.SaveRoutes(project.VTNamespaces, routesTemplate); err != nil {
+	if _, err := g.SaveRoutes(project.VTNamespaces, routesTemplate, targetEntities); err != nil {
 		return fmt.Errorf("generate routes, err=%w", err)
 	}
 
@@ -221,7 +250,7 @@ func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 }
 
 // SaveRoutes saves all vt namespaces to routes file
-func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string) (bool, error) {
+func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string, targetEntities []string) (bool, error) {
 	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
 	if err != nil {
 		return false, fmt.Errorf("parsing template, err=%w", err)
@@ -237,7 +266,46 @@ func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string) (bool
 		return false, fmt.Errorf("processing model template, err=%w", err)
 	}
 
-	return mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity/routes.ts"))
+	routesPath := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
+
+	if len(targetEntities) == 0 {
+		return mfd.Save(buffer.Bytes(), routesPath)
+	}
+
+	existingData, err := os.ReadFile(routesPath)
+	if err != nil {
+		return mfd.Save(buffer.Bytes(), routesPath)
+	}
+
+	existingStr := string(existingData)
+	newStr := buffer.String()
+
+	for _, entityName := range targetEntities {
+		pattern := fmt.Sprintf(`(?s)([ \t]*/\*\s*%s\s*\*/.*?)([ \t]*/\*\s*[a-zA-Z0-9_]+\s*\*/|\s*\];)`, entityName)
+		re := regexp.MustCompile(pattern)
+
+		matches := re.FindStringSubmatch(newStr)
+		if len(matches) < 3 {
+			continue
+		}
+
+		cleanBlock := strings.TrimSpace(matches[1])
+
+		if re.MatchString(existingStr) {
+			existingStr = re.ReplaceAllString(existingStr, "   "+cleanBlock+"\n${2}")
+		} else {
+			insertIndex := strings.LastIndex(existingStr, "];")
+			if insertIndex != -1 {
+				leftPart := strings.TrimRight(existingStr[:insertIndex], " \t\r\n,")
+				if strings.HasSuffix(leftPart, "}") {
+					leftPart += ","
+				}
+				existingStr = leftPart + "\n    " + cleanBlock + "\n];\n"
+			}
+		}
+	}
+
+	return mfd.Save([]byte(existingStr), routesPath)
 }
 
 func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
