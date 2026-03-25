@@ -3,12 +3,12 @@ package vttmpl
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/vmkteam/mfd-generator/generators/testdata"
-
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/vmkteam/mfd-generator/generators/testdata"
 )
 
 func TestGenerator_Generate(t *testing.T) {
@@ -123,4 +123,246 @@ func fullFilesPaths(path string) ([]string, error) {
 	}
 
 	return filePaths, nil
+}
+
+func TestManualGenerate(t *testing.T) {
+	t.Skip()
+	generator := New()
+
+	generator.options.Output = ""
+	generator.options.MFDPath = ""
+	generator.options.Namespaces = []string{"article", "catalogue"}
+	generator.options.Entities = []string{"tag", "category"}
+
+	err := generator.Generate()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func Test_extractEntityBlock(t *testing.T) {
+	type args struct {
+		content    string
+		entityName string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "middle body contains",
+			args: args{
+				entityName: "Category",
+				content: `export default [
+  
+  /* News */
+  {
+    name: "newsList",
+    path: "/news",
+  },
+  /* Category */
+  {
+    name: "categoryList",
+    path: "/category",
+  },
+  /* Tag */
+  {
+    name: "tagList",
+  },
+];`,
+			},
+			want: []string{
+				`{`,
+				`  name: "categoryList",`,
+				`  path: "/category",`,
+				`},`,
+			},
+		},
+		{
+			name: "last body",
+			args: args{
+				entityName: "Tag",
+				content: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+  /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  }
+];`,
+			},
+			want: []string{
+				`{`,
+				`  name: "tagList",`,
+				`  path: "/tags",`,
+				`}`,
+			},
+		},
+		{
+			name: "now found",
+			args: args{
+				entityName: "News",
+				content: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+];`,
+			},
+			want: nil,
+		},
+		{
+			name: "empty content",
+			args: args{
+				entityName: "Category",
+				content:    ``,
+			},
+			want: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := extractEntityBlock(tt.args.content, tt.args.entityName)
+
+			if !reflect.DeepEqual(got, tt.want) {
+
+				t.Errorf("extractEntityBlock() =\n%#v\nwant\n%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_injectEntityBlock(t *testing.T) {
+	sampleNewBlock := []string{
+		`{`,
+		`  name: "tagList",`,
+		`  path: "/tags",`,
+		`},`,
+	}
+
+	type args struct {
+		existingContent string
+		entityName      string
+		newBlock        []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "update middle body",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+  /* Tag */
+  {
+    name: "oldTagList",
+  },
+  /* News */
+  {
+    name: "newsList",
+  }
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+  /* News */
+  {
+    name: "newsList",
+  }
+];`,
+		},
+		{
+			name: "insert new data variant 1",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+		{
+			name: "insert new data variant 2",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList"
+  }
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList"
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+		{
+			name: "insert new data variant 2",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+];`,
+			},
+			want: `export default [
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := injectEntityBlock(tt.args.existingContent, tt.args.entityName, tt.args.newBlock)
+			if got != tt.want {
+				t.Errorf("injectEntityBlock() failed.\n\n GOT \n%s\n\n WANT \n%s\n", got, tt.want)
+			}
+		})
+	}
 }

@@ -164,7 +164,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			trasliteratingValue := template.HTML(mfd.VarName(title.Name))
 
 			inp.Component = "vt-transliterator"
-			inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
+			inp.Params = append(inp.Params, `:value-for-transliterating="model.`+trasliteratingValue+`"`)
 		}
 	}
 

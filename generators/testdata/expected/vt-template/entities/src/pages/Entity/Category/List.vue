@@ -192,7 +192,7 @@ export default defineComponent({
       setCompactPagination,
       setPagination,
       updateFilters
-    } = useEntityList(Category, CategorySearch);
+    } = useEntityList(CategorySummary, CategorySearch);
 
     const headers = computed(() => [
       {

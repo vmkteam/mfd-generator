@@ -2,34 +2,37 @@ package vttmpl
 
 const routesDefaultTemplate = `/* eslint-disable */
 export default [{{range $model := .Entities}}
-  /* {{.Name}} */
-  {
-    name: "{{.JSName}}List",
-    path: "/{{.TerminalPath}}",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List"]
-    }
-  },
-  {{if not .ReadOnly}}{
-    name: "{{.JSName}}Edit",
-    path: "/{{.TerminalPath}}/:id/edit",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Edit"]
-    }
-  },
-  {
-    name: "{{.JSName}}Add",
-    path: "/{{.TerminalPath}}/add",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
-    }
-  },{{end}}{{end}}
+    /* {{.Name}} */
+    {
+        name: "{{.JSName}}List",
+        path: "/{{.TerminalPath}}",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/List.vue"),
+        meta: {
+            title: "{{.Name}}List",
+            breadcrumbs: ["dashboard", "{{.JSName}}List"]
+        }
+    },
+    {{if not .ReadOnly}}{
+        name: "{{.JSName}}Edit",
+        path: "/{{.TerminalPath}}/:id/edit",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/Form.vue"),
+        meta: {
+            title: "{{.Name}}Edit",
+            breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Edit"]
+        }
+    },
+    {
+        name: "{{.JSName}}Add",
+        path: "/{{.TerminalPath}}/add",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/Form.vue"),
+        meta: {
+            title: "{{.Name}}Add",
+            breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
+        }
+    },{{end}}{{end}}
 ];
 `
 
@@ -229,7 +232,7 @@ export default defineComponent({
       setCompactPagination,
       setPagination,
       updateFilters
-    } = useEntityList([[.Name]], [[.Name]]Search);
+    } = useEntityList([[.Name]]Summary, [[.Name]]Search);
 
     const headers = computed(() => [
       [[range $i, $e := .ListColumns]][[if ne $i 0]]
@@ -540,7 +543,7 @@ export default defineComponent({
       onDelete,
       navigateBack,
       onSaveAndBack
-    } = useEntityForm<Model>(Model);
+    } = useEntityForm<Model>({ Model} );
 
 	const getErrorMessage = (errorKey: string | null): string => {
       const errorMessage = i18nFieldError(errorKey);

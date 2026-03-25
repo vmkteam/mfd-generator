@@ -204,7 +204,7 @@ export default defineComponent({
       setCompactPagination,
       setPagination,
       updateFilters
-    } = useEntityList(News, NewsSearch);
+    } = useEntityList(NewsSummary, NewsSearch);
 
     const headers = computed(() => [
       {

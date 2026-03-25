@@ -189,7 +189,7 @@ export default defineComponent({
       setCompactPagination,
       setPagination,
       updateFilters
-    } = useEntityList(Tag, TagSearch);
+    } = useEntityList(TagSummary, TagSearch);
 
     const headers = computed(() => [
       {

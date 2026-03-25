@@ -251,7 +251,7 @@ export default defineComponent({
       onDelete,
       navigateBack,
       onSaveAndBack
-    } = useEntityForm<Model>(Model);
+    } = useEntityForm<Model>({ Model} );
 
 	const getErrorMessage = (errorKey: string | null): string => {
       const errorMessage = i18nFieldError(errorKey);

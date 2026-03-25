@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
@@ -268,6 +267,7 @@ func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string, targe
 
 	routesPath := path.Join(g.options.Output, "src/pages/Entity/routes.ts")
 
+	// base flow when generate all routes
 	if len(targetEntities) == 0 {
 		return mfd.Save(buffer.Bytes(), routesPath)
 	}
@@ -277,35 +277,98 @@ func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string, targe
 		return mfd.Save(buffer.Bytes(), routesPath)
 	}
 
-	existingStr := string(existingData)
 	newStr := buffer.String()
+	existingStr := string(existingData)
 
 	for _, entityName := range targetEntities {
-		pattern := fmt.Sprintf(`(?s)([ \t]*/\*\s*%s\s*\*/.*?)([ \t]*/\*\s*[a-zA-Z0-9_]+\s*\*/|\s*\];)`, entityName)
-		re := regexp.MustCompile(pattern)
-
-		matches := re.FindStringSubmatch(newStr)
-		if len(matches) < 3 {
+		// get new code block
+		newBlock := extractEntityBlock(newStr, entityName)
+		if len(newBlock) == 0 {
 			continue
 		}
-
-		cleanBlock := strings.TrimSpace(matches[1])
-
-		if re.MatchString(existingStr) {
-			existingStr = re.ReplaceAllString(existingStr, "   "+cleanBlock+"\n${2}")
-		} else {
-			insertIndex := strings.LastIndex(existingStr, "];")
-			if insertIndex != -1 {
-				leftPart := strings.TrimRight(existingStr[:insertIndex], " \t\r\n,")
-				if strings.HasSuffix(leftPart, "}") {
-					leftPart += ","
-				}
-				existingStr = leftPart + "\n    " + cleanBlock + "\n];\n"
-			}
-		}
+		// insert new code with flow
+		existingStr = injectEntityBlock(existingStr, entityName, newBlock)
 	}
 
 	return mfd.Save([]byte(existingStr), routesPath)
+}
+
+// extractEntityBlock get block code from content by entity name
+func extractEntityBlock(content string, entityName string) []string {
+	var block []string
+	inBlock := false
+	marker := fmt.Sprintf("/* %s */", entityName)
+
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		if inBlock {
+			if strings.HasPrefix(trimmed, "/*") || trimmed == "];" {
+				break
+			}
+			block = append(block, strings.TrimPrefix(line, "  "))
+		} else if trimmed == marker {
+			inBlock = true
+		}
+	}
+
+	return block
+}
+
+// injectEntityBlock update or concat body with new blocks
+func injectEntityBlock(existingContent string, entityName string, newBlock []string) string {
+	var result []string
+	inBlock := false
+	found := false
+	marker := fmt.Sprintf("/* %s */", entityName)
+
+	lines := strings.Split(existingContent, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		if inBlock {
+			if strings.HasPrefix(trimmed, "/*") || trimmed == "];" {
+				inBlock = false
+			} else {
+				continue
+			}
+		}
+
+		// Case 1 - when found
+		if !inBlock && trimmed == marker {
+			inBlock = true
+			found = true
+
+			result = append(result, "    "+marker)
+			for _, bLine := range newBlock {
+				result = append(result, "  "+bLine)
+			}
+			continue
+		}
+
+		// Case 2 - not found, create new
+		if !found && trimmed == "];" {
+			if len(result) > 0 {
+				lastIdx := len(result) - 1
+				if strings.HasSuffix(strings.TrimSpace(result[lastIdx]), "}") {
+					result[lastIdx] += ","
+				}
+			}
+
+			result = append(result, "    "+marker)
+			for _, bLine := range newBlock {
+				result = append(result, "  "+bLine)
+			}
+			found = true
+		}
+
+		if !inBlock {
+			result = append(result, line)
+		}
+	}
+
+	return strings.Join(result, "\n")
 }
 
 func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
