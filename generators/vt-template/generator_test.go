@@ -57,6 +57,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 		Convey("Check correct generate with entities", func() {
 			generator.options.Output = filepath.Join(testdata.PathActual, "vt-template", "entities")
+			// two Entities
 			generator.options.Entities = []string{"Category", "Tag"}
 
 			t.Log("Generate vt-template with entities")
