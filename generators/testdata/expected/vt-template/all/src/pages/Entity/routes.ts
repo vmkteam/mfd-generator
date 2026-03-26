@@ -93,228 +93,252 @@ export default [
             breadcrumbs: ["dashboard", "tagList", "tagAdd"]
         }
     },
-  /* City */
-  {
-    name: "cityList",
-    path: "/cities",
-    component: () =>
-      import("@/pages/Entity/City/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "cityList"]
-    }
-  },
-  {
-    name: "cityEdit",
-    path: "/cities/:id/edit",
-    component: () =>
-      import("@/pages/Entity/City/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "cityList", "cityEdit"]
-    }
-  },
-  {
-    name: "cityAdd",
-    path: "/cities/add",
-    component: () =>
-      import("@/pages/Entity/City/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "cityList", "cityAdd"]
-    }
-  },
-  /* Country */
-  {
-    name: "countryList",
-    path: "/countries",
-    component: () =>
-      import("@/pages/Entity/Country/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "countryList"]
-    }
-  },
-  {
-    name: "countryEdit",
-    path: "/countries/:id/edit",
-    component: () =>
-      import("@/pages/Entity/Country/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "countryList", "countryEdit"]
-    }
-  },
-  {
-    name: "countryAdd",
-    path: "/countries/add",
-    component: () =>
-      import("@/pages/Entity/Country/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "countryList", "countryAdd"]
-    }
-  },
-  /* Region */
-  {
-    name: "regionList",
-    path: "/regions",
-    component: () =>
-      import("@/pages/Entity/Region/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "regionList"]
-    }
-  },
-  {
-    name: "regionEdit",
-    path: "/regions/:id/edit",
-    component: () =>
-      import("@/pages/Entity/Region/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "regionList", "regionEdit"]
-    }
-  },
-  {
-    name: "regionAdd",
-    path: "/regions/add",
-    component: () =>
-      import("@/pages/Entity/Region/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "regionList", "regionAdd"]
-    }
-  },
-  /* EncryptionKey */
-  {
-    name: "encryptionKeyList",
-    path: "/encryption-keys",
-    component: () =>
-      import("@/pages/Entity/EncryptionKey/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "encryptionKeyList"]
-    }
-  },
-  {
-    name: "encryptionKeyEdit",
-    path: "/encryption-keys/:id/edit",
-    component: () =>
-      import("@/pages/Entity/EncryptionKey/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyEdit"]
-    }
-  },
-  {
-    name: "encryptionKeyAdd",
-    path: "/encryption-keys/add",
-    component: () =>
-      import("@/pages/Entity/EncryptionKey/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyAdd"]
-    }
-  },
-  /* LoginCode */
-  {
-    name: "loginCodeList",
-    path: "/login-codes",
-    component: () =>
-      import("@/pages/Entity/LoginCode/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "loginCodeList"]
-    }
-  },
-  {
-    name: "loginCodeEdit",
-    path: "/login-codes/:id/edit",
-    component: () =>
-      import("@/pages/Entity/LoginCode/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "loginCodeList", "loginCodeEdit"]
-    }
-  },
-  {
-    name: "loginCodeAdd",
-    path: "/login-codes/add",
-    component: () =>
-      import("@/pages/Entity/LoginCode/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "loginCodeList", "loginCodeAdd"]
-    }
-  },
-  /* SiteUser */
-  {
-    name: "siteUserList",
-    path: "/site-users",
-    component: () =>
-      import("@/pages/Entity/SiteUser/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "siteUserList"]
-    }
-  },
-  {
-    name: "siteUserEdit",
-    path: "/site-users/:id/edit",
-    component: () =>
-      import("@/pages/Entity/SiteUser/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "siteUserList", "siteUserEdit"]
-    }
-  },
-  {
-    name: "siteUserAdd",
-    path: "/site-users/add",
-    component: () =>
-      import("@/pages/Entity/SiteUser/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "siteUserList", "siteUserAdd"]
-    }
-  },
-  /* VfsFile */
-  {
-    name: "vfsFileList",
-    path: "/vfs-files",
-    component: () =>
-      import("@/pages/Entity/VfsFile/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList"]
-    }
-  },
-  {
-    name: "vfsFileEdit",
-    path: "/vfs-files/:id/edit",
-    component: () =>
-      import("@/pages/Entity/VfsFile/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileEdit"]
-    }
-  },
-  {
-    name: "vfsFileAdd",
-    path: "/vfs-files/add",
-    component: () =>
-      import("@/pages/Entity/VfsFile/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFileList", "vfsFileAdd"]
-    }
-  },
-  /* VfsFolder */
-  {
-    name: "vfsFolderList",
-    path: "/vfs-folders",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList"]
-    }
-  },
-  {
-    name: "vfsFolderEdit",
-    path: "/vfs-folders/:id/edit",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderEdit"]
-    }
-  },
-  {
-    name: "vfsFolderAdd",
-    path: "/vfs-folders/add",
-    component: () =>
-      import("@/pages/Entity/VfsFolder/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
-    }
-  },
+    /* City */
+    {
+        name: "cityList",
+        path: "/cities",
+        component: () =>
+            import("@/pages/Entity/City/List.vue"),
+        meta: {
+            title: "CityList",
+            breadcrumbs: ["dashboard", "cityList"]
+        }
+    },
+    {
+        name: "cityEdit",
+        path: "/cities/:id/edit",
+        component: () =>
+            import("@/pages/Entity/City/Form.vue"),
+        meta: {
+            title: "CityEdit",
+            breadcrumbs: ["dashboard", "cityList", "cityEdit"]
+        }
+    },
+    {
+        name: "cityAdd",
+        path: "/cities/add",
+        component: () =>
+            import("@/pages/Entity/City/Form.vue"),
+        meta: {
+            title: "CityAdd",
+            breadcrumbs: ["dashboard", "cityList", "cityAdd"]
+        }
+    },
+    /* Country */
+    {
+        name: "countryList",
+        path: "/countries",
+        component: () =>
+            import("@/pages/Entity/Country/List.vue"),
+        meta: {
+            title: "CountryList",
+            breadcrumbs: ["dashboard", "countryList"]
+        }
+    },
+    {
+        name: "countryEdit",
+        path: "/countries/:id/edit",
+        component: () =>
+            import("@/pages/Entity/Country/Form.vue"),
+        meta: {
+            title: "CountryEdit",
+            breadcrumbs: ["dashboard", "countryList", "countryEdit"]
+        }
+    },
+    {
+        name: "countryAdd",
+        path: "/countries/add",
+        component: () =>
+            import("@/pages/Entity/Country/Form.vue"),
+        meta: {
+            title: "CountryAdd",
+            breadcrumbs: ["dashboard", "countryList", "countryAdd"]
+        }
+    },
+    /* Region */
+    {
+        name: "regionList",
+        path: "/regions",
+        component: () =>
+            import("@/pages/Entity/Region/List.vue"),
+        meta: {
+            title: "RegionList",
+            breadcrumbs: ["dashboard", "regionList"]
+        }
+    },
+    {
+        name: "regionEdit",
+        path: "/regions/:id/edit",
+        component: () =>
+            import("@/pages/Entity/Region/Form.vue"),
+        meta: {
+            title: "RegionEdit",
+            breadcrumbs: ["dashboard", "regionList", "regionEdit"]
+        }
+    },
+    {
+        name: "regionAdd",
+        path: "/regions/add",
+        component: () =>
+            import("@/pages/Entity/Region/Form.vue"),
+        meta: {
+            title: "RegionAdd",
+            breadcrumbs: ["dashboard", "regionList", "regionAdd"]
+        }
+    },
+    /* EncryptionKey */
+    {
+        name: "encryptionKeyList",
+        path: "/encryption-keys",
+        component: () =>
+            import("@/pages/Entity/EncryptionKey/List.vue"),
+        meta: {
+            title: "EncryptionKeyList",
+            breadcrumbs: ["dashboard", "encryptionKeyList"]
+        }
+    },
+    {
+        name: "encryptionKeyEdit",
+        path: "/encryption-keys/:id/edit",
+        component: () =>
+            import("@/pages/Entity/EncryptionKey/Form.vue"),
+        meta: {
+            title: "EncryptionKeyEdit",
+            breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyEdit"]
+        }
+    },
+    {
+        name: "encryptionKeyAdd",
+        path: "/encryption-keys/add",
+        component: () =>
+            import("@/pages/Entity/EncryptionKey/Form.vue"),
+        meta: {
+            title: "EncryptionKeyAdd",
+            breadcrumbs: ["dashboard", "encryptionKeyList", "encryptionKeyAdd"]
+        }
+    },
+    /* LoginCode */
+    {
+        name: "loginCodeList",
+        path: "/login-codes",
+        component: () =>
+            import("@/pages/Entity/LoginCode/List.vue"),
+        meta: {
+            title: "LoginCodeList",
+            breadcrumbs: ["dashboard", "loginCodeList"]
+        }
+    },
+    {
+        name: "loginCodeEdit",
+        path: "/login-codes/:id/edit",
+        component: () =>
+            import("@/pages/Entity/LoginCode/Form.vue"),
+        meta: {
+            title: "LoginCodeEdit",
+            breadcrumbs: ["dashboard", "loginCodeList", "loginCodeEdit"]
+        }
+    },
+    {
+        name: "loginCodeAdd",
+        path: "/login-codes/add",
+        component: () =>
+            import("@/pages/Entity/LoginCode/Form.vue"),
+        meta: {
+            title: "LoginCodeAdd",
+            breadcrumbs: ["dashboard", "loginCodeList", "loginCodeAdd"]
+        }
+    },
+    /* SiteUser */
+    {
+        name: "siteUserList",
+        path: "/site-users",
+        component: () =>
+            import("@/pages/Entity/SiteUser/List.vue"),
+        meta: {
+            title: "SiteUserList",
+            breadcrumbs: ["dashboard", "siteUserList"]
+        }
+    },
+    {
+        name: "siteUserEdit",
+        path: "/site-users/:id/edit",
+        component: () =>
+            import("@/pages/Entity/SiteUser/Form.vue"),
+        meta: {
+            title: "SiteUserEdit",
+            breadcrumbs: ["dashboard", "siteUserList", "siteUserEdit"]
+        }
+    },
+    {
+        name: "siteUserAdd",
+        path: "/site-users/add",
+        component: () =>
+            import("@/pages/Entity/SiteUser/Form.vue"),
+        meta: {
+            title: "SiteUserAdd",
+            breadcrumbs: ["dashboard", "siteUserList", "siteUserAdd"]
+        }
+    },
+    /* VfsFile */
+    {
+        name: "vfsFileList",
+        path: "/vfs-files",
+        component: () =>
+            import("@/pages/Entity/VfsFile/List.vue"),
+        meta: {
+            title: "VfsFileList",
+            breadcrumbs: ["dashboard", "vfsFileList"]
+        }
+    },
+    {
+        name: "vfsFileEdit",
+        path: "/vfs-files/:id/edit",
+        component: () =>
+            import("@/pages/Entity/VfsFile/Form.vue"),
+        meta: {
+            title: "VfsFileEdit",
+            breadcrumbs: ["dashboard", "vfsFileList", "vfsFileEdit"]
+        }
+    },
+    {
+        name: "vfsFileAdd",
+        path: "/vfs-files/add",
+        component: () =>
+            import("@/pages/Entity/VfsFile/Form.vue"),
+        meta: {
+            title: "VfsFileAdd",
+            breadcrumbs: ["dashboard", "vfsFileList", "vfsFileAdd"]
+        }
+    },
+    /* VfsFolder */
+    {
+        name: "vfsFolderList",
+        path: "/vfs-folders",
+        component: () =>
+            import("@/pages/Entity/VfsFolder/List.vue"),
+        meta: {
+            title: "VfsFolderList",
+            breadcrumbs: ["dashboard", "vfsFolderList"]
+        }
+    },
+    {
+        name: "vfsFolderEdit",
+        path: "/vfs-folders/:id/edit",
+        component: () =>
+            import("@/pages/Entity/VfsFolder/Form.vue"),
+        meta: {
+            title: "VfsFolderEdit",
+            breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderEdit"]
+        }
+    },
+    {
+        name: "vfsFolderAdd",
+        path: "/vfs-folders/add",
+        component: () =>
+            import("@/pages/Entity/VfsFolder/Form.vue"),
+        meta: {
+            title: "VfsFolderAdd",
+            breadcrumbs: ["dashboard", "vfsFolderList", "vfsFolderAdd"]
+        }
+    },
 ];
