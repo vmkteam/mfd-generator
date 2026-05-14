@@ -38,6 +38,9 @@ type Generator struct {
 	verbose bool
 
 	printNamespaces bool
+
+	// promptNS overrides the interactive namespace prompt (used in tests).
+	promptNS func(table string, namespaces []string) (string, error)
 }
 
 // New creates generator
@@ -190,15 +193,26 @@ func (g *Generator) Generate() (err error) {
 		return nil
 	}
 
-	if g.options.Packages == nil {
-		// if options.Packages is nil check TableMapping.Packages
-		g.options.Packages = project.TableMapping.Packages()
-		// fill tables from namespaces if not set
-		if len(g.options.Tables) == 0 && len(g.options.Packages) != 0 {
+	// tableMapping is the namespace mapping from the mfd file (TableMapping section).
+	// it is consulted only when -n is not set, in combination with --quiet mode.
+	tableMapping := project.TableMapping.Packages()
+
+	// fill tables from db source when not explicitly set via -t.
+	if len(g.options.Tables) == 0 {
+		switch {
+		case g.options.Packages != nil:
+			// -n is set: read only listed tables.
 			for table := range g.options.Packages {
 				g.options.Tables = append(g.options.Tables, table)
 			}
-		} else if len(g.options.Tables) == 0 {
+		case g.options.Quiet == quietAll && len(tableMapping) > 0:
+			// quiet=all relies entirely on existing mapping/entities; no point
+			// reading tables that would be skipped anyway.
+			for table := range tableMapping {
+				g.options.Tables = append(g.options.Tables, table)
+			}
+		default:
+			// quiet=new or default: read all tables so the prompt can run for new ones.
 			g.options.Tables = []string{"public.*"}
 		}
 	}
@@ -217,6 +231,11 @@ func (g *Generator) Generate() (err error) {
 		set.Append(namespace.Name)
 	}
 
+	prompt := g.PromptNS
+	if g.promptNS != nil {
+		prompt = g.promptNS
+	}
+
 	for _, entity := range entities {
 		exiting := project.EntityByTable(entity.PGFullName)
 		if exiting != nil {
@@ -226,32 +245,43 @@ func (g *Generator) Generate() (err error) {
 		var namespace string
 
 		if g.options.Packages != nil {
-			// getting namespace from preset
+			// -n preset: strict mapping, skip everything not listed.
 			var ok bool
 			if namespace, ok = g.options.Packages[entity.PGFullName]; !ok {
 				continue
 			}
 		} else {
+			// -n is not set: consult TableMapping from mfd combined with --quiet mode.
+			mappedNS, mappedOK := tableMapping[entity.PGFullName]
+
 			switch g.options.Quiet {
 			case quietAll:
-				if exiting != nil {
+				switch {
+				case mappedOK:
+					namespace = mappedNS
+				case exiting != nil:
 					namespace = exiting.Namespace
-					break // case
+				default:
+					continue // loop
 				}
-				continue // loop
 			case quietNew:
-				if exiting != nil {
+				switch {
+				case mappedOK:
+					namespace = mappedNS
+				case exiting != nil:
 					namespace = exiting.Namespace
-					break // case
+				default:
+					if namespace, err = prompt(entity.PGFullName, set.Elements()); err != nil {
+						return fmt.Errorf("prompt namespace, err=%w", err)
+					}
+					if namespace == "skip" {
+						continue // loop
+					}
 				}
-				fallthrough // to default
 			default:
-				// asking namespace from prompt
 				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
-					// may happen only in ctrl+c
 					return fmt.Errorf("prompt namespace, err=%w", err)
 				}
-				// if user choose to skip
 				if namespace == "skip" {
 					continue // loop
 				}
