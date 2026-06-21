@@ -64,158 +64,119 @@ func TestGenerator_Generate(t *testing.T) {
 	})
 }
 
-// TestGenerator_QuietWithTableMapping checks that --quiet (-q) flag is respected
-// when -n is not set but the project already has a TableMapping section.
-// Help promises that -q is ignored only when -n is set; with -n absent,
-// -q new must still prompt for tables that are missing from the mapping.
-func TestGenerator_QuietWithTableMapping(t *testing.T) {
-	dbdsn, exists := os.LookupEnv("DB_DSN")
-	if !exists {
-		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
+// TestDecideNamespace checks the pure namespace-resolution logic that drives
+// --quiet (-q) and --namespaces (-n). It replaces the previous DB-backed test
+// that swapped an interactive-prompt seam on the Generator: every invariant the
+// seam used to verify (which tables are mapped, skipped or prompted, and that -n
+// overrides -q/TableMapping) is now asserted directly, with no DB and no mocks.
+func TestDecideNamespace(t *testing.T) {
+	// tableMapping mirrors a project where news/categories/tags are pre-mapped to "portal".
+	tableMapping := map[string]string{
+		"news":       "portal",
+		"categories": "portal",
+		"tags":       "portal",
 	}
 
-	customTypes := model.CustomTypeMapping{"uuid": {
-		PGType:   "uuid",
-		GoType:   "uuid.UUID",
-		GoImport: "github.com/google/uuid",
-	}}
-
-	seedMFD := func(t *testing.T, entries ...mfd.Entry) string {
-		t.Helper()
-		mfdPath := filepath.Join(t.TempDir(), testdata.FilenameMFD)
-		project := mfd.NewProject(testdata.FilenameMFD, mfd.GoPG10)
-		project.TableMapping = mfd.TableMapping{Entries: entries}
-		So(mfd.SaveMFD(mfdPath, project), ShouldBeNil)
-		return mfdPath
+	tests := []struct {
+		name        string
+		opts        Options
+		table       string
+		existingNS  string
+		hasExisting bool
+		wantNS      string
+		wantAction  nsAction
+	}{
+		{
+			name:       "-q new: mapped table is assigned silently",
+			opts:       Options{Quiet: quietNew},
+			table:      "news",
+			wantNS:     "portal",
+			wantAction: nsAssign,
+		},
+		{
+			name:        "-q new: unmapped table already in project keeps its namespace",
+			opts:        Options{Quiet: quietNew},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantNS:      "blog",
+			wantAction:  nsAssign,
+		},
+		{
+			name:       "-q new: brand new table must be prompted",
+			opts:       Options{Quiet: quietNew},
+			table:      "vfsFiles",
+			wantAction: nsPrompt,
+		},
+		{
+			name:       "-q all: mapped table is assigned",
+			opts:       Options{Quiet: quietAll},
+			table:      "news",
+			wantNS:     "portal",
+			wantAction: nsAssign,
+		},
+		{
+			name:        "-q all: unmapped table already in project keeps its namespace",
+			opts:        Options{Quiet: quietAll},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantNS:      "blog",
+			wantAction:  nsAssign,
+		},
+		{
+			name:       "-q all: unmapped new table is skipped",
+			opts:       Options{Quiet: quietAll},
+			table:      "vfsFolders",
+			wantAction: nsSkip,
+		},
+		{
+			name:       "-n: listed table is assigned",
+			opts:       Options{Packages: map[string]string{"encryptionKeys": "custom"}},
+			table:      "encryptionKeys",
+			wantNS:     "custom",
+			wantAction: nsAssign,
+		},
+		{
+			name:       "-n: table missing from preset is skipped",
+			opts:       Options{Packages: map[string]string{"encryptionKeys": "custom"}},
+			table:      "vfsFolders",
+			wantAction: nsSkip,
+		},
+		{
+			name:       "-n overrides TableMapping",
+			opts:       Options{Quiet: quietNew, Packages: map[string]string{"news": "custom"}},
+			table:      "news",
+			wantNS:     "custom",
+			wantAction: nsAssign,
+		},
+		{
+			name:       "default (no -q/-n): new table is prompted",
+			opts:       Options{},
+			table:      "news",
+			wantAction: nsPrompt,
+		},
+		{
+			name:        "default (no -q/-n): even an existing table is prompted",
+			opts:        Options{},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantAction:  nsPrompt,
+		},
 	}
 
-	// fakePrompt mirrors PromptNS behaviour for special tables but routes the rest
-	// to the supplied namespace, recording every call.
-	fakePrompt := func(target string, prompted map[string]struct{}) func(string, []string) (string, error) {
-		return func(table string, _ []string) (string, error) {
-			prompted[table] = struct{}{}
-			if table == "statuses" {
-				return "skip", nil
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotNS, gotAction := decideNamespace(tt.opts, tableMapping, tt.table, tt.existingNS, tt.hasExisting)
+			if gotAction != tt.wantAction {
+				t.Errorf("action = %d, want %d", gotAction, tt.wantAction)
 			}
-			return target, nil
-		}
+			if gotNS != tt.wantNS {
+				t.Errorf("namespace = %q, want %q", gotNS, tt.wantNS)
+			}
+		})
 	}
-
-	Convey("TestGenerator_QuietWithTableMapping", t, func() {
-		Convey("-q new prompts only for tables outside TableMapping", func() {
-			mfdPath := seedMFD(t, mfd.Entry{
-				XMLName: xml.Name{Local: "portal"},
-				Value:   "news,categories,tags",
-			})
-
-			prompted := map[string]struct{}{}
-			generator := New()
-			generator.options.URL = dbdsn
-			generator.options.Output = mfdPath
-			generator.options.GoPgVer = mfd.GoPG10
-			generator.options.Quiet = quietNew
-			generator.options.CustomTypes = customTypes
-			generator.promptNS = fakePrompt("other", prompted)
-
-			t.Log("Generate xml with -q new and a pre-seeded TableMapping")
-			So(generator.Generate(), ShouldBeNil)
-
-			// mapped tables must be assigned silently — no prompt
-			So(prompted, ShouldNotContainKey, "news")
-			So(prompted, ShouldNotContainKey, "categories")
-			So(prompted, ShouldNotContainKey, "tags")
-			// new tables must trigger the prompt
-			So(prompted, ShouldContainKey, "vfsFiles")
-			So(prompted, ShouldContainKey, "countries")
-
-			generated, err := mfd.LoadProject(mfdPath, false, mfd.GoPG10)
-			So(err, ShouldBeNil)
-
-			portal := generated.Namespace("portal")
-			So(portal, ShouldNotBeNil)
-			So(portal.EntityByTable("news"), ShouldNotBeNil)
-			So(portal.EntityByTable("categories"), ShouldNotBeNil)
-			So(portal.EntityByTable("tags"), ShouldNotBeNil)
-
-			other := generated.Namespace("other")
-			So(other, ShouldNotBeNil)
-			So(other.EntityByTable("vfsFiles"), ShouldNotBeNil)
-			So(other.EntityByTable("countries"), ShouldNotBeNil)
-		})
-
-		Convey("-q all with TableMapping keeps mapping and skips unmapped tables", func() {
-			// encryptionKeys has no FK on other regular entities (only on the statuses
-			// enum-table), so it can be mapped on its own without breaking IsConsistent;
-			// vfsFolders is read but stays unmapped to exercise the skip path.
-			mfdPath := seedMFD(t, mfd.Entry{
-				XMLName: xml.Name{Local: "card"},
-				Value:   "encryptionKeys",
-			})
-
-			promptCalls := 0
-			generator := New()
-			generator.options.URL = dbdsn
-			generator.options.Output = mfdPath
-			generator.options.Tables = []string{"public.encryptionKeys", "public.vfsFolders"}
-			generator.options.GoPgVer = mfd.GoPG10
-			generator.options.Quiet = quietAll
-			generator.options.CustomTypes = customTypes
-			generator.promptNS = func(string, []string) (string, error) {
-				promptCalls++
-				return "", nil
-			}
-
-			t.Log("Generate xml with -q all and a pre-seeded TableMapping")
-			So(generator.Generate(), ShouldBeNil)
-			So(promptCalls, ShouldEqual, 0)
-
-			generated, err := mfd.LoadProject(mfdPath, false, mfd.GoPG10)
-			So(err, ShouldBeNil)
-
-			card := generated.Namespace("card")
-			So(card, ShouldNotBeNil)
-			So(card.EntityByTable("encryptionKeys"), ShouldNotBeNil)
-
-			// unmapped table must not leak into the project under -q all
-			So(generated.EntityByTable("vfsFolders"), ShouldBeNil)
-		})
-
-		Convey("-n preset still ignores -q (help contract)", func() {
-			// seed TableMapping that points encryptionKeys at "portal" — if -q won
-			// over -n, encryptionKeys would land in "portal".
-			mfdPath := seedMFD(t, mfd.Entry{
-				XMLName: xml.Name{Local: "portal"},
-				Value:   "encryptionKeys",
-			})
-
-			promptCalls := 0
-			generator := New()
-			generator.options.URL = dbdsn
-			generator.options.Output = mfdPath
-			generator.options.GoPgVer = mfd.GoPG10
-			generator.options.Quiet = quietNew
-			generator.options.CustomTypes = customTypes
-			// -n must take precedence and place encryptionKeys into "custom"
-			generator.options.Packages = parseNamespacesFlag("custom:encryptionKeys")
-			generator.promptNS = func(string, []string) (string, error) {
-				promptCalls++
-				return "", nil
-			}
-
-			t.Log("Generate xml with -n set and -q new together")
-			So(generator.Generate(), ShouldBeNil)
-			So(promptCalls, ShouldEqual, 0)
-
-			generated, err := mfd.LoadProject(mfdPath, false, mfd.GoPG10)
-			So(err, ShouldBeNil)
-
-			custom := generated.Namespace("custom")
-			So(custom, ShouldNotBeNil)
-			So(custom.EntityByTable("encryptionKeys"), ShouldNotBeNil)
-			// TableMapping must be overridden by -n
-			So(generated.Namespace("portal"), ShouldBeNil)
-		})
-	})
 }
 
 func helperLoadBytes(t *testing.T, path string) []byte {
