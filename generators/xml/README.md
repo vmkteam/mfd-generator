@@ -17,22 +17,36 @@ mfd-generator xml -h
 Create or update project base with namespaces and entities
 
 Usage:
-  mfd xml [flags]
+  mfd-generator xml [flags]
 
 Flags:
-  -v, --verbose             print sql queries
-  -c, --conn string         connection string to postgres database, e.g. postgres://usr:pwd@localhost:5432/db
-  -m, --mfd string          mfd file path
-  -t, --tables strings      table names for model generation separated by comma
-                            use 'schema_name.*' to generate model for every table in model (default [public.*])
-  -n, --namespaces string   use this parameter to set table & namespace in format "users=users,projects;shop=orders,prices"
-  -p, --print               print namespace - tables association
-  -h, --help                help for xml
+  -v, --verbose                print sql queries
+  -c, --conn string            connection string to postgres database, e.g. postgres://usr:pwd@localhost:5432/db
+  -m, --mfd string             mfd file path
+  -t, --tables strings         table names for model generation separated by comma
+                               use 'schema_name.*' to generate model for every table in model
+  -n, --namespaces string      use this parameter to set table & namespace in format "users=users,projects;shop=orders,prices"
+  -g, --gopgver int            go-pg version (default 9)
+  -q, --quiet string           quiet mode. ignored when --namespaces (-n) flag is set. possible values:
+                               - all - will use namespace entity mapping from mfd, entities not present in mfd file will be ignored
+                               - new - generator will prompt namespace for entities not present in mfd file
+      --custom-types strings   set custom types separated by comma
+                               format: <postgresql_type>:<go_import>.<go_type>
+                               examples: uuid:github.com/google/uuid.UUID,point:src/model.Point,bytea:string
+
+  -p, --print                  print namespace - tables association
+  -h, --help                   help for xml
 ```
   
 `-t, --tables` - позволяет вводить исходные таблицы для генератора через запятую, если не указана схема для таблицы, то будет использоваться public.   
 `*` - для генерирования всех таблиц в схеме, например: `public.*,geo.locations,geo.cities`      
 `-n, --namespaces` - сайлент-режим, позволяет задать ассоциацию неймспейс - таблица. Формат; `namespace1=table1,table2;namespace2=table3,table4`, флаг имеет приоритет над внутренней таблицей TableMapping в заполнении Packages 
+`-q, --quiet` - тихий режим: позволяет запускать генерацию без интерактивного выбора неймспейсов. Игнорируется, если задан `-n, --namespaces`. Если `-n` не задан, режим работает вместе с `TableMapping` из mfd файла. Возможные значения:
+- `all` - берёт неймспейсы только из `TableMapping` и из уже существующих в проекте сущностей. Таблицы, которых там нет, пропускаются и в проект не добавляются. Ничего не спрашивает.
+- `new` - тоже берёт неймспейсы из `TableMapping` и существующих сущностей, но для новых таблиц (которых нет ни в маппинге, ни в проекте) спрашивает неймспейс интерактивно.
+
+Если не задан ни `-q`, ни `-n`, генератор спрашивает неймспейс для каждой таблицы. Для `-q new` без явного `-t` читаются все таблицы (`public.*`) — иначе для новых таблиц не у чего было бы спросить неймспейс.
+
 `-p, --print` - на основе загруженного проекта выводит ассоциации неймспейс - таблица в формате, подходящем для флага `-n, --namespaces`. Не запускает генератор    
  
 ### MFD файл
