@@ -168,6 +168,54 @@ func parseNamespacesFlag(v string) map[string]string {
 	return mp
 }
 
+type nsAction int
+
+const (
+	nsAssign nsAction = iota // namespace is decided — use it as is
+	nsSkip                   // table must be skipped
+	nsPrompt                 // namespace must be asked interactively
+)
+
+// decideNamespace resolves the target namespace for a table from the configured
+// mode (-n / -q), the mfd TableMapping and the existing project state. It performs
+// no IO: nsPrompt signals that the caller must ask the user interactively.
+func decideNamespace(opts Options, tableMapping map[string]string, table, existingNS string, hasExisting bool) (string, nsAction) {
+	// -n preset: strict mapping, skip everything not listed.
+	if opts.Packages != nil {
+		if ns, ok := opts.Packages[table]; ok {
+			return ns, nsAssign
+		}
+		return "", nsSkip
+	}
+
+	// -n is not set: consult TableMapping from mfd combined with --quiet mode.
+	mappedNS, mappedOK := tableMapping[table]
+
+	switch opts.Quiet {
+	case quietAll:
+		switch {
+		case mappedOK:
+			return mappedNS, nsAssign
+		case hasExisting:
+			return existingNS, nsAssign
+		default:
+			return "", nsSkip
+		}
+	case quietNew:
+		switch {
+		case mappedOK:
+			return mappedNS, nsAssign
+		case hasExisting:
+			return existingNS, nsAssign
+		default:
+			return "", nsPrompt
+		}
+	default:
+		// no --quiet: prompt for every table.
+		return "", nsPrompt
+	}
+}
+
 // Generate runs generator
 func (g *Generator) Generate() (err error) {
 	var logger *log.Logger
@@ -190,15 +238,26 @@ func (g *Generator) Generate() (err error) {
 		return nil
 	}
 
-	if g.options.Packages == nil {
-		// if options.Packages is nil check TableMapping.Packages
-		g.options.Packages = project.TableMapping.Packages()
-		// fill tables from namespaces if not set
-		if len(g.options.Tables) == 0 && len(g.options.Packages) != 0 {
+	// tableMapping is the namespace mapping from the mfd file (TableMapping section).
+	// it is consulted only when -n is not set, in combination with --quiet mode.
+	tableMapping := project.TableMapping.Packages()
+
+	// fill tables from db source when not explicitly set via -t.
+	if len(g.options.Tables) == 0 {
+		switch {
+		case g.options.Packages != nil:
+			// -n is set: read only listed tables.
 			for table := range g.options.Packages {
 				g.options.Tables = append(g.options.Tables, table)
 			}
-		} else if len(g.options.Tables) == 0 {
+		case g.options.Quiet == quietAll && len(tableMapping) > 0:
+			// quiet=all relies entirely on existing mapping/entities; no point
+			// reading tables that would be skipped anyway.
+			for table := range tableMapping {
+				g.options.Tables = append(g.options.Tables, table)
+			}
+		default:
+			// quiet=new or default: read all tables so the prompt can run for new ones.
 			g.options.Tables = []string{"public.*"}
 		}
 	}
@@ -211,58 +270,8 @@ func (g *Generator) Generate() (err error) {
 		return fmt.Errorf("read database, err=%w", err)
 	}
 
-	set := mfd.NewSet()
-	// filling set
-	for _, namespace := range project.Namespaces {
-		set.Append(namespace.Name)
-	}
-
-	for _, entity := range entities {
-		exiting := project.EntityByTable(entity.PGFullName)
-		if exiting != nil {
-			set.Prepend(exiting.Namespace)
-		}
-
-		var namespace string
-
-		if g.options.Packages != nil {
-			// getting namespace from preset
-			var ok bool
-			if namespace, ok = g.options.Packages[entity.PGFullName]; !ok {
-				continue
-			}
-		} else {
-			switch g.options.Quiet {
-			case quietAll:
-				if exiting != nil {
-					namespace = exiting.Namespace
-					break // case
-				}
-				continue // loop
-			case quietNew:
-				if exiting != nil {
-					namespace = exiting.Namespace
-					break // case
-				}
-				fallthrough // to default
-			default:
-				// asking namespace from prompt
-				if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
-					// may happen only in ctrl+c
-					return fmt.Errorf("prompt namespace, err=%w", err)
-				}
-				// if user choose to skip
-				if namespace == "skip" {
-					continue // loop
-				}
-			}
-		}
-
-		// adding to set
-		set.Prepend(namespace)
-
-		// adding to project
-		project.AddEntity(namespace, PackEntity(namespace, entity, exiting, addedCustomTypes))
+	if err = g.fillNamespaces(project, entities, addedCustomTypes); err != nil {
+		return err
 	}
 
 	// suggesting searches && fk links
@@ -284,6 +293,51 @@ func (g *Generator) Generate() (err error) {
 	}
 
 	return mfd.SaveProjectXML(g.options.Output, project)
+}
+
+// fillNamespaces resolves a namespace for every entity read from the database
+// (prompting the user when decideNamespace requires it) and adds it to the project.
+func (g *Generator) fillNamespaces(project *mfd.Project, entities []model.Entity, addedCustomTypes mfd.CustomTypes) (err error) {
+	tableMapping := project.TableMapping.Packages()
+
+	set := mfd.NewSet()
+	// filling set
+	for _, namespace := range project.Namespaces {
+		set.Append(namespace.Name)
+	}
+
+	for _, entity := range entities {
+		exiting := project.EntityByTable(entity.PGFullName)
+		existingNS := ""
+		if exiting != nil {
+			existingNS = exiting.Namespace
+			set.Prepend(exiting.Namespace)
+		}
+
+		namespace, action := decideNamespace(g.options, tableMapping, entity.PGFullName, existingNS, exiting != nil)
+		switch action {
+		case nsSkip:
+			continue // loop
+		case nsPrompt:
+			// asking namespace from prompt
+			if namespace, err = g.PromptNS(entity.PGFullName, set.Elements()); err != nil {
+				// may happen only in ctrl+c
+				return fmt.Errorf("prompt namespace, err=%w", err)
+			}
+			// if user choose to skip
+			if namespace == "skip" {
+				continue // loop
+			}
+		}
+
+		// adding to set
+		set.Prepend(namespace)
+
+		// adding to project
+		project.AddEntity(namespace, PackEntity(namespace, entity, exiting, addedCustomTypes))
+	}
+
+	return nil
 }
 
 // PromptNS prompting namespace in console
