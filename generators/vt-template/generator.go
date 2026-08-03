@@ -178,17 +178,17 @@ func (g *Generator) Generate() error {
 				continue
 			}
 
-			if err := g.SaveEntity(*entity, "List.vue", listTemplate); err != nil {
+			if err := g.SaveEntity(*entity, "List.vue", listTemplate, project.VTComposition); err != nil {
 				return fmt.Errorf("generate entity %s list, err=%w", entity.Name, err)
 			}
 
-			if err := g.SaveEntity(*entity, "components/MultiListFilters.vue", filterTemplate); err != nil {
+			if err := g.SaveEntity(*entity, "components/MultiListFilters.vue", filterTemplate, project.VTComposition); err != nil {
 				return fmt.Errorf("generate entity %s filters, err=%w", entity.Name, err)
 			}
 
 			// do not generate form on
 			if entity.Mode != mfd.ModeReadOnlyWithTemplates {
-				if err := g.SaveEntity(*entity, "Form.vue", formTemplate); err != nil {
+				if err := g.SaveEntity(*entity, "Form.vue", formTemplate, project.VTComposition); err != nil {
 					return fmt.Errorf("generate entity %s form, err=%w", entity.Name, err)
 				}
 			}
@@ -244,7 +244,7 @@ func (g *Generator) getTargetEntities(project *mfd.Project) []string {
 }
 
 // SaveEntity saves vt entity to template with special delims
-func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
+func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string, composition bool) error {
 	parsed, err := template.New("base").
 		Delims("[[", "]]").
 		Funcs(mfd.TemplateFunctions).
@@ -253,7 +253,7 @@ func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
 		return fmt.Errorf("parsing template, err=%w", err)
 	}
 
-	packed := PackEntity(entity)
+	packed := PackEntity(entity, composition)
 
 	var buffer bytes.Buffer
 	if err := parsed.ExecuteTemplate(&buffer, "base", packed); err != nil {

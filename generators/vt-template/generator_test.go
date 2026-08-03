@@ -174,6 +174,65 @@ func TestGenerator_GenerateComposition(t *testing.T) {
 	})
 }
 
+func TestGenerator_ModelAccessPrefix(t *testing.T) {
+	dir := filepath.Dir(testdata.PathExpectedMFD)
+
+	// buildMediaMFD writes a temp mfd next to the media/vfs namespace files so
+	// LoadProject can resolve them; VTComposition drives the access prefix.
+	buildMediaMFD := func(composition bool) string {
+		p := mfd.NewProject("media.mfd", mfd.GoPG10)
+		p.NamespaceNames = []string{"media", "vfs"}
+		p.VTComposition = composition
+		name := "media.default.gen.mfd"
+		if composition {
+			name = "media.composition.gen.mfd"
+		}
+		mfdPath := filepath.Join(dir, name)
+		if err := mfd.SaveMFD(mfdPath, p); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Remove(mfdPath) })
+		return mfdPath
+	}
+
+	generateForm := func(composition bool) (string, error) {
+		out := filepath.Join(testdata.PathActual, "vt-template", "media")
+		if composition {
+			out += "-composition"
+		}
+		_ = os.RemoveAll(out)
+
+		generator := New()
+		generator.options.Output = out
+		generator.options.MFDPath = buildMediaMFD(composition)
+		generator.options.Namespaces = []string{"media"}
+		if err := generator.Generate(); err != nil {
+			return "", err
+		}
+
+		content, err := os.ReadFile(filepath.Join(out, "src", "pages", "Entity", "Page", "Form.vue"))
+		return string(content), err
+	}
+
+	Convey("model access prefix depends on VTComposition", t, func() {
+		Convey("default class-based templates use store.model.", func() {
+			form, err := generateForm(false)
+			So(err, ShouldBeNil)
+			So(form, ShouldContainSubstring, `:value-for-transliterating="store.model.title"`)
+			So(form, ShouldContainSubstring, `:file="store.model.`)
+			So(form, ShouldNotContainSubstring, `:value-for-transliterating="model.`)
+		})
+
+		Convey("composition templates use model.", func() {
+			form, err := generateForm(true)
+			So(err, ShouldBeNil)
+			So(form, ShouldContainSubstring, `:value-for-transliterating="model.title"`)
+			So(form, ShouldContainSubstring, `:file="model.`)
+			So(form, ShouldNotContainSubstring, `store.model.`)
+		})
+	})
+}
+
 func fullFilesPaths(path string) ([]string, error) {
 	files, err := os.ReadDir(path)
 	if err != nil {
