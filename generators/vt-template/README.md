@@ -25,9 +25,18 @@ Flags:
   -o, --output string        output dir path
   -m, --mfd string           mfd file path
   -n, --namespaces strings   namespaces to generate. separate by comma
+  -e, --entities strings     entities to generate, must be in vt.xml file. separate by comma
   -h, --help                 help for template
 
 ```
+
+#### Шаблоны
+
+Встроенные шаблоны существуют в двух вариантах:
+- **default** (по умолчанию) — class-based компоненты на `vue-property-decorator` + `mobx-vue`.
+- **Composition API** — генерирует компоненты через `defineComponent`/`setup` и подключает composables (`useEntityList`, `useEntityForm`, `useI18n`), которые должны существовать во фронтенд-проекте (`@/composables/...`); в `routes.ts` добавляется поле `meta.title`.
+
+Выбор варианта задаётся на уровне проекта в mfd-файле . В корневом `<Project>` добавьте элемент `<VTComposition>true</VTComposition>` — при его наличии используются Composition API шаблоны. Если элемент отсутствует или `false`, используются default class-based шаблоны.
 
 #### MODE
 
@@ -36,6 +45,12 @@ Flags:
 - "ReadOnlyWithTemplates" - все файлы в read-only режиме, Form.vue генерироваться не будет
 - "None" - файлы генерироваться не будут
 
+#### Частичная генерация
+
+Флаги `-n --namespaces` и `-e --entities` ограничивают набор сущностей, для которых генерируются файлы. Если ни один из них не указан, обрабатываются все неймспейсы и сущности.
+
+При частичной генерации `routes.ts` обновляется точечно: перезаписываются только блоки указанных сущностей (по маркеру `/* EntityName */`), остальная часть файла сохраняется. Если целевой сущности в файле ещё нет — её блок дописывается в конец. При полной генерации (без `-n`/`-e`) `routes.ts` перезаписывается целиком.
+
 #### Особенности работы с существующими моделями
 
-Все файлы будут перезаписаны при каждой генерации.
+Файлы сущностей (`List.vue`, `Form.vue`, `MultiListFilters.vue`, переводы) перезаписываются при каждой генерации. Исключение — `routes.ts` при частичной генерации (см. выше).

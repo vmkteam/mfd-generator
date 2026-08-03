@@ -18,26 +18,27 @@
               <v-flex>
                 <v-layout align-center>
                   <h2 class="ellipsed mr-1">
-                    {{ t("tag.list.title") }}
+                    {{ $t("tag.list.title") }}
                   </h2>
                   <span
-                    v-if="pagination.totalItems"
+                    v-if="store.pagination.totalItems"
                     class="text--secondary subtitle-2"
                   >
-                    {{ pagination.totalItems }}
+                    {{ store.pagination.totalItems }}
                   </span>
                 </v-layout>
               </v-flex>
               <v-spacer />
               <v-flex shrink>
                 <v-btn
-                  small
                   dark
                   color="success"
                   :to="{ name: 'tagAdd' }"
                 >
-                  <v-icon>add</v-icon>
-                  {{ t("common.list.addNewLabel") }}
+                  <v-icon left>
+                    add
+                  </v-icon>
+                  {{ $t("common.list.addNewLabel") }}
                 </v-btn>
               </v-flex>
             </v-layout>
@@ -63,9 +64,9 @@
                     mr-sm-2
                   >
                     <v-text-field
-                      v-model="filters.title"
+                      v-model="store.filters.title"
                       :placeholder="
-                        t('tag.list.filter.quickFilterPlaceholder')
+                        $t('tag.list.filter.quickFilterPlaceholder')
                       "
                       hide-details
                       @keyup.enter.native="submitFilters()"
@@ -77,10 +78,9 @@
                     mr-sm-10
                   >
                     <multi-filters
-                      :filters="filters"
-                      :active-filters="activeFilters"
+                      :filters="store.filters"
+                      :active-filters="store.activeFilters"
                       @submitFilters="submitFilters"
-                      @update:filters="updateFilters"
                     />
                   </v-flex>
                   <v-flex
@@ -88,8 +88,8 @@
                     mt-sm-4
                   >
                     <vt-compact-pagination
-                      :value="pagination.page"
-                      :total-pages="pagination.totalPages"
+                      :value="store.pagination.page"
+                      :total-pages="store.pagination.totalPages"
                       @input="setCompactPagination"
                     />
                   </v-flex>
@@ -100,9 +100,9 @@
               <v-data-table
                 v-model="selected"
                 :headers="headers"
-                :items="list"
-                :options="vuetifyTableOptions"
-                :server-items-length="pagination.totalItems"
+                :items="store.list"
+                :options="store.vuetifyTableOptions"
+                :server-items-length="store.pagination.totalItems"
                 item-key="id"
                 :footer-props="{
                   itemsPerPageOptions: [10, 25, 50, 100, 500]
@@ -116,7 +116,7 @@
                   }
                 ]"
                 :show-select="false"
-                :loading="isLoading"
+                :loading="store.isLoading"
                 fixed-header
                 @update:options="setPagination"
               >
@@ -161,72 +161,44 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
-import { TagSummary, TagSearch } from '@/services/api/factory';
-import { useEntityList } from '@/composables/useEntityList';
-import { useI18n } from '@/composables/useI18n';
-
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
+import EntityList from '@/common/Entity/EntityList';
+import Store from '@/common/Entity/EntityCollectionStore';
+import {
+  TagSummary as Model,
+  TagSearch as SearchModel
+} from '@/services/api/factory';
 import MultiFilters from './components/MultiListFilters.vue';
 
-export default defineComponent({
-  // eslint-disable-next-line vue/multi-word-component-names
+@Observer
+@Component({
   name: 'List',
-  components: { MultiFilters },
+  components: { MultiFilters }
+})
+export default class List extends EntityList {
+  store: Store = new Store(Model, SearchModel);
 
-  setup () {
-    const { t } = useI18n();
-
-    const {
-      selected,
-      pagination,
-      filters,
-      activeFilters,
-      list,
-      isLoading,
-      vuetifyTableOptions,
-      deleteItem,
-      submitFilters,
-      setCompactPagination,
-      setPagination,
-      updateFilters
-    } = useEntityList(TagSummary, TagSearch);
-
-    const headers = computed(() => [
+  get headers () {
+    return [
       {
-        text: t('tag.list.headers.title'),
+        text: this.$t('tag.list.headers.title'),
         value: 'title',
         align: 'left'
       },
       {
-        text: t('tag.list.headers.status'),
+        text: this.$t('tag.list.headers.status'),
         value: 'status',
         sortable: false
       },
       {
-        text: t('tag.list.headers.actions'),
+        text: this.$t('tag.list.headers.actions'),
         value: 'id',
         sortable: false
       }
-    ]);
-
-    return {
-      t,
-      selected,
-      pagination,
-      filters,
-      activeFilters,
-      list,
-      isLoading,
-      vuetifyTableOptions,
-      deleteItem,
-      submitFilters,
-      setCompactPagination,
-      setPagination,
-      updateFilters,
-      headers
-    };
+    ];
   }
-});
+}
 </script>
 
 <style lang="scss"></style>

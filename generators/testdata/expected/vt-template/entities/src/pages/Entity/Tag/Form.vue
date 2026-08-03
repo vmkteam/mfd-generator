@@ -15,7 +15,7 @@
         >
           <v-flex>
             <h2 class="ellipsed">
-              {{ model.title || "..." }}
+              {{ store.model.title || "..." }}
             </h2>
           </v-flex>
           <v-spacer />
@@ -23,7 +23,7 @@
             <v-btn
               text
               color="primary"
-              :disabled="isLoading"
+              :disabled="store.isLoading"
               @click.stop="navigateBack"
             >
               <v-icon
@@ -32,7 +32,7 @@
                 arrow_back
               </v-icon>
               <template v-if="!$vuetify.breakpoint.xsOnly">
-                {{ t("common.form.cancelButtonLabel") }}
+                {{ $t("common.form.cancelButtonLabel") }}
               </template>
             </v-btn>
             <v-hover
@@ -61,7 +61,7 @@
             Основные
           </v-tab>
         </v-tabs>
-        <v-card v-if="model">
+        <v-card v-if="store.model">
           <v-form
             ref="form"
             @submit.prevent="onSaveAndBack"
@@ -71,19 +71,19 @@
                 <v-tab-item eager>
                   <!--  generated part -->
                   <vt-form-field
-                    v-model="model.title"
+                    v-model="store.model.title"
                     component="v-text-field"
-                    :label="t('tag.form.titleLabel')"
-                    :error-messages="getErrorMessage(errors.title)"
-                    :disabled="isLoading"
+                    :label="$t('tag.form.titleLabel')"
+                    :error-messages="$t(i18nFieldError(store.errors.title))"
+                    :disabled="store.isLoading"
                     placeholder=""
                     required
                   /><vt-form-field
-                    v-model="model.statusId"
+                    v-model="store.model.statusId"
                     component="vt-status-select"
-                    :label="t('tag.form.statusIdLabel')"
-                    :error-messages="getErrorMessage(errors.statusId)"
-                    :disabled="isLoading"
+                    :label="$t('tag.form.statusIdLabel')"
+                    :error-messages="$t(i18nFieldError(store.errors.statusId))"
+                    :disabled="store.isLoading"
                     placeholder=""
                     required
                     compact
@@ -103,21 +103,21 @@
                     <v-btn
                       type="submit"
                       color="success"
-                      :disabled="!isChanged || isLoading"
-                      :loading="isLoading"
+                      :disabled="!store.isChanged || store.isLoading"
+                      :loading="store.isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="!$vuetify.breakpoint.xsOnly && 'mx-2'"
                     >
                       <v-icon left>
                         done
                       </v-icon>
-                      {{ t("common.form.saveAndCloseButtonLabel") }}
+                      {{ $t("common.form.saveAndCloseButtonLabel") }}
                     </v-btn>
 
                     <v-btn
                       v-if="$route.params.id"
-                      :disabled="!isChanged || isLoading"
-                      :loading="isLoading"
+                      :disabled="!store.isChanged || store.isLoading"
+                      :loading="store.isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="[
                         $vuetify.breakpoint.xsOnly && 'ml-0 mt-2',
@@ -127,7 +127,7 @@
                       color="accent"
                       @click.stop="onSave"
                     >
-                      {{ t("common.form.saveButtonLabel") }}
+                      {{ $t("common.form.saveButtonLabel") }}
                     </v-btn>
                     <v-spacer />
                   </v-layout>
@@ -142,58 +142,17 @@
 </template>
 
 <script lang="ts">
-import { useEntityForm } from '@/composables/useEntityForm';
-import { useI18n } from '@/composables/useI18n'
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
 import { Tag as Model } from '@/services/api/factory';
-import { defineComponent } from 'vue';
+import Store from '@/common/Entity/EntityModelStore';
+import EntityForm from '@/common/Entity/EntityForm';
 
-export default defineComponent({
-  // eslint-disable-next-line vue/match-component-file-name
-  name: 'TagForm',
-
-  setup () {
-    const { t } = useI18n();
-
-    const {
-      tab,
-      form,
-      model,
-      errors,
-      isLoading,
-      isChanged,
-      i18nFieldError,
-      tabsHasError,
-
-      onSave,
-      onDelete,
-      navigateBack,
-      onSaveAndBack
-    } = useEntityForm<Model>({ Model} );
-
-	const getErrorMessage = (errorKey: string | null): string => {
-      const errorMessage = i18nFieldError(errorKey);
-      return errorMessage ? t(errorMessage) : '';
-    };
-
-    return {
-      t,
-      tab,
-      form,
-      model,
-      errors,
-      isLoading,
-      isChanged,
-      i18nFieldError,
-      tabsHasError,
-      getErrorMessage,
-
-      onSave,
-      onDelete,
-      navigateBack,
-      onSaveAndBack
-    };
-  }
-});
+@Observer
+@Component
+export default class Form extends EntityForm {
+  store: Store<Model> = new Store<Model>(Model);
+}
 </script>
 
 <style scoped></style>

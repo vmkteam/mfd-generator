@@ -1,0 +1,30 @@
+{
+    "breadcrumbs": {
+        "categoryAdd": "Add",
+        "categoryEdit": "Edit",
+        "categoryList": "Categories"
+    },
+    "category": {
+        "form": {
+            "orderNumberLabel": "Order Number",
+            "statusIdLabel": "Status",
+            "titleLabel": "Title"
+        },
+        "list": {
+            "title": "Categories",
+            "filter": {
+                "ids": "Ids",
+                "orderNumber": "Order Number",
+                "quickFilterPlaceholder": "",
+                "statusId": "Status",
+                "title": "Title"
+            },
+            "headers": {
+                "actions": "Actions",
+                "orderNumber": "Order Number",
+                "status": "Status",
+                "title": "Title"
+            }
+        }
+    }
+}

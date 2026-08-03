@@ -1,43 +1,26 @@
 <template>
-  <vt-new-multi-filter
+  <vt-multi-filter
     :items="filterItems"
     :filters="filters"
     autofocus
-    :label="t('common.list.filter.title')"
+    :label="$t('common.list.filter.title')"
     @submitFilters="$emit('submitFilters')"
-    @update:filters="$emit('update:filters', $event)"
   />
 </template>
 
 <script lang="ts">
-import { IFilterItem } from '@/common/MultiFilter/types';
-import { useI18n } from '@/composables/useI18n';
-import { defineComponent } from 'vue';
+import { Component } from 'vue-property-decorator';
+import { Observer } from 'mobx-vue';
+import EntityListFilters from '@/common/Entity/EntityListFilters';
 
-export default defineComponent({
-  name: 'MultiListFilters',
-
-  props: {
-    filters: {
-      type: Object,
-      required: true
-    },
-    activeFilters: {
-      type: Object,
-      required: true
-    }
-  },
-
-  emits: ['submitFilters', 'update:filters'],
-
-  setup () {
-    const { t } = useI18n();
-
-    const filterItems = [
+@Observer
+@Component
+export default class MultiListFilters extends EntityListFilters {
+  filterItems = [
     {
       id: 'title',
       type: 'input',
-      title: t('category.list.filter.title'),
+      title: this.$t('category.list.filter.title'),
       value: null,
       values: null,
       settings: {
@@ -48,7 +31,7 @@ export default defineComponent({
     {
       id: 'orderNumber',
       type: 'input',
-      title: t('category.list.filter.orderNumber'),
+      title: this.$t('category.list.filter.orderNumber'),
       value: null,
       values: null,
       settings: {
@@ -60,7 +43,7 @@ export default defineComponent({
     {
       id: 'statusId',
       type: 'select',
-      title: t('category.list.filter.statusId'),
+      title: this.$t('category.list.filter.statusId'),
       value: null,
       values: null,
       settings: {
@@ -76,7 +59,7 @@ export default defineComponent({
     {
       id: 'ids',
       type: 'select',
-      title: t('category.list.filter.ids'),
+      title: this.$t('category.list.filter.ids'),
       value: null,
       values: null,
       settings: {
@@ -86,12 +69,6 @@ export default defineComponent({
         component: 'v-text-field'
       }
     }
-  ].filter(Boolean) as IFilterItem[];
-
-    return {
-      t,
-      filterItems
-    };
-  }
-});
+  ].filter(Boolean)
+}
 </script>

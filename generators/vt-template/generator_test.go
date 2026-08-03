@@ -8,17 +8,24 @@ import (
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+	"github.com/vmkteam/mfd-generator/mfd"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {
+	// clean up leftover output from previous runs so partial routes injection starts fresh
+	_ = os.RemoveAll(testdata.PathActualVTTemplateAll)
+	_ = os.RemoveAll(testdata.PathActualVTTemplateEntity)
+
 	Convey("TestGenerator_Generate", t, func() {
 		generator := New()
 
 		generator.options.Output = testdata.PathActualVTTemplateAll
 		generator.options.MFDPath = testdata.PathExpectedMFD
 		generator.options.Namespaces = []string{"portal"}
+		// expected testdata is generated with default class-based templates
+		// (project mfd has no VTComposition setting)
 
 		Convey("Check correct generate", func() {
 			t.Log("Generate vt-template")
@@ -101,6 +108,68 @@ func TestGenerator_Generate(t *testing.T) {
 					So(ok, ShouldBeTrue)
 				}
 			})
+		})
+	})
+}
+
+func TestGenerator_GenerateComposition(t *testing.T) {
+	// clean up leftover output from previous runs so partial routes injection starts fresh
+	_ = os.RemoveAll(testdata.PathActualVTTemplateComposition)
+
+	// build a temp mfd with the project-level VTComposition setting enabled,
+	// placed next to the translation files so they still resolve
+	project, err := mfd.LoadProject(testdata.PathExpectedMFD, false, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	project.VTComposition = true
+	compositionMFD := filepath.Join(filepath.Dir(testdata.PathExpectedMFD), "newsportal.composition.mfd")
+	if err := mfd.SaveMFD(compositionMFD, project); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Remove(compositionMFD) })
+
+	Convey("TestGenerator_GenerateComposition", t, func() {
+		generator := New()
+
+		generator.options.Output = testdata.PathActualVTTemplateComposition
+		// composition templates are selected via the project-level VTComposition setting
+		generator.options.MFDPath = compositionMFD
+		generator.options.Namespaces = []string{"portal"}
+
+		Convey("Check correct generate with composition templates", func() {
+			t.Log("Generate vt-template with composition templates")
+			So(generator.Generate(), ShouldBeNil)
+		})
+
+		filePrefix := filepath.Join("src", "pages", "Entity")
+
+		Convey("Check generated composition files", func() {
+			expectedFilenames := map[string]struct{}{
+				filepath.Join("Category", "List.vue"):                           {},
+				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Category", "en.json"):                            {},
+				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
+				filepath.Join("News", "List.vue"):                               {},
+				filepath.Join("News", "Form.vue"):                               {},
+				filepath.Join("News", "en.json"):                                {},
+				filepath.Join("News", "components", "MultiListFilters.vue"):     {},
+				filepath.Join("Tag", "List.vue"):                                {},
+				filepath.Join("Tag", "Form.vue"):                                {},
+				filepath.Join("Tag", "en.json"):                                 {},
+				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
+				"routes.ts": {},
+			}
+
+			for f := range expectedFilenames {
+				filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateComposition, filePrefix, f)
+				t.Logf("Check %s file", filenameWithFullPath)
+				content, err := os.ReadFile(filenameWithFullPath)
+				So(err, ShouldBeNil)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateComposition, filePrefix, f))
+				So(err, ShouldBeNil)
+				So(string(content), ShouldResemble, string(expectedContent))
+			}
 		})
 	})
 }

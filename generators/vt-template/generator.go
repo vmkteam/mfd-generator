@@ -121,23 +121,27 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.NamespaceNames
 	}
 
+	// selecting built-in templates set based on the project-level setting:
+	// composition (VTComposition=true) or default class-based templates
+	defRoutes, defList, defFilter, defForm := g.defaultTemplates(project.VTComposition)
+
 	// loading templates
-	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, routesDefaultTemplate)
+	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, defRoutes)
 	if err != nil {
 		return fmt.Errorf("load routes template, err=%w", err)
 	}
 
-	listTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, listDefaultTemplate)
+	listTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, defList)
 	if err != nil {
 		return fmt.Errorf("load list template, err=%w", err)
 	}
 
-	filterTemplate, err := mfd.LoadTemplate(g.options.FiltersTemplatePath, filterDefaultTemplate)
+	filterTemplate, err := mfd.LoadTemplate(g.options.FiltersTemplatePath, defFilter)
 	if err != nil {
 		return fmt.Errorf("load filter template, err=%w", err)
 	}
 
-	formTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, formDefaultTemplate)
+	formTemplate, err := mfd.LoadTemplate(g.options.FormTemplatePath, defForm)
 	if err != nil {
 		return fmt.Errorf("load form template, err=%w", err)
 	}
@@ -199,6 +203,18 @@ func (g *Generator) Generate() error {
 	}
 
 	return mfd.SaveMFD(g.options.MFDPath, project)
+}
+
+// defaultTemplates returns the built-in templates set used as fallback when no
+// custom template path is provided. When composition is true (driven by the
+// project-level VTComposition setting) it returns the Vue Composition API
+// templates, otherwise the default class-based ones.
+func (g *Generator) defaultTemplates(composition bool) (routes, list, filter, form string) {
+	if composition {
+		return routesCompositionTemplate, listCompositionTemplate, filterCompositionTemplate, formCompositionTemplate
+	}
+
+	return routesDefaultTemplate, listDefaultTemplate, filterDefaultTemplate, formDefaultTemplate
 }
 
 func (g *Generator) getTargetEntities(project *mfd.Project) []string {
