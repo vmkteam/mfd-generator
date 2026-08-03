@@ -134,6 +134,7 @@ type Project struct {
 	NamespaceNames []string     `xml:"PackageNames>string" json:"-"`
 	Languages      []string     `xml:"Languages>string" json:"languages"`
 	GoPGVer        int          `xml:"GoPGVer" json:"goPGVer"`
+	VTComposition  bool         `xml:"VTComposition,omitempty" json:"vtComposition,omitempty"`
 	CustomTypes    CustomTypes  `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
 	Dictionary     *Dictionary  `xml:"Dictionary" json:"dict,omitempty"`
 	TableMapping   TableMapping `xml:"TableMapping" json:"tableMapping,omitempty"`

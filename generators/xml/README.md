@@ -53,6 +53,7 @@ Flags:
         <news>news,categories,tags</news>
     </TableMapping>
     <GoPGVer>8</GoPGVer> <!-- версия go-pg -->
+    <VTComposition>true</VTComposition> <!-- шаблоны vt: Composition API, см. генератор template -->
 </Project>
 ```
 
@@ -63,6 +64,7 @@ Flags:
   - импорты (`"github.com/go-pg/pg"` vs `"github.com/go-pg/pg/v9"` vs `"github.com/go-pg/pg/v10"`)  
   - аннотации к структурам (`sql:"title"` vs `pg:"title"`)  
   - функции (`pg.F` и `pg.Q` vs `pg.Ident` и `pg.SafeQuery`)  
+**VTComposition** - Опциональный флаг, задаёт стиль vt-шаблонов в генераторе [template](/generators/vt-template). `true` — компоненты на Vue Composition API (`defineComponent`/`setup` + composables). Если элемент отсутствует или `false` — используются default class-based шаблоны (`vue-property-decorator` + `mobx-vue`).  
 #### Namespace файл и сущности
 
 Файл с неймспейсом, содержит все входящие в него сущности. Сущности будут сгруппированы в файлы по неймспейсам и в дальнейшей генерации

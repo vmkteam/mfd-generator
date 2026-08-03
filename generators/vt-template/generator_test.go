@@ -3,21 +3,29 @@ package vttmpl
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/vmkteam/mfd-generator/generators/testdata"
+	"github.com/vmkteam/mfd-generator/mfd"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGenerator_Generate(t *testing.T) {
+	// clean up leftover output from previous runs so partial routes injection starts fresh
+	_ = os.RemoveAll(testdata.PathActualVTTemplateAll)
+	_ = os.RemoveAll(testdata.PathActualVTTemplateEntity)
+
 	Convey("TestGenerator_Generate", t, func() {
 		generator := New()
 
 		generator.options.Output = testdata.PathActualVTTemplateAll
 		generator.options.MFDPath = testdata.PathExpectedMFD
 		generator.options.Namespaces = []string{"portal"}
+		// expected testdata is generated with default class-based templates
+		// (project mfd has no VTComposition setting)
 
 		Convey("Check correct generate", func() {
 			t.Log("Generate vt-template")
@@ -56,6 +64,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 		Convey("Check correct generate with entities", func() {
 			generator.options.Output = filepath.Join(testdata.PathActual, "vt-template", "entities")
+			// two Entities
 			generator.options.Entities = []string{"Category", "Tag"}
 
 			t.Log("Generate vt-template with entities")
@@ -103,6 +112,127 @@ func TestGenerator_Generate(t *testing.T) {
 	})
 }
 
+func TestGenerator_GenerateComposition(t *testing.T) {
+	// clean up leftover output from previous runs so partial routes injection starts fresh
+	_ = os.RemoveAll(testdata.PathActualVTTemplateComposition)
+
+	// build a temp mfd with the project-level VTComposition setting enabled,
+	// placed next to the translation files so they still resolve
+	project, err := mfd.LoadProject(testdata.PathExpectedMFD, false, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	project.VTComposition = true
+	compositionMFD := filepath.Join(filepath.Dir(testdata.PathExpectedMFD), "newsportal.composition.mfd")
+	if err := mfd.SaveMFD(compositionMFD, project); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Remove(compositionMFD) })
+
+	Convey("TestGenerator_GenerateComposition", t, func() {
+		generator := New()
+
+		generator.options.Output = testdata.PathActualVTTemplateComposition
+		// composition templates are selected via the project-level VTComposition setting
+		generator.options.MFDPath = compositionMFD
+		generator.options.Namespaces = []string{"portal"}
+
+		Convey("Check correct generate with composition templates", func() {
+			t.Log("Generate vt-template with composition templates")
+			So(generator.Generate(), ShouldBeNil)
+		})
+
+		filePrefix := filepath.Join("src", "pages", "Entity")
+
+		Convey("Check generated composition files", func() {
+			expectedFilenames := map[string]struct{}{
+				filepath.Join("Category", "List.vue"):                           {},
+				filepath.Join("Category", "Form.vue"):                           {},
+				filepath.Join("Category", "en.json"):                            {},
+				filepath.Join("Category", "components", "MultiListFilters.vue"): {},
+				filepath.Join("News", "List.vue"):                               {},
+				filepath.Join("News", "Form.vue"):                               {},
+				filepath.Join("News", "en.json"):                                {},
+				filepath.Join("News", "components", "MultiListFilters.vue"):     {},
+				filepath.Join("Tag", "List.vue"):                                {},
+				filepath.Join("Tag", "Form.vue"):                                {},
+				filepath.Join("Tag", "en.json"):                                 {},
+				filepath.Join("Tag", "components", "MultiListFilters.vue"):      {},
+				"routes.ts": {},
+			}
+
+			for f := range expectedFilenames {
+				filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateComposition, filePrefix, f)
+				t.Logf("Check %s file", filenameWithFullPath)
+				content, err := os.ReadFile(filenameWithFullPath)
+				So(err, ShouldBeNil)
+				expectedContent, err := os.ReadFile(filepath.Join(testdata.PathExpectedVTTemplateComposition, filePrefix, f))
+				So(err, ShouldBeNil)
+				So(string(content), ShouldResemble, string(expectedContent))
+			}
+		})
+	})
+}
+
+func TestGenerator_ModelAccessPrefix(t *testing.T) {
+	dir := filepath.Dir(testdata.PathExpectedMFD)
+
+	// buildMediaMFD writes a temp mfd next to the media/vfs namespace files so
+	// LoadProject can resolve them; VTComposition drives the access prefix.
+	buildMediaMFD := func(composition bool) string {
+		p := mfd.NewProject("media.mfd", mfd.GoPG10)
+		p.NamespaceNames = []string{"media", "vfs"}
+		p.VTComposition = composition
+		name := "media.default.gen.mfd"
+		if composition {
+			name = "media.composition.gen.mfd"
+		}
+		mfdPath := filepath.Join(dir, name)
+		if err := mfd.SaveMFD(mfdPath, p); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Remove(mfdPath) })
+		return mfdPath
+	}
+
+	generateForm := func(composition bool) (string, error) {
+		out := filepath.Join(testdata.PathActual, "vt-template", "media")
+		if composition {
+			out += "-composition"
+		}
+		_ = os.RemoveAll(out)
+
+		generator := New()
+		generator.options.Output = out
+		generator.options.MFDPath = buildMediaMFD(composition)
+		generator.options.Namespaces = []string{"media"}
+		if err := generator.Generate(); err != nil {
+			return "", err
+		}
+
+		content, err := os.ReadFile(filepath.Join(out, "src", "pages", "Entity", "Page", "Form.vue"))
+		return string(content), err
+	}
+
+	Convey("model access prefix depends on VTComposition", t, func() {
+		Convey("default class-based templates use store.model.", func() {
+			form, err := generateForm(false)
+			So(err, ShouldBeNil)
+			So(form, ShouldContainSubstring, `:value-for-transliterating="store.model.title"`)
+			So(form, ShouldContainSubstring, `:file="store.model.`)
+			So(form, ShouldNotContainSubstring, `:value-for-transliterating="model.`)
+		})
+
+		Convey("composition templates use model.", func() {
+			form, err := generateForm(true)
+			So(err, ShouldBeNil)
+			So(form, ShouldContainSubstring, `:value-for-transliterating="model.title"`)
+			So(form, ShouldContainSubstring, `:file="model.`)
+			So(form, ShouldNotContainSubstring, `store.model.`)
+		})
+	})
+}
+
 func fullFilesPaths(path string) ([]string, error) {
 	files, err := os.ReadDir(path)
 	if err != nil {
@@ -123,4 +253,245 @@ func fullFilesPaths(path string) ([]string, error) {
 	}
 
 	return filePaths, nil
+}
+
+func TestManualGenerate(t *testing.T) {
+	t.Skip()
+	generator := New()
+
+	generator.options.Output = ""
+	generator.options.MFDPath = ""
+	generator.options.Namespaces = []string{"article", "catalogue"}
+	generator.options.Entities = []string{"tag", "category"}
+
+	err := generator.Generate()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func Test_extractEntityBlock(t *testing.T) {
+	type args struct {
+		content    string
+		entityName string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "middle body contains",
+			args: args{
+				entityName: "Category",
+				content: `export default [
+  
+  /* News */
+  {
+    name: "newsList",
+    path: "/news",
+  },
+  /* Category */
+  {
+    name: "categoryList",
+    path: "/category",
+  },
+  /* Tag */
+  {
+    name: "tagList",
+  },
+];`,
+			},
+			want: []string{
+				`{`,
+				`  name: "categoryList",`,
+				`  path: "/category",`,
+				`},`,
+			},
+		},
+		{
+			name: "last body",
+			args: args{
+				entityName: "Tag",
+				content: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+  /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  }
+];`,
+			},
+			want: []string{
+				`{`,
+				`  name: "tagList",`,
+				`  path: "/tags",`,
+				`}`,
+			},
+		},
+		{
+			name: "now found",
+			args: args{
+				entityName: "News",
+				content: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+];`,
+			},
+			want: nil,
+		},
+		{
+			name: "empty content",
+			args: args{
+				entityName: "Category",
+				content:    ``,
+			},
+			want: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := extractEntityBlock(tt.args.content, tt.args.entityName)
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractEntityBlock() =\n%#v\nwant\n%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_injectEntityBlock(t *testing.T) {
+	sampleNewBlock := []string{
+		`{`,
+		`  name: "tagList",`,
+		`  path: "/tags",`,
+		`},`,
+	}
+
+	type args struct {
+		existingContent string
+		entityName      string
+		newBlock        []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "update middle body",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+  /* Tag */
+  {
+    name: "oldTagList",
+  },
+  /* News */
+  {
+    name: "newsList",
+  }
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+  /* News */
+  {
+    name: "newsList",
+  }
+];`,
+		},
+		{
+			name: "insert new data variant 1",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList",
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+		{
+			name: "insert new data variant 2",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+  /* Category */
+  {
+    name: "categoryList"
+  }
+];`,
+			},
+			want: `export default [
+  /* Category */
+  {
+    name: "categoryList"
+  },
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+		{
+			name: "insert new data variant 2",
+			args: args{
+				entityName: "Tag",
+				newBlock:   sampleNewBlock,
+				existingContent: `export default [
+];`,
+			},
+			want: `export default [
+    /* Tag */
+  {
+    name: "tagList",
+    path: "/tags",
+  },
+];`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := injectEntityBlock(tt.args.existingContent, tt.args.entityName, tt.args.newBlock)
+			if got != tt.want {
+				t.Errorf("injectEntityBlock() failed.\n\n GOT \n%s\n\n WANT \n%s\n", got, tt.want)
+			}
+		})
+	}
 }

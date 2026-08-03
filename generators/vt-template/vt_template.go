@@ -25,8 +25,9 @@ type EntityData struct {
 	FormColumns   []InputData
 }
 
-// PackEntity packs mfd vt entity to template data
-func PackEntity(vtEntity mfd.VTEntity) EntityData {
+// PackEntity packs mfd vt entity to template data.
+// composition is forwarded to PackInput to select the model access prefix.
+func PackEntity(vtEntity mfd.VTEntity, composition bool) EntityData {
 	pks := vtEntity.Entity.PKs()
 	pkPairs := make([]PKPair, len(pks))
 	for i := range pks {
@@ -50,10 +51,10 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 			tmpl.ListColumns = append(tmpl.ListColumns, PackAttribute(vtEntity, *attr))
 		}
 		if attr.Search != mfd.TypeHTMLNone && attr.Search != "" {
-			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true))
+			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true, composition))
 		}
 		if attr.Form != mfd.TypeHTMLNone && attr.Form != "" {
-			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false))
+			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false, composition))
 		}
 	}
 
@@ -123,8 +124,16 @@ type InputData struct {
 	Params     []template.HTML
 }
 
-// PackInput packs mfd tmpl attribute to template input data
-func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) InputData {
+// PackInput packs mfd tmpl attribute to template input data.
+// composition selects the model access prefix: "model." for Composition API
+// templates (destructured from useEntityForm) or "store.model." for the default
+// class-based templates (mobx store).
+func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch, composition bool) InputData {
+	modelPrefix := template.HTML("store.model.")
+	if composition {
+		modelPrefix = "model."
+	}
+
 	inp := InputData{
 		JSName:    mfd.VarName(tmpl.Name),
 		Component: filterComponent(tmpl.Search, isSearch),
@@ -164,7 +173,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			trasliteratingValue := template.HTML(mfd.VarName(title.Name))
 
 			inp.Component = "vt-transliterator"
-			inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
+			inp.Params = append(inp.Params, `:value-for-transliterating="`+modelPrefix+trasliteratingValue+`"`)
 		}
 	}
 
@@ -178,8 +187,8 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			inp.IsFK = false
 			inp.FKJSName = mfd.VarName(mfd.FKName(tmpl.AttrName))
 			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
-			inp.Params = append(inp.Params, `:file="store.model.`+template.HTML(inp.FKJSName)+`"
-                    @input:file="file => store.model.`+template.HTML(inp.FKJSName)+` = file"`)
+			inp.Params = append(inp.Params, `:file="`+modelPrefix+template.HTML(inp.FKJSName)+`"
+                    @input:file="file => `+modelPrefix+template.HTML(inp.FKJSName)+` = file"`)
 		} else if attr.ForeignKey != "" {
 			inp.Component = "vt-entity-autocomplete"
 			inp.IsFK = true
