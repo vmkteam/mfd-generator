@@ -10,10 +10,21 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/generators/testdata"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestOptions_DefDefaultsToLegacyRepoMode(t *testing.T) {
+	var options Options
+
+	options.Def()
+
+	if options.RepoMode != repo.ModeLegacy {
+		t.Fatalf("RepoMode = %q, want %q", options.RepoMode, repo.ModeLegacy)
+	}
+}
 
 func TestGenerator_Generate(t *testing.T) {
 	t.Run("Without special conditions", func(t *testing.T) {

@@ -267,7 +267,11 @@ func (repo GenRepo[T]) AppendFilter(filter Applier) GenRepo[T] {
 // One returns one model or nil when no row matches.
 func (repo GenRepo[T]) One(ctx context.Context, search Applier, options ...Applier) (*T, error) {
 	model := new(T)
-	err := repo.readQuery(ctx, model, search, nil, options...).Select()
+	query, err := repo.readQuery(ctx, model, search, nil, options...)
+	if err != nil {
+		return nil, err
+	}
+	err = query.Select()
 	if errors.Is(err, pg.ErrNoRows) {
 		return nil, nil
 	}
@@ -280,7 +284,11 @@ func (repo GenRepo[T]) One(ctx context.Context, search Applier, options ...Appli
 // List returns all models matching the query.
 func (repo GenRepo[T]) List(ctx context.Context, search, pager Applier, options ...Applier) ([]T, error) {
 	models := make([]T, 0)
-	if err := repo.readQuery(ctx, &models, search, pager, options...).Select(); err != nil {
+	query, err := repo.readQuery(ctx, &models, search, pager, options...)
+	if err != nil {
+		return nil, err
+	}
+	if err := query.Select(); err != nil {
 		return nil, err
 	}
 	return models, nil
@@ -289,7 +297,11 @@ func (repo GenRepo[T]) List(ctx context.Context, search, pager Applier, options 
 // Count returns the number of matching models.
 func (repo GenRepo[T]) Count(ctx context.Context, search Applier, options ...Applier) (int, error) {
 	model := new(T)
-	return repo.readQuery(ctx, model, search, nil, options...).Count()
+	query, err := repo.readQuery(ctx, model, search, nil, options...)
+	if err != nil {
+		return 0, err
+	}
+	return query.Count()
 }
 
 // Add inserts model and returns the same pointer.
@@ -298,7 +310,11 @@ func (repo GenRepo[T]) Add(ctx context.Context, model *T, options ...Applier) (*
 	if len(options) == 0 {
 		options = repo.insertDefaults
 	}
-	_, err := applyAppliers(query, options...).Insert()
+	query, err := applyAppliers(query, options...)
+	if err != nil {
+		return nil, err
+	}
+	_, err = query.Insert()
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +327,11 @@ func (repo GenRepo[T]) Update(ctx context.Context, model *T, options ...Applier)
 	if len(options) == 0 {
 		options = repo.updateDefaults
 	}
-	result, err := applyAppliers(query, options...).Update()
+	query, err := applyAppliers(query, options...)
+	if err != nil {
+		return false, err
+	}
+	result, err := query.Update()
 	if err != nil {
 		return false, err
 	}
@@ -322,38 +342,55 @@ func (repo GenRepo[T]) Update(ctx context.Context, model *T, options ...Applier)
 func (repo GenRepo[T]) Delete(ctx context.Context, model *T, options ...Applier) (bool, error) {
 	if repo.setDeleted != nil {
 		repo.setDeleted(model)
-		if len(options) == 0 {
-			options = repo.deleteOptions
+		options = append(cloneAppliers(options), repo.deleteOptions...)
+		query, err := applyAppliers(repo.db.ModelContext(ctx, model).WherePK(), options...)
+		if err != nil {
+			return false, err
 		}
-		result, err := applyAppliers(repo.db.ModelContext(ctx, model).WherePK(), options...).Update()
+		result, err := query.Update()
 		if err != nil {
 			return false, err
 		}
 		return result.RowsAffected() > 0, nil
 	}
 
-	result, err := applyAppliers(repo.db.ModelContext(ctx, model).WherePK(), options...).Delete()
+	query, err := applyAppliers(repo.db.ModelContext(ctx, model).WherePK(), options...)
+	if err != nil {
+		return false, err
+	}
+	result, err := query.Delete()
 	if err != nil {
 		return false, err
 	}
 	return result.RowsAffected() > 0, nil
 }
 
-func (repo GenRepo[T]) readQuery(ctx context.Context, model any, search, pager Applier, options ...Applier) *orm.Query {
+func (repo GenRepo[T]) readQuery(ctx context.Context, model any, search, pager Applier, options ...Applier) (*orm.Query, error) {
 	query := repo.db.ModelContext(ctx, model)
-	query = applyAppliers(query, repo.filters...)
-	query = applyAppliers(query, search)
-	query = applyAppliers(query, pager)
+	var err error
+	if query, err = applyAppliers(query, repo.filters...); err != nil {
+		return nil, err
+	}
+	if query, err = applyAppliers(query, search); err != nil {
+		return nil, err
+	}
+	if query, err = applyAppliers(query, pager); err != nil {
+		return nil, err
+	}
 	return applyAppliers(query, options...)
 }
 
-func applyAppliers(query *orm.Query, appliers ...Applier) *orm.Query {
+func applyAppliers(query *orm.Query, appliers ...Applier) (*orm.Query, error) {
 	for _, applier := range appliers {
 		if applier != nil {
-			query = query.Apply(applier)
+			var err error
+			query, err = applier(query)
+			if err != nil {
+				return query, err
+			}
 		}
 	}
-	return query
+	return query, nil
 }
 
 func cloneAppliers(appliers []Applier) []Applier {
@@ -379,7 +416,7 @@ func New{{.Name}}Repo(db orm.DB) {{.Name}}Repo {
 return {{.Name}}Repo{
 {{- range .Entities}}
 {{- $entity := .}}
-		{{$entity.Name}}: NewGenRepo[{{$entity.Name}}](db{{if $entity.HasStatus}}, WithFilters(ApplyFilter(StatusFilter)), WithSoftDelete(func(model *{{$entity.Name}}) { model.StatusID = StatusDeleted }, ApplyOp(WithColumns(Columns.{{$entity.Name}}.StatusID))){{end}}{{if $entity.HasNotAddable}}, WithInsertDefaults(ApplyOp(WithoutColumns({{range $entity.NotAddable}}Columns.{{$entity.Name}}.{{.}},{{end}}))){{end}}{{if $entity.HasNotUpdatable}}, WithUpdateDefaults(ApplyOp(WithoutColumns({{range $entity.NotUpdatable}}Columns.{{$entity.Name}}.{{.}},{{end}}))){{end}}),
+		{{$entity.Name}}: NewGenRepo[{{$entity.Name}}](db{{if $entity.HasStatus}}, WithFilters(ApplyFilter(StatusFilter)), WithSoftDelete(func(model *{{$entity.Name}}) { model.StatusID = StatusDeleted }, ApplyOp(WithColumns(Columns.{{$entity.Name}}.StatusID)), ApplyOp(func(query *orm.Query) { query.Set("? = ?", pg.Ident(Columns.{{$entity.Name}}.StatusID), StatusDeleted) })){{end}}{{if $entity.HasNotAddable}}, WithInsertDefaults(ApplyOp(WithoutColumns({{range $entity.NotAddable}}Columns.{{$entity.Name}}.{{.}},{{end}}))){{end}}{{if $entity.HasNotUpdatable}}, WithUpdateDefaults(ApplyOp(WithoutColumns({{range $entity.NotUpdatable}}Columns.{{$entity.Name}}.{{.}},{{end}}))){{end}}),
 {{- end}}
 	}
 }

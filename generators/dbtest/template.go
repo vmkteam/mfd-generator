@@ -176,7 +176,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *{{.DBPackageA
     {{- if and (gt $i 0) (ne $e.Type "bool") }} && {{ end -}} {{- if $e.IsCustom }}in.{{$e.Field}} != def{{$e.Field}}{{else if eq $e.Type "bool" }}{{else if eq $e.Type "time.Time" }}!in.{{$e.Field}}.IsZero(){{else}}in.{{$e.Field}} != {{$e.Zero}}{{- end}} 
 	{{- end}} {
 		// Fetch the entity by PK
-		{{.VarName}}, err := repo.{{.Name}}ByID(t.Context(){{range .PKs}}, in.{{.Field}}{{end}}, repo.Full{{$.Name}}())
+		{{.FindCall}}
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -214,7 +214,7 @@ const funcTemplate = `func {{.Name}}(t *testing.T, dbo orm.DB, in *{{.DBPackageA
 	}
 
 	// Create the main entity
-	{{.VarName}}, err := repo.Add{{.Name}}(t.Context(), in)
+	{{.AddCall}}
 	if err != nil {
 		t.Fatal(err)
 	}

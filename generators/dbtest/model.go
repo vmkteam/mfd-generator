@@ -20,6 +20,7 @@ type FuncFileRenderData struct {
 	Package        string
 	DBPackage      string
 	DBPackageAlias string
+	RepoMode       string
 
 	ProjectName string
 	GoPGVer     string
@@ -35,6 +36,7 @@ func PackFuncRenderData(options Options) FuncFileRenderData {
 		DBPackage:      options.DBPackage,
 		DBPackageAlias: pkgParts[len(pkgParts)-1],
 		ProjectName:    options.ProjectName,
+		RepoMode:       string(options.RepoMode),
 	}
 }
 
@@ -78,6 +80,7 @@ type NamespaceData struct {
 	Package        string
 	DBPackage      string
 	DBPackageAlias string
+	RepoMode       string
 
 	Name         string
 	ShortVarName string
@@ -111,6 +114,7 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 		Package:        options.Package,
 		DBPackage:      options.DBPackage,
 		DBPackageAlias: pkgParts[len(pkgParts)-1],
+		RepoMode:       string(options.RepoMode),
 
 		HasImports: imports.Len() > 0,
 		Imports:    imports.Elements(),
@@ -147,6 +151,9 @@ func (n NamespaceData) HasAllOfProvidedEntities(provided []string) bool {
 type EntityData struct {
 	Name       string
 	NamePlural string
+	RepoMode   string
+	FindCall   template.HTML
+	AddCall    template.HTML
 
 	Namespace string
 
@@ -324,11 +331,31 @@ func PackEntity(entity mfd.Entity, namespace string, options Options, previous .
 	if varName == varNamePlural {
 		varNamePlural = fmt.Sprintf("%sList", varNamePlural)
 	}
-
 	pkgParts := strings.Split(options.DBPackage, "/")
+
+	var findCallArgs strings.Builder
+	for _, pk := range pks {
+		findCallArgs.WriteString(", in.")
+		findCallArgs.WriteString(pk.Field)
+	}
+	findCall := fmt.Sprintf("%s, err := repo.%sByID(t.Context()%s, repo.Full%s())", varName, te.Name, findCallArgs.String(), te.Name)
+	addCall := fmt.Sprintf("%s, err := repo.Add%s(t.Context(), in)", varName, te.Name)
+	if string(options.RepoMode) == "generic" {
+		searchFields := make([]string, 0, len(pks))
+		for _, pk := range pks {
+			value := "&in." + pk.Field
+			searchFields = append(searchFields, fmt.Sprintf("%s: %s", pk.Field, value))
+		}
+		findCall = fmt.Sprintf("%s, err := repo.%s.One(t.Context(), (&%s.%sSearch{%s}).Q(), repo.Full%s())", varName, te.Name, pkgParts[len(pkgParts)-1], te.Name, strings.Join(searchFields, ", "), te.Name)
+		addCall = fmt.Sprintf("%s, err := repo.%s.Add(t.Context(), in)", varName, te.Name)
+	}
+
 	res := EntityData{
 		Name:       te.Name,
 		NamePlural: goNamePlural,
+		RepoMode:   string(options.RepoMode),
+		FindCall:   template.HTML(findCall),
+		AddCall:    template.HTML(addCall),
 
 		Namespace: namespace,
 

@@ -139,6 +139,10 @@ func UnmarshalFile(filename string, v interface{}) (err error) {
 }
 
 func SaveMFD(filename string, p *Project) error {
+	if err := p.ValidateGoPGVersion(); err != nil {
+		return fmt.Errorf("save project, err=%w", err)
+	}
+
 	if err := MarshalToFile(filename, p); err != nil {
 		return fmt.Errorf("save project, err=%w", err)
 	}

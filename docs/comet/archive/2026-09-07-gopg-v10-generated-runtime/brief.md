@@ -35,7 +35,7 @@ MFD Generator produces working Go code for PostgreSQL through go-pg/v10 only. Th
 
 # Constraints and invariants
 
-- The implementation is built in the dedicated Native worktree `PLF-411-mfd-generator-native` from `master`.
+- The implementation is built in the dedicated Native worktree `mfd-generator-native` from `master`.
 - The existing dirty worktree is read-only input and is not overwritten or treated as a verified implementation.
 - `legacy` remains the default repository mode.
 - The generic runtime is generated once per target package and is not duplicated per namespace.

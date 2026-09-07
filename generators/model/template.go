@@ -87,6 +87,19 @@ func (s *search) apply(query *orm.Query) *orm.Query {
 	return query
 }
 
+func (s *search) applyWithError(query *orm.Query) (*orm.Query, error) {
+	for _, applier := range s.appliers {
+		if applier != nil {
+			var err error
+			query, err = applier(query)
+			if err != nil {
+				return query, err
+			}
+		}
+	}
+	return query, nil
+}
+
 func (s *search) where(query *orm.Query, table, field string, value interface{}) {
 	query.Where(condition, pg.Ident(table), pg.Ident(field), value)
 }
@@ -124,6 +137,17 @@ type {{.Name}}Search struct {
 func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Query {
 	if {{$model.ShortVarName}}s == nil {
 		return query
+	}
+	query = {{$model.ShortVarName}}s.applyFields(query)
+
+	query = {{$model.ShortVarName}}s.apply(query)
+
+	return query
+}
+
+	func ({{$model.ShortVarName}}s *{{.Name}}Search) applyFields(query *orm.Query) *orm.Query {
+	if {{$model.ShortVarName}}s == nil {
+		return query
 	} {{range .Columns}}
 	{{if .IsArray}} if len({{$model.ShortVarName}}s.{{.Name}}) > 0 {
 	{{- else}}if {{$model.ShortVarName}}s.{{.Name}} != nil {
@@ -131,18 +155,19 @@ func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Qu
 		{{.CustomRender}}{{else}} 
 		{{$model.ShortVarName}}s.where(query, Tables.{{$model.Name}}.Alias, Columns.{{$model.Name}}.{{.Name}}, {{$model.ShortVarName}}s.{{.Name}}){{end}}
 	}{{end}}
-
-	query = {{$model.ShortVarName}}s.apply(query)
-	
 	return query
+}
+
+	func ({{$model.ShortVarName}}s *{{.Name}}Search) applyWithError(query *orm.Query) (*orm.Query, error) {
+	if {{$model.ShortVarName}}s == nil {
+		return query, nil
+	}
+	return {{$model.ShortVarName}}s.search.applyWithError({{$model.ShortVarName}}s.applyFields(query))
 }
 
 	func ({{$model.ShortVarName}}s *{{.Name}}Search) Q() applier {
 	return func(query *orm.Query) (*orm.Query, error) {
-		if {{$model.ShortVarName}}s == nil {
-			return query, nil
-		} 
-		return {{$model.ShortVarName}}s.Apply(query), nil
+		return {{$model.ShortVarName}}s.applyWithError(query)
 	}
 }
 {{end}}

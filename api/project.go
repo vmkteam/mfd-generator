@@ -59,6 +59,10 @@ func (s ProjectService) Current() (*mfd.Project, error) {
 //
 //zenrpc:project	Project
 func (s ProjectService) Update(project mfd.Project) error {
+	if err := project.ValidateGoPGVersion(); err != nil {
+		return fmt.Errorf("update project, err=%w", err)
+	}
+
 	s.CurrentProject = &project
 	s.CurrentProject.UpdateByNSMapping()
 

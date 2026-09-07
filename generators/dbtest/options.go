@@ -1,8 +1,10 @@
 package dbtest
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/util"
@@ -39,6 +41,9 @@ type Options struct {
 	// Force Replaces existing functions
 	Force bool
 
+	// RepoMode selects the repository API used by generated helpers.
+	RepoMode repo.Mode
+
 	// custom types
 	CustomTypes mfd.CustomTypes
 }
@@ -48,7 +53,20 @@ func (o *Options) Def() {
 	if strings.Trim(o.Package, " ") == "" {
 		o.Package = util.DefaultPackage
 	}
+	if o.RepoMode == "" {
+		o.RepoMode = repo.ModeLegacy
+	}
 
 	o.CustomTypes = mfd.CustomTypes{}
 	o.EntitiesByNamespace = make(map[string][]string, len(o.Namespaces))
+}
+
+// Validate checks the repository mode used by generated helpers.
+func (o Options) Validate() error {
+	switch o.RepoMode {
+	case repo.ModeLegacy, repo.ModeGeneric:
+		return nil
+	default:
+		return fmt.Errorf("unknown repo mode %q", o.RepoMode)
+	}
 }

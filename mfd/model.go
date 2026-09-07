@@ -242,8 +242,8 @@ func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 }
 
 func (p *Project) IsConsistent() error {
-	if p.GoPGVer != GoPG10 {
-		return fmt.Errorf("unsupported go-pg version: %d; only version %d is supported", p.GoPGVer, GoPG10)
+	if err := p.ValidateGoPGVersion(); err != nil {
+		return err
 	}
 
 	for _, nsName := range p.NamespaceNames {
@@ -270,6 +270,15 @@ func (p *Project) IsConsistent() error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+// ValidateGoPGVersion checks the project version without validating its loaded data.
+func (p *Project) ValidateGoPGVersion() error {
+	if p.GoPGVer != GoPG10 {
+		return fmt.Errorf("unsupported go-pg version: %d; only version %d is supported", p.GoPGVer, GoPG10)
 	}
 
 	return nil

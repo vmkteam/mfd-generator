@@ -7,30 +7,25 @@ if [ "$#" -eq 0 ]; then
 	exit 2
 fi
 
-port=${TESTDB_PORT:-55432}
-container="mfd-testdb-$$"
-dsn="postgres://postgres:postgres@localhost:${port}/newsportal?sslmode=disable"
+database="mfd_test_$(date +%s)_$$"
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+created=0
 
 cleanup() {
-	docker stop "$container" >/dev/null 2>&1 || true
+	if [ "$created" -eq 1 ]; then
+		PGHOST=localhost PGPORT=5432 PGUSER=topscan \
+			dropdb --if-exists --maintenance-db=postgres "$database" >/dev/null 2>&1 || true
+	fi
 }
 trap cleanup EXIT INT TERM
 
-docker run --rm --name "$container" \
-	-e POSTGRES_PASSWORD=postgres \
-	-e POSTGRES_DB=newsportal \
-	-p "${port}:5432" \
-	-d postgres:16.4 >/dev/null
+PGHOST=localhost PGPORT=5432 PGUSER=topscan \
+	createdb --maintenance-db=postgres --owner=topscan "$database"
+created=1
 
-attempt=0
-while ! docker exec "$container" psql -U postgres -d newsportal -c 'SELECT 1' >/dev/null 2>&1; do
-	attempt=$((attempt + 1))
-	if [ "$attempt" -ge 30 ]; then
-		echo "PostgreSQL did not become ready" >&2
-		exit 1
-	fi
-	sleep 1
-done
+PGHOST=localhost PGPORT=5432 PGUSER=topscan \
+	psql --dbname="$database" --file="$script_dir/schema.sql" >/dev/null
 
-docker exec -i "$container" psql -U postgres -d newsportal < "$(dirname "$0")/schema.sql" >/dev/null
-DB_DSN="$dsn" "$@"
+dsn="postgres://topscan@localhost:5432/${database}?sslmode=disable"
+# go-pg does not read ~/.pgpass, so keep the password in the child process environment.
+PGPASSWORD="${PGPASSWORD:-topscan}" DB_DSN="$dsn" "$@"

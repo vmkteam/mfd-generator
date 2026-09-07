@@ -11,7 +11,7 @@ spec_changes:
     source: specs/generated-go-pg-runtime/spec.md
 workspace:
   isolation: worktree
-  change_branch: PLF-411-mfd-generator-native
+  change_branch: mfd-generator-native
   target_branch: master
   finish: keep
 loop:

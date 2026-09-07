@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/vmkteam/mfd-generator/generators/repo"
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/generators/base"
@@ -23,6 +24,7 @@ const (
 	nssFlag      = "namespaces"
 	entitiesFlag = "entities"
 	forceFlag    = "force"
+	repoModeFlag = "repo-mode"
 
 	FuncPattern = `^func (\w+)`
 )
@@ -72,6 +74,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringSliceP(entitiesFlag, "e", []string{}, "entities to generate. Separate by comma\n")
 
 	flags.BoolP(forceFlag, "f", false, "force generate if functions already exist. Deletes old and generates new functions")
+	flags.String(repoModeFlag, string(repo.ModeLegacy), "repository template mode: legacy or generic")
 }
 
 // ReadFlags reads basic flags from command
@@ -110,13 +113,24 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 		return err
 	}
 
+	repoMode, err := flags.GetString(repoModeFlag)
+	if err != nil {
+		return err
+	}
+	g.options.RepoMode = repo.Mode(repoMode)
+
 	g.options.Def()
 
-	return
+	return g.options.Validate()
 }
 
 // Generate runs generator
 func (g *Generator) Generate() (err error) {
+	g.options.Def()
+	if err := g.options.Validate(); err != nil {
+		return err
+	}
+
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false, 0)
 	if err != nil {
