@@ -19,6 +19,7 @@ const (
 	voidResponse      = "void"
 	listType          = "List"
 	objectType        = "object"
+	dartIntType       = "int"
 )
 
 type dartClass struct {
@@ -186,7 +187,7 @@ func (c *Client) addModel(dc dartClass) {
 // convertScalar converts scalars from go to dart.
 func (c *Client) convertScalar(t, description string) string {
 	switch t {
-	case "integer", "int":
+	case "integer", dartIntType:
 		return "int"
 	case "string":
 		return "String"

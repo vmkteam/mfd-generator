@@ -1,0 +1,45 @@
+go: downloading github.com/dizzyfool/genna v1.3.1
+go: downloading github.com/spf13/cobra v1.9.1
+go: downloading github.com/fatih/camelcase v1.0.0
+go: downloading github.com/jinzhu/inflection v1.0.0
+go: downloading golang.org/x/text v0.31.0
+go: downloading github.com/smartystreets/goconvey v1.8.1
+go: downloading github.com/manifoldco/promptui v0.9.0
+go: downloading github.com/vmkteam/zenrpc/v2 v2.3.0
+go: downloading github.com/chzyer/readline v1.5.1
+go: downloading github.com/prometheus/client_golang v1.23.2
+go: downloading github.com/go-pg/pg/v10 v10.15.0
+go: downloading github.com/spf13/pflag v1.0.7
+go: downloading github.com/gorilla/websocket v1.5.3
+go: downloading github.com/jtolds/gls v4.20.0+incompatible
+go: downloading github.com/smarty/assertions v1.16.0
+go: downloading github.com/vmihailenco/tagparser v0.1.2
+go: downloading mellium.im/sasl v0.3.2
+go: downloading github.com/go-pg/zerochecker v0.2.0
+go: downloading github.com/vmihailenco/msgpack/v5 v5.4.1
+go: downloading github.com/vmihailenco/bufpool v0.1.11
+go: downloading github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc
+go: downloading github.com/prometheus/client_model v0.6.2
+go: downloading github.com/prometheus/common v0.66.1
+go: downloading github.com/beorn7/perks v1.0.1
+go: downloading github.com/cespare/xxhash/v2 v2.3.0
+go: downloading github.com/prometheus/procfs v0.17.0
+go: downloading google.golang.org/protobuf v1.36.9
+go: downloading golang.org/x/crypto v0.45.0
+go: downloading github.com/vmihailenco/tagparser/v2 v2.0.0
+go: downloading github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
+go: downloading go.yaml.in/yaml/v2 v2.4.3
+go: downloading golang.org/x/sys v0.38.0
+?   	github.com/vmkteam/mfd-generator	[no test files]
+?   	github.com/vmkteam/mfd-generator/api	[no test files]
+?   	github.com/vmkteam/mfd-generator/api/dartclient	[no test files]
+?   	github.com/vmkteam/mfd-generator/cmd	[no test files]
+ok  	github.com/vmkteam/mfd-generator/generators/dbtest	1.557s
+ok  	github.com/vmkteam/mfd-generator/generators/model	1.089s
+ok  	github.com/vmkteam/mfd-generator/generators/repo	7.746s
+ok  	github.com/vmkteam/mfd-generator/generators/vt	1.237s
+ok  	github.com/vmkteam/mfd-generator/generators/vt-template	1.101s
+ok  	github.com/vmkteam/mfd-generator/generators/xml	1.082s
+ok  	github.com/vmkteam/mfd-generator/generators/xml-lang	1.061s
+ok  	github.com/vmkteam/mfd-generator/generators/xml-vt	1.044s
+ok  	github.com/vmkteam/mfd-generator/mfd	1.020s

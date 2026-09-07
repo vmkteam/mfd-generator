@@ -27,10 +27,7 @@ type FuncFileRenderData struct {
 
 // PackFuncRenderData packs mfd namespace to template data
 func PackFuncRenderData(options Options) FuncFileRenderData {
-	var goPGVer string
-	if options.GoPGVer != mfd.GoPG8 {
-		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
-	}
+	goPGVer := fmt.Sprintf("/v%d", mfd.GoPG10)
 	pkgParts := strings.Split(options.DBPackage, "/")
 	return FuncFileRenderData{
 		GoPGVer:        goPGVer,
@@ -107,10 +104,7 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 		}
 	}
 
-	goPGVer := ""
-	if options.GoPGVer != mfd.GoPG8 {
-		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
-	}
+	goPGVer := fmt.Sprintf("/v%d", mfd.GoPG10)
 	pkgParts := strings.Split(options.DBPackage, "/")
 
 	return NamespaceData{

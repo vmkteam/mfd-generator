@@ -12,12 +12,8 @@ import (
 
 var Version = "unknown"
 
-// go-pg versions
-const (
-	GoPG8  = 8
-	GoPG9  = 9
-	GoPG10 = 10
-)
+// GoPG10 is the only supported go-pg version.
+const GoPG10 = 10
 
 // nullable options
 const (
@@ -246,8 +242,8 @@ func (p *Project) AddEntity(namespace string, entity *Entity) *Entity {
 }
 
 func (p *Project) IsConsistent() error {
-	if p.GoPGVer < GoPG8 || p.GoPGVer > GoPG10 {
-		return fmt.Errorf("unsupported go-pg version: %d", p.GoPGVer)
+	if p.GoPGVer != GoPG10 {
+		return fmt.Errorf("unsupported go-pg version: %d; only version %d is supported", p.GoPGVer, GoPG10)
 	}
 
 	for _, nsName := range p.NamespaceNames {

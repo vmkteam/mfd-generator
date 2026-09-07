@@ -66,7 +66,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 
 	flags.StringP(nssFlag, "n", "", "use this parameter to set table & namespace in format \"users=users,projects;shop=orders,prices\"")
 
-	flags.IntP(goPGVerFlag, "g", 9, "go-pg version")
+	flags.IntP(goPGVerFlag, "g", mfd.GoPG10, "go-pg version (only version 10 is supported)")
 
 	flags.StringP(quietFlag, "q", "", "quiet mode. ignored when --namespaces (-n) flag is set. possible values:\n- all - will use namespace entity mapping from mfd, entities not present in mfd file will be ignored\n- new - generator will prompt namespace for entities not present in mfd file")
 
@@ -108,8 +108,8 @@ func (g *Generator) ReadFlags(command *cobra.Command) (err error) {
 		return
 	}
 
-	if g.options.GoPgVer < mfd.GoPG8 || g.options.GoPgVer > mfd.GoPG10 {
-		return fmt.Errorf("unsupported go-pg version: %d", g.options.GoPgVer)
+	if g.options.GoPgVer != mfd.GoPG10 {
+		return fmt.Errorf("unsupported go-pg version: %d; only version %d is supported", g.options.GoPgVer, mfd.GoPG10)
 	}
 
 	// custom types

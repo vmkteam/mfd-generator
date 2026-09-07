@@ -1,0 +1,34 @@
+Generator version: v2.3.2
+Entrypoint: public.go
+Generated: /Users/rage/.jcode/worktrees/PLF-411-mfd-generator-native/api/api_zenrpc.go
+Duration: 256ms
+
+Generated services for package api:
+- ProjectService
+  • Open(filePath string, connection string) (*mfd.Project, error)
+  • Current() (*mfd.Project, error)
+  • Update(project mfd.Project) error
+  • Save() error
+  • Tables() ([]string, error)
+- PublicService
+  • GoPGVersions() []int
+  • Modes() []string
+  • SearchTypes() []string
+  • Types() []string
+  • DBTypes() []string
+  • HTMLTypes() []string
+  • Ping() string
+- XMLService
+  • GenerateEntity(table string, namespace string) (*mfd.Entity, error)
+  • LoadEntity(namespace string, entity string) (*mfd.Entity, error)
+  • UpdateEntity(entity *mfd.Entity) error
+  • GenerateModelCode(entity mfd.Entity) (string, error)
+  • GenerateSearchModelCode(entity mfd.Entity) (string, error)
+- XMLLangService
+  • LoadTranslation(language string) (*mfd.Translation, error)
+  • TranslateEntity(namespace string, entity string, language string) (*mfd.TranslationEntity, error)
+- XMLVTService
+  • GenerateEntity(namespace string, entity string) (*mfd.VTEntity, error)
+  • LoadEntity(namespace string, entity string) (*mfd.VTEntity, error)
+  • UpdateEntity(namespace string, entity *mfd.VTEntity) error
+

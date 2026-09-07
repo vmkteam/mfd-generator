@@ -22,8 +22,6 @@ func NewPublicService() *PublicService {
 //zenrpc:return	list of versions
 func (s PublicService) GoPGVersions() []int {
 	return []int{
-		mfd.GoPG8,
-		mfd.GoPG9,
 		mfd.GoPG10,
 	}
 }

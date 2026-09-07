@@ -17,17 +17,15 @@ import (
 
 func TestGenerator_Generate(t *testing.T) {
 	t.Run("Without special conditions", func(t *testing.T) {
+		actualDir := t.TempDir()
 		Convey("Without special conditions", t, func() {
 			Convey("Check correct generate", func() {
 				generator := New()
 				generator.options.Def()
-				generator.options.Output = testdata.PathActualDBTest
+				generator.options.Output = actualDir
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
-
-				// Clear output before generating
-				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
 
 				t.Log("Generate model")
 				So(generator.Generate(), ShouldBeNil)
@@ -43,7 +41,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 				for f := range expectedFilenames {
 					t.Logf("Check %s file", f)
-					content, err := os.ReadFile(filepath.Join(testdata.PathActualDBTest, f))
+					content, err := os.ReadFile(filepath.Join(actualDir, f))
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -58,18 +56,16 @@ func TestGenerator_Generate(t *testing.T) {
 		})
 	})
 	t.Run("Portal namespace only", func(t *testing.T) {
+		actualDir := t.TempDir()
 		Convey("Portal namespace only", t, func() {
 			Convey("Check correct generate", func() {
 				generator := New()
 				generator.options.Def()
-				generator.options.Output = testdata.PathActualDBTest
+				generator.options.Output = actualDir
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 				generator.options.Namespaces = []string{"portal"}
-
-				// Clear output before generating
-				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
 
 				t.Log("Generate model")
 				So(generator.Generate(), ShouldBeNil)
@@ -83,7 +79,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 				for f := range expectedFilenames {
 					t.Logf("Check %s file", f)
-					content, err := os.ReadFile(filepath.Join(testdata.PathActualDBTest, f))
+					content, err := os.ReadFile(filepath.Join(actualDir, f))
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -99,25 +95,23 @@ func TestGenerator_Generate(t *testing.T) {
 					"geo.go": {},
 				}
 				for f := range mustNotBeCreatedFilenames {
-					_, err := os.Stat(filepath.Join(testdata.PathActualDBTest, f))
+					_, err := os.Stat(filepath.Join(actualDir, f))
 					So(os.IsNotExist(err), ShouldBeTrue)
 				}
 			})
 		})
 	})
 	t.Run("News entity only", func(t *testing.T) {
+		actualDir := t.TempDir()
 		Convey("News entity only", t, func() {
 			Convey("Check correct generate", func() {
 				generator := New()
 				generator.options.Def()
-				generator.options.Output = testdata.PathActualDBTest
+				generator.options.Output = actualDir
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 				generator.options.Entities = []string{"news"}
-
-				// Clear output before generating
-				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
 
 				t.Log("Generate model")
 				So(generator.Generate(), ShouldBeNil)
@@ -126,26 +120,24 @@ func TestGenerator_Generate(t *testing.T) {
 			Convey("Check generated files", func() {
 				filename := "portal.go"
 				t.Logf("Check %s file", filename)
-				res, err := funcNamesInFile(filepath.Join(testdata.PathActualDBTest, filename))
+				res, err := funcNamesInFile(filepath.Join(actualDir, filename))
 				So(err, ShouldBeNil)
 				So(res, ShouldResemble, []string{"News", "WithNewsRelations", "WithFakeNews"})
 			})
 		})
 	})
 	t.Run("News entity with the namespace and Region entity without the namespace", func(t *testing.T) {
+		actualDir := t.TempDir()
 		Convey("News entity with the namespace and Region entity without the namespace", t, func() {
 			Convey("Check correct generate", func() {
 				generator := New()
 				generator.options.Def()
-				generator.options.Output = testdata.PathActualDBTest
+				generator.options.Output = actualDir
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
 				generator.options.Entities = []string{"news", "region"}
 				generator.options.Namespaces = []string{"portal"}
-
-				// Clear output before generating
-				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
 
 				t.Log("Generate model")
 				So(generator.Generate(), ShouldBeNil)
@@ -154,36 +146,34 @@ func TestGenerator_Generate(t *testing.T) {
 			Convey("Check generated files", func() {
 				filename := "portal.go"
 				t.Logf("Check %s file", filename)
-				res, err := funcNamesInFile(filepath.Join(testdata.PathActualDBTest, filename))
+				res, err := funcNamesInFile(filepath.Join(actualDir, filename))
 				So(err, ShouldBeNil)
 				So(res, ShouldResemble, []string{"News", "WithNewsRelations", "WithFakeNews"})
 				filename = "geo.go"
 				t.Logf("Check %s file", filename)
-				res, err = funcNamesInFile(filepath.Join(testdata.PathActualDBTest, filename))
+				res, err = funcNamesInFile(filepath.Join(actualDir, filename))
 				So(err, ShouldBeNil)
 				So(res, ShouldResemble, []string{"Region", "WithRegionRelations", "WithFakeRegion"})
 			})
 		})
 	})
 	t.Run("Force all", func(t *testing.T) {
+		actualDir := t.TempDir()
 		Convey("News entity only", t, func() {
 			filename := "portal.go"
 			Convey("First generating", func() {
 				generator := New()
 				generator.options.Def()
-				generator.options.Output = testdata.PathActualDBTest
+				generator.options.Output = actualDir
 				generator.options.MFDPath = testdata.PathExpectedMFD
 				generator.options.Package = testdata.PackageDBTest
 				generator.options.DBPackage = "github.com/vmkteam/mfd-generator/generators/testdata/actual/db"
-
-				// Clear output before generating
-				So(os.RemoveAll(generator.options.Output), ShouldBeNil)
 
 				t.Log("Generate model")
 				So(generator.Generate(), ShouldBeNil)
 
 				// Change func content
-				content, err := os.ReadFile(filepath.Join(testdata.PathActualDBTest, filename))
+				content, err := os.ReadFile(filepath.Join(actualDir, filename))
 				So(err, ShouldBeNil)
 
 				const oldContent = `// Create the main entity
@@ -192,7 +182,7 @@ func TestGenerator_Generate(t *testing.T) {
 		t.Fatal(err)
 	}`
 				newContent := strings.ReplaceAll(string(content), oldContent, "")
-				err = os.WriteFile(filepath.Join(testdata.PathActualDBTest, filename), []byte(newContent), 0644)
+				err = os.WriteFile(filepath.Join(actualDir, filename), []byte(newContent), 0644)
 				So(err, ShouldBeNil)
 
 				generator.options.Entities = []string{"news"}
@@ -202,7 +192,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			Convey("Check generated files", func() {
 				t.Logf("Check %s file", filename)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActualDBTest, filename))
+				content, err := os.ReadFile(filepath.Join(actualDir, filename))
 				if err != nil {
 					t.Fatal(err)
 				}

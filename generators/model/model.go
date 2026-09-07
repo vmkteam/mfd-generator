@@ -42,10 +42,7 @@ func PackNamespace(namespaces []*mfd.Namespace, options Options) NamespaceData {
 		}
 	}
 
-	goPGVer := ""
-	if options.GoPGVer != mfd.GoPG8 {
-		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
-	}
+	goPGVer := fmt.Sprintf("/v%d", mfd.GoPG10)
 
 	return NamespaceData{
 		GeneratorVersion: mfd.Version,
@@ -104,16 +101,8 @@ func PackEntity(entity mfd.Entity, options Options) EntityData {
 	// adding annotations for go-pg to column
 	tagName := tagName(options)
 	tags := util.NewAnnotation()
-	if options.GoPGVer < mfd.GoPG10 {
-		tags.AddTag(tagName, util.Quoted(entity.Table, true))
-	} else {
-		tags.AddTag(tagName, entity.Table)
-	}
+	tags.AddTag(tagName, entity.Table)
 	tags.AddTag(tagName, fmt.Sprintf("alias:%s", util.DefaultAlias))
-	if options.GoPGVer == mfd.GoPG8 {
-		// hack for `pg:",discard_unknown_columns"` for go-pg 8
-		tags.AddTag("pg", "")
-	}
 	tags.AddTag("pg", "discard_unknown_columns")
 
 	return EntityData{
@@ -170,11 +159,7 @@ func PackAttribute(entity mfd.Entity, attribute mfd.Attribute, options Options) 
 
 	// nullable tag
 	if !attribute.Nullable() && !attribute.PrimaryKey {
-		if options.GoPGVer == mfd.GoPG8 {
-			tags.AddTag(tagName, "notnull")
-		} else {
-			tags.AddTag(tagName, "use_zero")
-		}
+		tags.AddTag(tagName, "use_zero")
 	}
 
 	// mark unknown types as interface & unsupported
@@ -215,9 +200,7 @@ type RelationData struct {
 func PackRelation(relation mfd.Attribute, options Options) RelationData {
 	// adding go-pg's fk annotation
 	tags := util.NewAnnotation().AddTag("pg", "fk:"+relation.DBName)
-	if options.GoPGVer >= mfd.GoPG10 {
-		tags.AddTag("pg", "rel:has-one")
-	}
+	tags.AddTag("pg", "rel:has-one")
 	comment := ""
 
 	// getting pk in foreign table
@@ -250,9 +233,6 @@ func PackRelation(relation mfd.Attribute, options Options) RelationData {
 }
 
 func tagName(options Options) string {
-	if options.GoPGVer == mfd.GoPG8 {
-		return "sql"
-	}
 	return "pg"
 }
 

@@ -16,7 +16,7 @@ var mfdReserved = map[string]struct{}{
 	"ErrEmptyValue": {},
 	"ErrMaxLength":  {},
 	"ErrWrongValue": {},
-	"Status":        {},
+	"Status":        {}, //nolint:goconst // reserved generated identifier
 	"OpFunc":        {},
 }
 

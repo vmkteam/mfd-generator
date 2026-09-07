@@ -35,9 +35,9 @@ package db // значение параметра -p --package
 import (
 	"context"
  
-    // если в mfd файле указана 9 версия импорты будут иметь постфикс /v9
-	"github.com/go-pg/pg/v9"
-	"github.com/go-pg/pg/v9/orm"
+	// generated output always targets go-pg/v10
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 // Для имени репозитория используется поле Name сущности

@@ -63,60 +63,33 @@ func TestGenerator_Generate(t *testing.T) {
 }
 
 func prepareFiles(actualPath string) error {
-	err := os.Link(testdata.PathExpectedMFD, filepath.Join(actualPath, filepath.Base(testdata.PathExpectedMFD)))
-	if err != nil && !os.IsExist(err) {
+	files := []string{
+		testdata.FilenameXML,
+		testdata.FilenameVTXML,
+		"geo.xml",
+		"geo.vt.xml",
+		"vfs.xml",
+		"vfs.vt.xml",
+		"card.xml",
+		"card.vt.xml",
+		"common.xml",
+		"common.vt.xml",
+	}
+	if err := copyFile(testdata.PathExpectedMFD, filepath.Join(actualPath, filepath.Base(testdata.PathExpectedMFD))); err != nil {
 		return err
 	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(actualPath, testdata.FilenameXML))
-	if err != nil && !os.IsExist(err) {
-		return err
+	for _, filename := range files {
+		if err := copyFile(filepath.Join(testdata.PathExpected, filename), filepath.Join(actualPath, filename)); err != nil {
+			return err
+		}
 	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameVTXML), filepath.Join(actualPath, testdata.FilenameVTXML))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(actualPath, "geo.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(actualPath, "geo.vt.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(actualPath, "vfs.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(actualPath, "vfs.vt.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "card.xml"), filepath.Join(actualPath, "card.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "card.vt.xml"), filepath.Join(actualPath, "card.vt.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "common.xml"), filepath.Join(actualPath, "common.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	err = os.Link(filepath.Join(testdata.PathExpected, "common.vt.xml"), filepath.Join(actualPath, "common.vt.xml"))
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
 	return nil
+}
+
+func copyFile(source, destination string) error {
+	content, err := os.ReadFile(source)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(destination, content, 0o644)
 }

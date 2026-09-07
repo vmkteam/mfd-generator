@@ -21,10 +21,11 @@ type search struct {
 	appliers []applier
 }
 
-func (s *search) apply(query *orm.Query) {
+func (s *search) apply(query *orm.Query) *orm.Query {
 	for _, applier := range s.appliers {
-		query.Apply(applier)
+		query = query.Apply(applier)
 	}
+	return query
 }
 
 func (s *search) where(query *orm.Query, table, field string, value interface{}) {
@@ -87,7 +88,7 @@ func (cs *CategorySearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.Category.Title, *cs.TitleILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	cs.apply(query)
+	query = cs.apply(query)
 
 	return query
 }
@@ -171,7 +172,7 @@ func (ns *NewsSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.News.Content, *ns.ContentILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	ns.apply(query)
+	query = ns.apply(query)
 
 	return query
 }
@@ -215,7 +216,7 @@ func (ts *TagSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.Tag.Title, *ts.TitleILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	ts.apply(query)
+	query = ts.apply(query)
 
 	return query
 }
@@ -287,7 +288,7 @@ func (cs *CitySearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.City.AltTitle, *cs.AltTitleILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	cs.apply(query)
+	query = cs.apply(query)
 
 	return query
 }
@@ -375,7 +376,7 @@ func (cs *CountrySearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.Country.MetaDescription, *cs.MetaDescriptionILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	cs.apply(query)
+	query = cs.apply(query)
 
 	return query
 }
@@ -475,7 +476,7 @@ func (rs *RegionSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.Region.MetaDescription, *rs.MetaDescriptionILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	rs.apply(query)
+	query = rs.apply(query)
 
 	return query
 }
@@ -527,7 +528,7 @@ func (eks *EncryptionKeySearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.EncryptionKey.ID, eks.IDs, SearchTypeArray, false}.Apply(query)
 	}
 
-	eks.apply(query)
+	query = eks.apply(query)
 
 	return query
 }
@@ -583,7 +584,7 @@ func (lcs *LoginCodeSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.LoginCode.Code, *lcs.CodeILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	lcs.apply(query)
+	query = lcs.apply(query)
 
 	return query
 }
@@ -667,7 +668,7 @@ func (sus *SiteUserSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.SiteUser.LastName, *sus.LastNameILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	sus.apply(query)
+	query = sus.apply(query)
 
 	return query
 }
@@ -755,7 +756,7 @@ func (vfs *VfsFileSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.VfsFile.MimeType, *vfs.MimeTypeILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	vfs.apply(query)
+	query = vfs.apply(query)
 
 	return query
 }
@@ -811,7 +812,7 @@ func (vfs *VfsFolderSearch) Apply(query *orm.Query) *orm.Query {
 		Filter{Columns.VfsFolder.Title, *vfs.TitleILike, SearchTypeILike, false}.Apply(query)
 	}
 
-	vfs.apply(query)
+	query = vfs.apply(query)
 
 	return query
 }

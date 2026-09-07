@@ -70,10 +70,7 @@ func PackSearchNamespace(namespaces []*mfd.Namespace, options Options) (SearchNa
 		}
 	}
 
-	goPGVer := ""
-	if options.GoPGVer != mfd.GoPG8 {
-		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
-	}
+	goPGVer := fmt.Sprintf("/v%d", mfd.GoPG10)
 
 	return SearchNamespaceData{
 		GeneratorVersion: mfd.Version,

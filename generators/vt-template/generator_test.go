@@ -12,10 +12,12 @@ import (
 )
 
 func TestGenerator_Generate(t *testing.T) {
+	actualAllDir := t.TempDir()
+	actualEntityDir := t.TempDir()
 	Convey("TestGenerator_Generate", t, func() {
 		generator := New()
 
-		generator.options.Output = testdata.PathActualVTTemplateAll
+		generator.options.Output = actualAllDir
 		generator.options.MFDPath = testdata.PathExpectedMFD
 		generator.options.Namespaces = []string{"portal"}
 
@@ -44,7 +46,7 @@ func TestGenerator_Generate(t *testing.T) {
 			}
 
 			for f := range expectedFilenames {
-				filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateAll, filePrefix, f)
+				filenameWithFullPath := filepath.Join(actualAllDir, filePrefix, f)
 				t.Logf("Check %s file", filenameWithFullPath)
 				content, err := os.ReadFile(filenameWithFullPath)
 				So(err, ShouldBeNil)
@@ -55,7 +57,7 @@ func TestGenerator_Generate(t *testing.T) {
 		})
 
 		Convey("Check correct generate with entities", func() {
-			generator.options.Output = filepath.Join(testdata.PathActual, "vt-template", "entities")
+			generator.options.Output = actualEntityDir
 			generator.options.Entities = []string{"Category", "Tag"}
 
 			t.Log("Generate vt-template with entities")
@@ -78,7 +80,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			Convey("Check content", func() {
 				for f := range expectedFilenames {
-					filenameWithFullPath := filepath.Join(testdata.PathActualVTTemplateEntity, filePrefix, f)
+					filenameWithFullPath := filepath.Join(actualEntityDir, filePrefix, f)
 					t.Logf("Check %s file", filenameWithFullPath)
 					content, err := os.ReadFile(filenameWithFullPath)
 					So(err, ShouldBeNil)
@@ -89,11 +91,11 @@ func TestGenerator_Generate(t *testing.T) {
 			})
 
 			Convey("Check filenames", func() {
-				actualFiles, err := fullFilesPaths(testdata.PathExpectedVTTemplateEntity)
+				actualFiles, err := fullFilesPaths(actualEntityDir)
 				So(err, ShouldBeNil)
 
 				for _, a := range actualFiles {
-					shortPath := strings.ReplaceAll(a, filepath.Join(testdata.PathExpectedVTTemplateEntity, filePrefix)+string(os.PathSeparator), "")
+					shortPath := strings.ReplaceAll(a, filepath.Join(actualEntityDir, filePrefix)+string(os.PathSeparator), "")
 					t.Logf("Check %s filename", shortPath)
 					_, ok := expectedFilenames[shortPath]
 					So(ok, ShouldBeTrue)

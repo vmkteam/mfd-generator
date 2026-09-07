@@ -53,10 +53,7 @@ func PackNamespace(namespace *mfd.Namespace, options Options) NamespaceData {
 
 	name := util.CamelCased(util.Sanitize(namespace.Name))
 
-	goPGVer := ""
-	if options.GoPGVer != mfd.GoPG8 {
-		goPGVer = fmt.Sprintf("/v%d", options.GoPGVer)
-	}
+	goPGVer := fmt.Sprintf("/v%d", mfd.GoPG10)
 
 	return NamespaceData{
 		Package: options.Package,

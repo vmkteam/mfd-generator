@@ -31,17 +31,16 @@ func getDataCommentCount(path string) int {
 }
 
 // returnTestData function prepare test data
-func returnTestData() error {
-	folderPath := testdata.PathActual + "/vt-updated/"
-
+func returnTestData(folderPath string) error {
 	if err := os.MkdirAll(folderPath, 0755); err != nil {
 		return fmt.Errorf("cannot create directory %s: %w", folderPath, err)
 	}
 
-	ff := make(map[string]string)
-	ff[testdata.PathExpected+"/vt-updated/portal_actual.txt"] = testdata.PathExpected + "/vt-updated/portal.go"
-	ff[testdata.PathExpected+"/vt-updated/portal_model_actual.txt"] = testdata.PathExpected + "/vt-updated/portal_model.go"
-	ff[testdata.PathExpected+"/vt-updated/portal_converter_actual.txt"] = testdata.PathExpected + "/vt-updated/portal_converter.go"
+	ff := map[string]string{
+		testdata.PathExpected + "/vt-updated/portal_actual.txt":           filepath.Join(folderPath, "portal.go"),
+		testdata.PathExpected + "/vt-updated/portal_model_actual.txt":     filepath.Join(folderPath, "portal_model.go"),
+		testdata.PathExpected + "/vt-updated/portal_converter_actual.txt": filepath.Join(folderPath, "portal_converter.go"),
+	}
 
 	for srcPath, destPath := range ff {
 		srcFile, err := os.Open(srcPath)
@@ -72,21 +71,25 @@ func returnTestData() error {
 }
 
 func TestGenerator_Generate(t *testing.T) {
+	actualDir := t.TempDir()
+	updatedDir := t.TempDir()
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Update only news entity", func() {
 			// prepare data
-			_ = returnTestData()
+			if err := returnTestData(updatedDir); err != nil {
+				t.Fatal(err)
+			}
 
 			// get count comment before used generator
-			startCountServiceComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal.go")
-			startCountModelComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal_model.go")
-			startCountConvertComment := getDataCommentCount(testdata.PathExpected + "/vt-updated/portal_converter.go")
+			startCountServiceComment := getDataCommentCount(filepath.Join(updatedDir, "portal.go"))
+			startCountModelComment := getDataCommentCount(filepath.Join(updatedDir, "portal_model.go"))
+			startCountConvertComment := getDataCommentCount(filepath.Join(updatedDir, "portal_converter.go"))
 
 			// generate
 			generator := New()
 
 			generator.options.Def()
-			generator.options.Output = testdata.PathUpdatedVT
+			generator.options.Output = updatedDir
 			generator.options.MFDPath = testdata.PathExpectedMFD
 			generator.options.Package = testdata.PackageVTUpdated
 			generator.options.Namespaces = []string{"portal"}
@@ -101,9 +104,9 @@ func TestGenerator_Generate(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// get count comment after used generator
-			endCountServiceComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal.go")
-			endCountModelComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal_model.go")
-			endCountConvertComment := getDataCommentCount(testdata.PathUpdatedVT + "/portal_converter.go")
+			endCountServiceComment := getDataCommentCount(filepath.Join(updatedDir, "portal.go"))
+			endCountModelComment := getDataCommentCount(filepath.Join(updatedDir, "portal_model.go"))
+			endCountConvertComment := getDataCommentCount(filepath.Join(updatedDir, "portal_converter.go"))
 
 			// checked that after generate struct or function rewrite but not all
 			So(startCountServiceComment, ShouldNotEqual, endCountServiceComment)
@@ -121,7 +124,7 @@ func TestGenerator_Generate(t *testing.T) {
 			generator := New()
 
 			generator.options.Def()
-			generator.options.Output = testdata.PathActualVT
+			generator.options.Output = actualDir
 			generator.options.MFDPath = testdata.PathExpectedMFD
 			generator.options.Package = testdata.PackageVT
 			generator.options.Namespaces = []string{"portal"}
@@ -141,7 +144,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActualVT, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				if err != nil {
 					t.Fatal(err)
 				}

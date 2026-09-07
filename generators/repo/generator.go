@@ -16,6 +16,7 @@ const (
 	nsFlag  = "namespaces"
 
 	repoTemplateFlag = "repo-tmpl"
+	repoModeFlag     = "repo-mode"
 )
 
 // CreateCommand creates generator command
@@ -53,6 +54,7 @@ func (g *Generator) AddFlags(command *cobra.Command) {
 	flags.StringSliceP(nsFlag, "n", []string{}, "namespaces to generate. separate by comma\n")
 
 	flags.String(repoTemplateFlag, "", "path to repo custom template\n")
+	flags.String(repoModeFlag, string(ModeLegacy), "repository template mode: legacy or generic")
 }
 
 // ReadFlags read flags from command
@@ -85,13 +87,23 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 		return err
 	}
 
+	mode, err := flags.GetString(repoModeFlag)
+	if err != nil {
+		return err
+	}
+	g.options.Mode = Mode(mode)
+
 	g.options.Def()
 
-	return nil
+	return g.options.Validate()
 }
 
 // Generate runs generator
 func (g *Generator) Generate() error {
+	if err := g.options.Validate(); err != nil {
+		return err
+	}
+
 	// loading project from file
 	project, err := mfd.LoadProject(g.options.MFDPath, false, 0)
 	if err != nil {
@@ -110,9 +122,20 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.NamespaceNames
 	}
 
-	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoDefaultTemplate)
+	repoTemplateText := repoDefaultTemplate
+	if g.options.Mode == ModeGeneric {
+		repoTemplateText = repoGenericTemplate
+	}
+	repoTemplate, err := mfd.LoadTemplate(g.options.RepoTemplatePath, repoTemplateText)
 	if err != nil {
 		return fmt.Errorf("load repo template, err=%w", err)
+	}
+
+	if g.options.Mode == ModeGeneric {
+		output := path.Join(g.options.Output, "gendb.go")
+		if _, err := mfd.FormatAndSave(g.options, output, repoRuntimeTemplate, true); err != nil {
+			return fmt.Errorf("generate generic runtime, err=%w", err)
+		}
 	}
 
 	for _, namespace := range g.options.Namespaces {

@@ -1,0 +1,13 @@
+?   	github.com/vmkteam/mfd-generator	[no test files]
+?   	github.com/vmkteam/mfd-generator/api	[no test files]
+?   	github.com/vmkteam/mfd-generator/api/dartclient	[no test files]
+?   	github.com/vmkteam/mfd-generator/cmd	[no test files]
+ok  	github.com/vmkteam/mfd-generator/generators/dbtest	0.627s
+ok  	github.com/vmkteam/mfd-generator/generators/model	0.326s
+ok  	github.com/vmkteam/mfd-generator/generators/repo	1.644s
+ok  	github.com/vmkteam/mfd-generator/generators/vt	0.350s
+ok  	github.com/vmkteam/mfd-generator/generators/vt-template	0.351s
+ok  	github.com/vmkteam/mfd-generator/generators/xml	0.409s
+ok  	github.com/vmkteam/mfd-generator/generators/xml-lang	0.319s
+ok  	github.com/vmkteam/mfd-generator/generators/xml-vt	0.310s
+ok  	github.com/vmkteam/mfd-generator/mfd	0.303s

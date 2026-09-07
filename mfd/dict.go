@@ -27,7 +27,7 @@ var presetsTranslations = map[string]map[string]string{
 		"tag":        "Тег",
 		"tags":       "Теги",
 
-		"title":       "Название",
+		"title":       "Название", //nolint:goconst // shared dictionary label
 		"description": "Описание",
 		"foreword":    "Краткое содержание",
 		"content":     "Содержание",
@@ -36,7 +36,7 @@ var presetsTranslations = map[string]map[string]string{
 		"image":       "Изображение",
 		"password":    "Пароль",
 		"alias":       "Системное имя",
-		"status":      "Статус",
+		"status":      "Статус", //nolint:goconst // shared dictionary label
 		"statusId":    "Статус",
 
 		"createdAt":  "Создано",
@@ -66,7 +66,7 @@ var presetsTranslations = map[string]map[string]string{
 		"image":       "Image",
 		"password":    "Password",
 		"alias":       "Alias",
-		"status":      "Status",
+		"status":      "Status", //nolint:goconst // shared dictionary label
 		"statusId":    "Status",
 
 		"createdAt":  "Created at",

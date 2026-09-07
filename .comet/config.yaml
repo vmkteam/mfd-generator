@@ -1,0 +1,25 @@
+# Configuration schema used by Comet. Do not edit this value.
+schema: comet.project.v1
+# Default workflow entered by /comet. Must also appear in workflows.
+default_workflow: native
+# Workflows enabled in this project: native, classic, or both.
+workflows:
+  - native
+# Enables automatic recovery through the read-only Ambient Resume probe for both Native and Classic. Set false to disable it.
+# ambient_resume: true | false
+ambient_resume: true
+# Native workflow settings. They do not change Classic state or behavior.
+native:
+  # Root directory where Native stores Comet specs and changes. Runtime data stays under .comet.
+  artifact_root: docs
+  # Artifact language used by Native workflow documents.
+  # language: en | zh-CN
+  language: en
+  # Controls how Native asks clarifying questions: batch asks every currently answerable question per round (default), sequential asks one at a time.
+  # clarification_mode: batch | sequential
+  clarification_mode: batch
+  # Controls whether Native archives automatically after a successful preview or waits for explicit user confirmation.
+  # archive_confirmation: automatic | required
+  archive_confirmation: automatic
+  # Maximum failed Verify outcomes allowed for one confirmed acceptance target before Native stops the completion loop.
+  max_verify_failures: 5

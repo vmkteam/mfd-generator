@@ -100,8 +100,7 @@ type Post struct {
     // pg:"alias,use_zero" - для Nullable=No
     // pg:"tagIds,array" - для IsArray=true
     // pg:"fk:userId" - для FK
-    // если в mfd файле указана 8 версия будет сгенерирован теги sql
-    // если в mfd файле указана 9 или 10 версия будет сгенерирован теги pg
+     // go-pg/v10 tags are generated for every supported project.
     ID        int       `pg:"postId,pk"`
 	Alias     string    `pg:"alias,use_zero"`
 	Title     string    `pg:"title,use_zero"`
@@ -139,9 +138,9 @@ package db // значение параметра -p --package
 import (
 	"time"
  
-    // если в mfd файле указана 9 версия импорты будут иметь постфикс /v9
-	"github.com/go-pg/pg/v9"
-	"github.com/go-pg/pg/v9/orm"
+	// generated output always targets go-pg/v10
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 // Стандартные фильтры, генерируется всегда
@@ -162,8 +161,7 @@ func (s *search) apply(query *orm.Query) {
 }
 
 func (s *search) where(query *orm.Query, table, field string, value interface{}) {
-    // если в mfd файле указана 8 версия будет использоваться pg.F и так далее
-    // если в mfd файле указана 9 или 10 версия будет использоваться pg.Ident и так далее
+	// go-pg/v10 identifiers and expressions are used in generated searches.
 	query.Where(condition, pg.Ident(table), pg.Ident(field), value)
 }
 

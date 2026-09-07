@@ -1,11 +1,20 @@
 package repo
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
 	"github.com/dizzyfool/genna/util"
+)
+
+// Mode selects the repository template family.
+type Mode string
+
+const (
+	ModeLegacy  Mode = "legacy"
+	ModeGeneric Mode = "generic"
 )
 
 // Options stores generator options
@@ -30,6 +39,9 @@ type Options struct {
 
 	// custom types
 	CustomTypes mfd.CustomTypes
+
+	// Mode selects the generated repository API.
+	Mode Mode
 }
 
 // Def fills default values of an options
@@ -40,5 +52,19 @@ func (o *Options) Def() {
 
 	if o.CustomTypes == nil {
 		o.CustomTypes = mfd.CustomTypes{}
+	}
+
+	if o.Mode == "" {
+		o.Mode = ModeLegacy
+	}
+}
+
+// Validate checks options that affect the generated repository contract.
+func (o Options) Validate() error {
+	switch o.Mode {
+	case ModeLegacy, ModeGeneric:
+		return nil
+	default:
+		return fmt.Errorf("unknown repo mode %q", o.Mode)
 	}
 }

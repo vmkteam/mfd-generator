@@ -147,7 +147,7 @@ func (e *TranslationEntity) FillByVTEntity(vte *VTEntity, language string) {
 		if a.List {
 			// override statusId key because headers for summary, and summary have Status object
 			if IsStatus(key) {
-				key = "status"
+				key = "status" //nolint:goconst // translated header key
 			}
 
 			e.List.Headers.Append(key, trs)

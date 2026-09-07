@@ -3,6 +3,7 @@ package mfd
 import (
 	"encoding/xml"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -45,6 +46,17 @@ func TestTableMapping_Packages(t *testing.T) {
 			}
 			if got := tm.Packages(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Packages() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProjectIsConsistentRejectsUnsupportedGoPGVersions(t *testing.T) {
+	for _, version := range []int{8, 9, 11} {
+		t.Run(strconv.Itoa(version), func(t *testing.T) {
+			project := &Project{GoPGVer: version}
+			if err := project.IsConsistent(); err == nil {
+				t.Fatalf("IsConsistent() error = nil for go-pg version %d", version)
 			}
 		})
 	}

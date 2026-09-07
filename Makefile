@@ -22,6 +22,9 @@ db-test:
 test:
 	@go test -v ./...
 
+integration:
+	@docs/testdb/run.sh go test -tags=integration -p 1 ./...
+
 generate:
 	@go generate ./api
 

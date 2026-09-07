@@ -16,6 +16,8 @@ import (
 
 // todo: error if .mfd file has already existed but .xml files was deleted
 func TestGenerator_Generate(t *testing.T) {
+	actualDir := t.TempDir()
+	actualMFD := filepath.Join(actualDir, testdata.FilenameMFD)
 	dbdsn, exists := os.LookupEnv("DB_DSN")
 	if !exists {
 		dbdsn = "postgres://postgres:postgres@localhost:5432/newsportal?sslmode=disable"
@@ -27,7 +29,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			generator.options.Def()
 			generator.options.URL = dbdsn
-			generator.options.Output = testdata.PathActualMFD
+			generator.options.Output = actualMFD
 			generator.options.CustomTypes = model.CustomTypeMapping{"uuid": {
 				PGType:   "uuid",
 				GoType:   "uuid.UUID",
@@ -50,7 +52,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				if err != nil {
 					t.Fatal(err)
 				}

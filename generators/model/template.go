@@ -77,17 +77,18 @@ const condition =  "?.? = ?"
 type applier func(query *orm.Query) (*orm.Query, error)
 
 type search struct {
-	appliers[] applier
+	appliers []applier
 }
 
-func (s *search) apply(query *orm.Query) {
+func (s *search) apply(query *orm.Query) *orm.Query {
 	for _, applier := range s.appliers {
-		query.Apply(applier)
+		query = query.Apply(applier)
 	}
+	return query
 }
 
 func (s *search) where(query *orm.Query, table, field string, value interface{}) {
-	{{if eq .GoPGVer ""}}query.Where(condition, pg.F(table), pg.F(field), value){{else}}query.Where(condition, pg.Ident(table), pg.Ident(field), value){{end}}
+	query.Where(condition, pg.Ident(table), pg.Ident(field), value)
 }
 
 func (s *search) WithApply(a applier) {
@@ -131,12 +132,12 @@ func ({{$model.ShortVarName}}s *{{.Name}}Search) Apply(query *orm.Query) *orm.Qu
 		{{$model.ShortVarName}}s.where(query, Tables.{{$model.Name}}.Alias, Columns.{{$model.Name}}.{{.Name}}, {{$model.ShortVarName}}s.{{.Name}}){{end}}
 	}{{end}}
 
-	{{$model.ShortVarName}}s.apply(query)
+	query = {{$model.ShortVarName}}s.apply(query)
 	
 	return query
 }
 
-func ({{$model.ShortVarName}}s *{{.Name}}Search) Q() applier {
+	func ({{$model.ShortVarName}}s *{{.Name}}Search) Q() applier {
 	return func(query *orm.Query) (*orm.Query, error) {
 		if {{$model.ShortVarName}}s == nil {
 			return query, nil

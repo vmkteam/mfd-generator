@@ -1,0 +1,12 @@
+{
+  "schema": "comet.native.local-execution.v4",
+  "change": "gopg-v10-generated-runtime",
+  "basedOnStateVersion": 37,
+  "workspace": {
+    "projectRoot": "/Users/rage/.jcode/worktrees/PLF-411-mfd-generator-native",
+    "worktreeRoot": "/Users/rage/.jcode/worktrees/PLF-411-mfd-generator-native",
+    "branch": "PLF-411-mfd-generator-native"
+  },
+  "execution": null,
+  "checks": []
+}

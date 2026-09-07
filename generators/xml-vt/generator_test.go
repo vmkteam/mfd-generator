@@ -11,7 +11,8 @@ import (
 )
 
 func TestGenerator_Generate(t *testing.T) {
-	err := prepareFiles()
+	actualDir := t.TempDir()
+	err := prepareFiles(actualDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +21,7 @@ func TestGenerator_Generate(t *testing.T) {
 		Convey("Check correct generate", func() {
 			generator := New()
 
-			generator.options.MFDPath = testdata.PathActualMFD
+			generator.options.MFDPath = filepath.Join(actualDir, testdata.FilenameMFD)
 
 			t.Log("Generate xml-vt")
 			err := generator.Generate()
@@ -38,7 +39,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActual, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -52,61 +53,69 @@ func TestGenerator_Generate(t *testing.T) {
 	})
 }
 
-func prepareFiles() error {
-	err := os.MkdirAll(testdata.PathActual, 0775)
+func prepareFiles(actualPath string) error {
+	err := os.MkdirAll(actualPath, 0775)
 	if err != nil {
 		return err
 	}
 
-	err = os.Link(testdata.PathExpectedMFD, testdata.PathActualMFD)
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(testdata.PathExpectedMFD, filepath.Join(actualPath, testdata.FilenameMFD))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(testdata.PathActual, testdata.FilenameXML))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, testdata.FilenameXML), filepath.Join(actualPath, testdata.FilenameXML))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(testdata.PathActual, "geo.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "geo.xml"), filepath.Join(actualPath, "geo.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(testdata.PathActual, "geo.vt.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "geo.vt.xml"), filepath.Join(actualPath, "geo.vt.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(testdata.PathActual, "vfs.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "vfs.xml"), filepath.Join(actualPath, "vfs.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(testdata.PathActual, "vfs.vt.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "vfs.vt.xml"), filepath.Join(actualPath, "vfs.vt.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "card.xml"), filepath.Join(testdata.PathActual, "card.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "card.xml"), filepath.Join(actualPath, "card.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "card.vt.xml"), filepath.Join(testdata.PathActual, "card.vt.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "card.vt.xml"), filepath.Join(actualPath, "card.vt.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "common.xml"), filepath.Join(testdata.PathActual, "common.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "common.xml"), filepath.Join(actualPath, "common.xml"))
+	if err != nil {
 		return err
 	}
 
-	err = os.Link(filepath.Join(testdata.PathExpected, "common.vt.xml"), filepath.Join(testdata.PathActual, "common.vt.xml"))
-	if err != nil && !os.IsExist(err) {
+	err = copyFile(filepath.Join(testdata.PathExpected, "common.vt.xml"), filepath.Join(actualPath, "common.vt.xml"))
+	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func copyFile(source, destination string) error {
+	content, err := os.ReadFile(source)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(destination, content, 0o644)
 }

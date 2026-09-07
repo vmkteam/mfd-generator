@@ -11,6 +11,8 @@ import (
 	"github.com/dizzyfool/genna/util"
 )
 
+const statusTypeName = "Status"
+
 // this code is used to pack mdf to template
 
 type PKPair struct {
@@ -376,9 +378,9 @@ func PackStatusRelation() RelationData {
 	tags.AddTag("json", mfd.JSONName("status"))
 
 	return RelationData{
-		Name:      "Status",
-		FieldName: "Status",
-		Type:      "Status",
+		Name:      statusTypeName,
+		FieldName: statusTypeName,
+		Type:      statusTypeName,
 		Tag:       template.HTML(fmt.Sprintf("`%s`", tags.String())),
 	}
 }

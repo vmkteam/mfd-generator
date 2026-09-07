@@ -12,12 +12,13 @@ import (
 )
 
 func TestGenerator_Generate(t *testing.T) {
+	actualDir := t.TempDir()
 	Convey("TestGenerator_Generate", t, func() {
 		Convey("Check correct generate", func() {
 			generator := New()
 
 			generator.options.Def()
-			generator.options.Output = testdata.PathActualDB
+			generator.options.Output = actualDir
 			generator.options.MFDPath = testdata.PathExpectedMFD
 			generator.options.Package = testdata.PackageDB
 
@@ -35,7 +36,7 @@ func TestGenerator_Generate(t *testing.T) {
 
 			for f := range expectedFilenames {
 				t.Logf("Check %s file", f)
-				content, err := os.ReadFile(filepath.Join(testdata.PathActualDB, f))
+				content, err := os.ReadFile(filepath.Join(actualDir, f))
 				if err != nil {
 					t.Fatal(err)
 				}

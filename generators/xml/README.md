@@ -52,17 +52,14 @@ Flags:
         <common>users,pageSettings</common>
         <news>news,categories,tags</news>
     </TableMapping>
-    <GoPGVer>8</GoPGVer> <!-- версия go-pg -->
+    <GoPGVer>10</GoPGVer> <!-- only supported go-pg version -->
 </Project>
 ```
 
 **PackageNames** - Указанные неймспейсы будут использоваться для дальнейшей генерации. Если неймспейс не указан в списке, даже если файл с неймспейсом присутствует, то он генерироваться не будет  
 **Languages** Управление этим полем происходит в генераторе [xml-lang](/generators/xml-lang). В дальнейшем генератор [template](/generators/vt-template) будет использовать этот список, чтобы сгенерировать языковые файлы для интерфейса vt       
 **TableMapping** - Маппинг ассоциаций неймспейс - таблицы. Заполняются в формате <namespace>таблицы через запятую</namespace> в самом mfd файле. Значения используются если не передавать флаг `-n, --namespaces`       
-**GoPGVer** - Версия go-pg. Поддерживаемые значения 8, 9 и 10. От этого параметра зависят все генераторы golang кода:
-  - импорты (`"github.com/go-pg/pg"` vs `"github.com/go-pg/pg/v9"` vs `"github.com/go-pg/pg/v10"`)  
-  - аннотации к структурам (`sql:"title"` vs `pg:"title"`)  
-  - функции (`pg.F` и `pg.Q` vs `pg.Ident` и `pg.SafeQuery`)  
+**GoPGVer** - Версия go-pg. Поддерживается только значение 10. Все генераторы используют `github.com/go-pg/pg/v10`, `pg`-аннотации и go-pg/v10 query helpers.
 #### Namespace файл и сущности
 
 Файл с неймспейсом, содержит все входящие в него сущности. Сущности будут сгруппированы в файлы по неймспейсам и в дальнейшей генерации

@@ -32,7 +32,7 @@ func title(str string) template.HTML {
 var TemplateFunctions = template.FuncMap{
 	"raw":     raw,
 	"ToLower": strings.ToLower,
-	"title":   title,
+	"title":   title, //nolint:goconst // template function name
 	"notLast": func(index int, length int) bool {
 		return index+1 != length
 	},
@@ -84,7 +84,11 @@ func LoadProject(filename string, create bool, goPGVer int) (*Project, error) {
 		project.Languages = []string{EnLang}
 	}
 	if project.GoPGVer == 0 {
-		project.GoPGVer = goPGVer
+		if goPGVer == 0 {
+			project.GoPGVer = GoPG10
+		} else {
+			project.GoPGVer = goPGVer
+		}
 	}
 
 	project.UpdateLinks()
@@ -263,7 +267,7 @@ func replaceFragmentInFile(output, findData, newData, openingToken, closeningTok
 			if strings.Contains(extline, findData) {
 				found = true
 				if force {
-					var resultLines []string
+					var resultLines []string //nolint:prealloc // fragments are conditionally rebuilt
 					resultLines = append(resultLines, lines[:s]...)
 					resultLines = append(resultLines, strings.Split(newData, "\n")...)
 					resultLines = append(resultLines, lines[end:]...)
@@ -423,7 +427,7 @@ func UpdateFile(buffer *bytes.Buffer, output, openingToken, closeningToken strin
 	}
 
 	for _, fragment := range fragments {
-		var filePart []string
+		var filePart []string //nolint:prealloc // fragment size is small and conditional
 		var findRow string
 
 		filePart = append(filePart, lines[fragment[0]:fragment[1]]...)

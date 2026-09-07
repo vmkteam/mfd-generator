@@ -1,0 +1,774 @@
+schema: comet.native.v4
+name: gopg-v10-generated-runtime
+language: en
+phase: archive
+status: active
+state_version: 37
+brief: brief.md
+spec_changes:
+  - capability: generated-go-pg-runtime
+    operation: create
+    source: specs/generated-go-pg-runtime/spec.md
+workspace:
+  isolation: worktree
+  change_branch: PLF-411-mfd-generator-native
+  target_branch: master
+  finish: keep
+loop:
+  stage: archive-ready
+  goal_cycle: 1
+  iteration: 8
+  attempt: 1
+  retry_epoch: 0
+  failed_iteration_count: 0
+  no_progress_count: 0
+  execution_failure_count: 0
+  previous_unresolved_ids: []
+  next_action: archive
+acceptance:
+  - id: A1
+    source: brief.md
+    text: "A1: A project with `GoPGVer=10` generates model, search, repository, and
+      dbtest code that imports only `github.com/go-pg/pg/v10`."
+    result: passed
+    reason:
+      text: v10 imports are generated across the complete stack and fresh suites pass.
+      truncated: false
+  - id: A2
+    source: brief.md
+    text: "A2: A project with `GoPGVer=8` or `GoPGVer=9` is rejected with an
+      actionable migration error before generation."
+    result: passed
+    reason:
+      text: Unsupported versions fail before generation with actionable errors.
+      truncated: false
+  - id: A3
+    source: brief.md
+    text: "A3: Legacy output preserves generated names, method signatures,
+      filter-search-pager-operation ordering, `Full` and default-sort
+      operations, soft and physical delete, column policies, primary-key order,
+      and `pg.ErrNoRows`/`pg.ErrMultiRows` behavior."
+    result: passed
+    reason:
+      text: Legacy templates and golden tests preserve existing behavior.
+      truncated: false
+  - id: A4
+    source: brief.md
+    text: "A4: Generic output is distinct from legacy output, compiles without an
+      external runtime module, and executes list, one, count, insert, update,
+      and delete operations against PostgreSQL."
+    result: passed
+    reason:
+      text: Distinct in-package generic runtime compiles and passes PostgreSQL CRUD
+        integration.
+      truncated: false
+  - id: A5
+    source: brief.md
+    text: "A5: Query appliers propagate returned queries and errors; CTE and
+      transaction operations execute with native go-pg semantics."
+    result: passed
+    reason:
+      text: Applier query results are reassigned and CTE/transaction tests pass.
+      truncated: false
+  - id: A6
+    source: brief.md
+    text: "A6: Generated output tests do not rely on the no-op runtime, mutate
+      tracked fixtures, or silently skip required database checks."
+    result: passed
+    reason:
+      text: Generated integration is unconditional and missing DB_DSN fails
+        explicitly; fixtures are isolated.
+      truncated: false
+  - id: A7
+    source: brief.md
+    text: "A7: Go 1.26 build, test, race, vet, formatting, and lint checks pass
+      using pinned dependencies and CI-equivalent PostgreSQL setup."
+    result: passed
+    reason:
+      text: Go 1.26 build, tests, race, vet, formatting, lint, and diff checks pass.
+      truncated: false
+  - id: A8
+    source: brief.md
+    text: "A8: Comet Native verification records a result for every acceptance item,
+      with no failed or blocked item before Archive readiness."
+    result: passed
+    reason:
+      text: Exactly one result is recorded for every frozen acceptance item.
+      truncated: false
+  - id: A9
+    source: specs/generated-go-pg-runtime/spec.md
+    text: The complete generator stack supports only go-pg/v10. Project loading, XML
+      generation, model generation, search generation, repository generation,
+      dbtest generation, VT generation, public API reporting, fixtures, and
+      documentation use version 10.
+    result: passed
+    reason:
+      text: The complete implementation and documentation stack is v10-only; stale
+        v8/v9 claims are removed.
+      truncated: false
+  - id: A10
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Projects declaring go-pg 8 or go-pg 9 are rejected before generated files
+      are written. The error identifies the unsupported version and instructs
+      the user to migrate the project to version 10. There is no compatibility
+      branch or generated import for either older version.
+    result: passed
+    reason:
+      text: Project consistency rejects non-v10 versions with migration guidance.
+      truncated: false
+  - id: A11
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "The repository generator exposes two modes:"
+    result: passed
+    reason:
+      text: Repository mode exposes only legacy and generic.
+      truncated: false
+  - id: A12
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`legacy`, which is the default and emits the current named repository API
+      using go-pg/v10 imports."
+    result: passed
+    reason:
+      text: Legacy remains the default and selects its existing template.
+      truncated: false
+  - id: A13
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`generic`, which emits the generated generic runtime and the typed
+      repository surface for the target package."
+    result: passed
+    reason:
+      text: Generic mode selects the typed generic repository template.
+      truncated: false
+  - id: A14
+    source: specs/generated-go-pg-runtime/spec.md
+    text: The `bridge` mode, `GenDBImport` option, external runtime import, and
+      bridge adapter templates are absent.
+    result: passed
+    reason:
+      text: No bridge mode, GenDBImport option, external runtime import, or adapter
+        exists.
+      truncated: false
+  - id: A15
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Legacy and generic output share model metadata and reusable generated
+      support, but generic mode does not silently change legacy query
+      construction or method signatures.
+    result: passed
+    reason:
+      text: Legacy and generic templates are separate and legacy golden tests pass.
+      truncated: false
+  - id: A16
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Generic output contains one runtime support file per target package. The
+      runtime is implemented in that package and uses native go-pg types.
+    result: passed
+    reason:
+      text: Generic runtime is emitted once before the namespace loop.
+      truncated: false
+  - id: A17
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "The query composition seam is a function type:"
+    result: passed
+    reason:
+      text: Generated Applier uses the native go-pg query transformation signature.
+      truncated: false
+  - id: A18
+    source: specs/generated-go-pg-runtime/spec.md
+    text: The runtime provides typed `GenRepo[T]` construction and operations for
+      one, list, count, insert, update, and delete. Transaction rebinding
+      accepts `*pg.Tx` through go-pg's `orm.DB` contract. Runtime helpers remain
+      unexported unless generated code requires a name at package scope.
+    result: passed
+    reason:
+      text: GenRepo supports One, List, Count, Add, Update, Delete, and transaction
+        rebinding.
+      truncated: false
+  - id: A19
+    source: specs/generated-go-pg-runtime/spec.md
+    text: The runtime applies every returned query and propagates every error. It
+      does not use reflection to discover a backend and does not expose a second
+      ORM abstraction.
+    result: passed
+    reason:
+      text: Runtime reassigns returned queries and propagates go-pg Apply errors.
+      truncated: false
+  - id: A20
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "For read operations, runtime order is:"
+    result: passed
+    reason:
+      text: Read composition order is implemented as specified.
+      truncated: false
+  - id: A21
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Repository base filters.
+    result: passed
+    reason:
+      text: Base filters are applied first.
+      truncated: false
+  - id: A22
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Entity search.
+    result: passed
+    reason:
+      text: Entity search follows filters.
+      truncated: false
+  - id: A23
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Pager.
+    result: passed
+    reason:
+      text: Pager follows search.
+      truncated: false
+  - id: A24
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Explicit operations supplied by the caller.
+    result: passed
+    reason:
+      text: Explicit operations are applied last.
+      truncated: false
+  - id: A25
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`Full<Entity>` and `Default<Entity>Sort` remain explicit operations in
+      legacy output. Status filtering, joins, and default sorting are not added
+      implicitly by generic construction unless that is already an observable
+      legacy default."
+    result: passed
+    reason:
+      text: Full and default-sort operations remain explicit in both templates.
+      truncated: false
+  - id: A26
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Native go-pg CTE operations are accepted through `Applier`, including
+      `With`, `WrapWith`, and supported insert, update, and delete CTE
+      operations. No new CTE language or SQL builder is introduced.
+    result: passed
+    reason:
+      text: Native CTE appliers work for Count and Delete in integration tests.
+      truncated: false
+  - id: A27
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "Generated repositories preserve the existing observable behavior:"
+    result: passed
+    reason:
+      text: Legacy golden and integration suites preserve observable repository
+        behavior.
+      truncated: false
+  - id: A28
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`ErrNoRows` returns a nil object and nil error for one-row lookup."
+    result: passed
+    reason:
+      text: One maps pg.ErrNoRows to nil object and nil error.
+      truncated: false
+  - id: A29
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`ErrMultiRows` is returned to the caller."
+    result: passed
+    reason:
+      text: Other lookup errors including pg.ErrMultiRows are returned.
+      truncated: false
+  - id: A30
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Update and delete report whether `RowsAffected()` is greater than zero.
+    result: passed
+    reason:
+      text: Update and Delete return RowsAffected greater-than-zero status.
+      truncated: false
+  - id: A31
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Default insert and update column exclusions are applied when no explicit
+      column operation is supplied.
+    result: passed
+    reason:
+      text: Default insert and update appliers are used when options are absent.
+      truncated: false
+  - id: A32
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Soft-delete updates the status column where the model has a status field;
+      otherwise delete is physical.
+    result: passed
+    reason:
+      text: Status models use soft delete and other models use physical delete.
+      truncated: false
+  - id: A33
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Composite primary-key methods preserve metadata order.
+    result: passed
+    reason:
+      text: Primary key metadata order is preserved and regression tests pass.
+      truncated: false
+  - id: A34
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "`WithTransaction` returns a repository using the supplied transaction
+      without mutating the original value repository."
+    result: passed
+    reason:
+      text: WithTransaction uses value receivers without mutating the original
+        repository.
+      truncated: false
+  - id: A35
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Generated output is formatted Go source. The runtime is generated at most
+      once for a target package, regardless of namespace count. Legacy output
+      remains independently usable. Generic output is a separate, compile-tested
+      template and is not an alias of the legacy template.
+    result: passed
+    reason:
+      text: Generated files use FormatAndSave and runtime is emitted once.
+      truncated: false
+  - id: A36
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Search generation preserves nil-search behavior and uses the returned
+      query and error from every applier. `model_params.go` remains append-only
+      according to current generator behavior.
+    result: passed
+    reason:
+      text: Search applies returned queries and preserves nil-search behavior.
+      truncated: false
+  - id: A37
+    source: specs/generated-go-pg-runtime/spec.md
+    text: "The capability is accepted only when all of the following have direct
+      evidence:"
+    result: passed
+    reason:
+      text: All required verification categories have direct implementation and fresh
+        check evidence.
+      truncated: false
+  - id: A38
+    source: specs/generated-go-pg-runtime/spec.md
+    text: v10-only validation and imports across the complete generator stack;
+    result: passed
+    reason:
+      text: v10-only validation and import checks pass across the stack.
+      truncated: false
+  - id: A39
+    source: specs/generated-go-pg-runtime/spec.md
+    text: legacy golden and API behavior checks;
+    result: passed
+    reason:
+      text: Legacy golden tests and public API checks pass.
+      truncated: false
+  - id: A40
+    source: specs/generated-go-pg-runtime/spec.md
+    text: generic generated compile checks against the actual in-package runtime;
+    result: passed
+    reason:
+      text: Generated generic code compiles against its actual in-package runtime.
+      truncated: false
+  - id: A41
+    source: specs/generated-go-pg-runtime/spec.md
+    text: SQL and behavior checks for filters, search, paging, joins, sorting, CTEs,
+      CRUD, transactions, deletes, errors, primary keys, and column policies;
+    result: passed
+    reason:
+      text: Schema-backed tests cover filters, search, paging, CTEs, CRUD,
+        transactions, deletes, errors, and policies.
+      truncated: false
+  - id: A42
+    source: specs/generated-go-pg-runtime/spec.md
+    text: isolated PostgreSQL integration checks using `docs/testdb/schema.sql`;
+    result: passed
+    reason:
+      text: PostgreSQL 16.4 integration passes through the hardened disposable
+        harness.
+      truncated: false
+  - id: A43
+    source: specs/generated-go-pg-runtime/spec.md
+    text: Go 1.26 build, test, race, vet, formatting, and lint checks;
+    result: passed
+    reason:
+      text: Go 1.26 build/test/race/vet, formatting, lint, and generation checks pass.
+      truncated: false
+  - id: A44
+    source: specs/generated-go-pg-runtime/spec.md
+    text: fresh read-only Comet Native verification for every acceptance item.
+    result: passed
+    reason:
+      text: Fresh read-only verification confirms the frozen artifacts,
+        implementation, and all Runtime checks.
+      truncated: false
+builder_handoff:
+  candidate_id: 5275f430-2b47-47c8-af4d-0e182d42ac10
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:f46f3180-899b-4137-bd84-838972a57d34
+  iteration: 8
+  summary:
+    text: Removed the last stale v8/v9 claims from generators/model/README.md and
+      replaced them with explicit go-pg/v10-only documentation. No runtime
+      behavior changed; prior A6, readiness, and verification-plan fixes remain
+      in place.
+    truncated: false
+  addressed_acceptance_ids:
+    - A1
+    - A2
+    - A3
+    - A4
+    - A5
+    - A6
+    - A7
+    - A8
+    - A9
+    - A10
+    - A11
+    - A12
+    - A13
+    - A14
+    - A15
+    - A16
+    - A17
+    - A18
+    - A19
+    - A20
+    - A21
+    - A22
+    - A23
+    - A24
+    - A25
+    - A26
+    - A27
+    - A28
+    - A29
+    - A30
+    - A31
+    - A32
+    - A33
+    - A34
+    - A35
+    - A36
+    - A37
+    - A38
+    - A39
+    - A40
+    - A41
+    - A42
+    - A43
+    - A44
+  checks:
+    - name:
+        text: Schema-backed normal and generic integration tests
+        truncated: false
+      result: passed
+      note:
+        text: TESTDB_PORT=55450 docs/testdb/run.sh go test -p 1 ./... -count=1
+        truncated: false
+    - name:
+        text: Go 1.26 build and tests
+        truncated: false
+      result: passed
+      note:
+        text: golang:1.26 with DB_DSN; all packages pass
+        truncated: false
+    - name:
+        text: Go 1.26 race tests
+        truncated: false
+      result: passed
+      note:
+        text: golang:1.26 with DB_DSN; all packages pass
+        truncated: false
+    - name:
+        text: Generic runtime CRUD and CTEs
+        truncated: false
+      result: passed
+      note:
+        text: generated integration covers CRUD, row errors, CTE, soft delete, policy,
+          and rollback
+        truncated: false
+    - name:
+        text: Vet
+        truncated: false
+      result: passed
+      note:
+        text: go vet ./...
+        truncated: false
+    - name:
+        text: Lint
+        truncated: false
+      result: passed
+      note:
+        text: golangci-lint run
+        truncated: false
+    - name:
+        text: Format and diff
+        truncated: false
+      result: passed
+      note:
+        text: gofmt -l is empty and git diff --check passes
+        truncated: false
+    - name:
+        text: Generated API
+        truncated: false
+      result: passed
+      note:
+        text: deterministic go generate ./api comparison passes
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: No remote delivery, PR, push, merge, or release action was performed.
+      truncated: false
+    - text: The runtime does not add a new iteration API; this remains an explicit
+        non-goal.
+      truncated: false
+    - text: The generic integration fixture exercises the portal model; composite-PK
+        ordering is covered by metadata regression rather than a schema-backed
+        composite table.
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-09-07T00:32:05.260Z
+blockers: []
+verification:
+  candidate_id: 5275f430-2b47-47c8-af4d-0e182d42ac10
+  identity_provider: skill-coordinated
+  verifier_execution_ref: skill-coordinated:verifier:ba0cb75a-0e2a-4da7-be21-d19e085aef01
+  iteration: 8
+  attempt: 1
+  assurance: skill-coordinated
+  verdict: pass
+  checks:
+    - id: integration
+      name:
+        text: Schema-backed normal and generic integration tests
+        truncated: false
+      argv_display:
+        - text: -c
+          truncated: false
+        - text: TESTDB_PORT=55453 docs/testdb/run.sh go test -p 1 ./... -count=1
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 30267
+    - id: go126-build-test
+      name:
+        text: Go 1.26 build and tests
+        truncated: false
+      argv_display:
+        - text: -c
+          truncated: false
+        - text: docker run --rm --add-host host.docker.internal:host-gateway -e
+            DB_DSN=postgres://postgres:postgres@host.docker.internal:55433/newsportal?sslmode=disable
+            -v "$PWD:/src" -w /src golang:1.26 go test -p 1 ./... -count=1
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 19248
+    - id: go126-race
+      name:
+        text: Go 1.26 race tests
+        truncated: false
+      argv_display:
+        - text: -c
+          truncated: false
+        - text: docker run --rm --add-host host.docker.internal:host-gateway -e
+            DB_DSN=postgres://postgres:postgres@host.docker.internal:55433/newsportal?sslmode=disable
+            -v "$PWD:/src" -w /src golang:1.26 go test -race -p 1 ./... -count=1
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 45394
+    - id: vet
+      name:
+        text: Go vet
+        truncated: false
+      argv_display:
+        - text: vet
+          truncated: false
+        - text: ./...
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 404
+    - id: lint
+      name:
+        text: golangci-lint
+        truncated: false
+      argv_display:
+        - text: run
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 1186
+    - id: format
+      name:
+        text: gofmt and diff check
+        truncated: false
+      argv_display:
+        - text: -c
+          truncated: false
+        - text: test -z "$(gofmt -l api generators mfd)" && git diff --check
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 69
+    - id: generated-api
+      name:
+        text: Deterministic generated API
+        truncated: false
+      argv_display:
+        - text: -c
+          truncated: false
+        - text: tmp=$(mktemp) && trap 'cp "$tmp" api/api_zenrpc.go; rm -f "$tmp"' EXIT; cp
+            api/api_zenrpc.go "$tmp"; go generate ./api; cmp -s "$tmp"
+            api/api_zenrpc.go
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 331
+  summary:
+    text: Pass. All A1-A44 passed. The hardened schema-backed integration suite, Go
+      1.26 tests and race tests, vet, lint, formatting, and deterministic
+      generated API checks all passed.
+    truncated: false
+  risks:
+    - text: Generic integration uses the portal fixture; composite-primary-key
+        ordering has metadata evidence rather than a schema-backed composite
+        table.
+      truncated: false
+    - text: No remote delivery, push, merge, or release action was performed.
+      truncated: false
+  risks_truncated: false
+  completed_at: 2026-09-07T00:45:49.284Z
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Verifier found implementation and evidence gaps; return to Build to repair
+        delete applier composition, docs/toolchain, fixture isolation, and
+        missing runtime coverage.
+      truncated: false
+    completed_at: 2026-09-06T23:05:03.178Z
+  - goal_cycle: 1
+    iteration: 2
+    attempt: 1
+    outcome: execution-error
+    unresolved_ids: []
+    summary:
+      text: "Native Verifier response was invalid: Native verification cannot pass
+        before every required check succeeds"
+      truncated: false
+    completed_at: 2026-09-06T23:49:06.308Z
+  - goal_cycle: 1
+    iteration: 2
+    attempt: 2
+    outcome: execution-error
+    unresolved_ids: []
+    summary:
+      text: The resolved Runtime check plan executed `go test ./...` without the
+        DB_DSN required by generators/xml/generator_test.go, producing a
+        PostgreSQL credential failure. Independent read-only verification and
+        the separately run schema-backed checks passed, but this Runtime
+        execution cannot support a passing verdict.
+      truncated: false
+    completed_at: 2026-09-06T23:53:51.918Z
+  - goal_cycle: 1
+    iteration: 2
+    attempt: 2
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Runtime check plan was resolved without the DB_DSN required by the
+        existing schema-backed tests; return to Build to submit a corrected
+        check plan without changing confirmed requirements.
+      truncated: false
+    completed_at: 2026-09-06T23:54:21.260Z
+  - goal_cycle: 1
+    iteration: 3
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: "Verifier found A6: the generated generic integration test conditionally
+        omitted its integration tag when DB_DSN was absent. Always run the
+        integration-tagged generated test so missing database configuration
+        fails explicitly; schema-backed harness passes after this change."
+      truncated: false
+    completed_at: 2026-09-07T00:07:33.046Z
+  - goal_cycle: 1
+    iteration: 4
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Verifier confirmed A6 but blocked evidence-dependent acceptance items
+        because the Runtime plan omitted explicit Go 1.26, race, API generation,
+        and comprehensive behavior checks. Return to Build to submit a complete
+        verification plan; no confirmed requirements change.
+      truncated: false
+    completed_at: 2026-09-07T00:15:03.283Z
+  - goal_cycle: 1
+    iteration: 5
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: "Runtime integration check exposed the documented readiness race:
+        pg_isready could pass before newsportal existed. Harden
+        docs/testdb/run.sh to retry an actual psql SELECT 1 against newsportal
+        before loading schema; local full schema-backed suite passes after the
+        fix."
+      truncated: false
+    completed_at: 2026-09-07T00:18:15.997Z
+  - goal_cycle: 1
+    iteration: 6
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Generated API check was incorrectly comparing the intended generated-file
+        diff against HEAD. Replace it with a deterministic-generation check that
+        snapshots api/api_zenrpc.go, runs go generate ./api, compares against
+        the snapshot, and restores the file.
+      truncated: false
+    completed_at: 2026-09-07T00:22:00.754Z
+  - goal_cycle: 1
+    iteration: 7
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Verifier found stale v8/v9 documentation claims in
+        generators/model/README.md. Replace them with explicit go-pg/v10-only
+        wording; no behavior or acceptance requirements change.
+      truncated: false
+    completed_at: 2026-09-07T00:31:19.551Z
+  - goal_cycle: 1
+    iteration: 8
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: Pass. All A1-A44 passed. The hardened schema-backed integration suite, Go
+        1.26 tests and race tests, vet, lint, formatting, and deterministic
+        generated API checks all passed.
+      truncated: false
+    completed_at: 2026-09-07T00:45:49.284Z
+history_overflow:
+  dropped_entries: 0
+  first_dropped_at: null
+  last_dropped_at: null
+  outcome_counts:
+    pass: 0
+    fail: 0
+    blocked: 0
+    execution-error: 0
+    recovery: 0
+verification_result: pass
+verification_report: verification.md
+archived: false
+created_at: 2026-09-06T22:19:27.673Z
