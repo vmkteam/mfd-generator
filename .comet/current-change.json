@@ -1,6 +1,0 @@
-{
-  "schema": "comet.selection.v2",
-  "workflow": "native",
-  "change": "gopg-v10-generated-runtime",
-  "branch": null
-}
