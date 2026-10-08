@@ -88,9 +88,9 @@ func (ff FakeFiller) ByNameAndType(columnName, gotype string, maxFiledLen int) (
 		case model.TypeInt:
 			return fakeIntRange.assign(columnName).Tmpl(), true
 		case model.TypeInt32:
-			return fakeIntRange.assign(columnName).toInt32().Tmpl(), true
+			return fakeIntRange.toInt32().assign(columnName).Tmpl(), true
 		case model.TypeInt64:
-			return fakeIntRange.assign(columnName).toInt64().Tmpl(), true
+			return fakeIntRange.toInt64().assign(columnName).Tmpl(), true
 		case model.TypeFloat32:
 			return fakeFloat32Range.assign(columnName).Tmpl(), true
 		case model.TypeFloat64:
@@ -157,9 +157,9 @@ func (ff FakeFiller) ByType(colName, goType, dbType string, isArray bool, maxFil
 	case model.TypeInt:
 		return fakeIntRange.assign(colName).Tmpl(), true
 	case model.TypeInt32:
-		return fakeIntRange.assign(colName).toInt32().Tmpl(), true
+		return fakeIntRange.toInt32().assign(colName).Tmpl(), true
 	case model.TypeInt64:
-		return fakeIntRange.assign(colName).toInt64().Tmpl(), true
+		return fakeIntRange.toInt64().assign(colName).Tmpl(), true
 	case model.TypeFloat32:
 		return fakeFloat32Range.assign(colName).Tmpl(), true
 	case model.TypeFloat64:
