@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"os"
 	"path"
+	"strings"
 
 	"github.com/vmkteam/mfd-generator/mfd"
 
@@ -17,6 +19,7 @@ const (
 	nsFlag       = "namespaces"
 	entitiesFlag = "entities"
 
+	entityDir          = "src/pages/Entity"
 	routesTemplateFlag = "routes-tmpl"
 	listTemplateFlag   = "list-tmpl"
 	filterTemplateFlag = "filter-tmpl"
@@ -93,7 +96,7 @@ func (g *Generator) ReadFlags(command *cobra.Command) error {
 	if g.options.FiltersTemplatePath, err = flags.GetString(filterTemplateFlag); err != nil {
 		return err
 	}
-	if g.options.FiltersTemplatePath, err = flags.GetString(formTemplateFlag); err != nil {
+	if g.options.FormTemplatePath, err = flags.GetString(formTemplateFlag); err != nil {
 		return err
 	}
 
@@ -119,29 +122,16 @@ func (g *Generator) Generate() error {
 		g.options.Namespaces = project.NamespaceNames
 	}
 
-	// loading templates
-	routesTemplate, err := mfd.LoadTemplate(g.options.RoutesTemplatePath, routesDefaultTemplate)
-	if err != nil {
-		return fmt.Errorf("load routes template, err=%w", err)
-	}
+	// selecting built-in templates set based on the project-level VTTemplate setting
+	vtTemplate := project.VTTemplateName()
 
-	listTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, listDefaultTemplate)
+	templates, err := g.loadTemplates(vtTemplate)
 	if err != nil {
-		return fmt.Errorf("load list template, err=%w", err)
-	}
-
-	filterTemplate, err := mfd.LoadTemplate(g.options.FiltersTemplatePath, filterDefaultTemplate)
-	if err != nil {
-		return fmt.Errorf("load filter template, err=%w", err)
-	}
-
-	formTemplate, err := mfd.LoadTemplate(g.options.ListTemplatePath, formDefaultTemplate)
-	if err != nil {
-		return fmt.Errorf("load form template, err=%w", err)
+		return err
 	}
 
 	// generating routes for all namespaces
-	if _, err := g.SaveRoutes(project.VTNamespaces, routesTemplate); err != nil {
+	if _, err := g.SaveRoutes(project, templates.routes); err != nil {
 		return fmt.Errorf("generate routes, err=%w", err)
 	}
 
@@ -172,17 +162,19 @@ func (g *Generator) Generate() error {
 				continue
 			}
 
-			if err := g.SaveEntity(*entity, "List.vue", listTemplate); err != nil {
+			packed := PackEntity(*entity, vtTemplate)
+
+			if err := g.SaveEntity(packed, "List.vue", templates.list); err != nil {
 				return fmt.Errorf("generate entity %s list, err=%w", entity.Name, err)
 			}
 
-			if err := g.SaveEntity(*entity, "components/MultiListFilters.vue", filterTemplate); err != nil {
+			if err := g.SaveEntity(packed, "components/MultiListFilters.vue", templates.filter); err != nil {
 				return fmt.Errorf("generate entity %s filters, err=%w", entity.Name, err)
 			}
 
 			// do not generate form on
 			if entity.Mode != mfd.ModeReadOnlyWithTemplates {
-				if err := g.SaveEntity(*entity, "Form.vue", formTemplate); err != nil {
+				if err := g.SaveEntity(packed, "Form.vue", templates.form); err != nil {
 					return fmt.Errorf("generate entity %s form, err=%w", entity.Name, err)
 				}
 			}
@@ -199,45 +191,239 @@ func (g *Generator) Generate() error {
 	return mfd.SaveMFD(g.options.MFDPath, project)
 }
 
-// SaveEntity saves vt entity to template with special delims
-func (g *Generator) SaveEntity(entity mfd.VTEntity, output, tmpl string) error {
-	parsed, err := template.New("base").
-		Delims("[[", "]]").
-		Funcs(mfd.TemplateFunctions).
-		Parse(tmpl)
-	if err != nil {
-		return fmt.Errorf("parsing template, err=%w", err)
+type vtTemplates struct {
+	routes, list, filter, form *template.Template
+}
+
+func (g *Generator) loadTemplates(vtTemplate string) (vtTemplates, error) {
+	def := defaultTemplates(vtTemplate)
+
+	var (
+		t    vtTemplates
+		body string
+		err  error
+	)
+
+	if body, err = mfd.LoadTemplate(g.options.RoutesTemplatePath, def.routes); err != nil {
+		return t, fmt.Errorf("load routes template, err=%w", err)
+	}
+	if t.routes, err = parseRoutesTemplate(body); err != nil {
+		return t, fmt.Errorf("parse routes template, err=%w", err)
 	}
 
-	packed := PackEntity(entity)
+	for _, tt := range []struct {
+		name   string
+		path   string
+		def    string
+		target **template.Template
+	}{
+		{"list", g.options.ListTemplatePath, def.list, &t.list},
+		{"filter", g.options.FiltersTemplatePath, def.filter, &t.filter},
+		{"form", g.options.FormTemplatePath, def.form, &t.form},
+	} {
+		if body, err = mfd.LoadTemplate(tt.path, tt.def); err != nil {
+			return t, fmt.Errorf("load %s template, err=%w", tt.name, err)
+		}
+		if *tt.target, err = parseEntityTemplate(body); err != nil {
+			return t, fmt.Errorf("parse %s template, err=%w", tt.name, err)
+		}
+	}
 
+	return t, nil
+}
+
+type vtTemplateBodies struct {
+	routes, list, filter, form string
+}
+
+// defaultTemplates returns the built-in templates set used as fallback when no
+// custom template path is provided.
+func defaultTemplates(vtTemplate string) vtTemplateBodies {
+	switch vtTemplate {
+	case mfd.VTTemplateComposition:
+		return vtTemplateBodies{routesCompositionTemplate, listCompositionTemplate, filterCompositionTemplate, formCompositionTemplate}
+	case mfd.VTTemplateVue3:
+		return vtTemplateBodies{routesVue3Template, listVue3Template, filterVue3Template, formVue3Template}
+	}
+
+	return vtTemplateBodies{routesVue2Template, listVue2Template, filterVue2Template, formVue2Template}
+}
+
+// parseEntityTemplate parses a vt entity template. Entity templates use custom
+// delims so that vue interpolation ({{ ... }}) passes through untouched.
+func parseEntityTemplate(body string) (*template.Template, error) {
+	return template.New("base").
+		Delims("[[", "]]").
+		Funcs(mfd.TemplateFunctions).
+		Parse(body)
+}
+
+// parseRoutesTemplate parses the routes template, which keeps the default delims.
+func parseRoutesTemplate(body string) (*template.Template, error) {
+	return template.New("base").Funcs(mfd.TemplateFunctions).Parse(body)
+}
+
+func (g *Generator) getTargetEntities(project *mfd.Project) []string {
+	var targetEntities []string
+	nsList := g.options.Namespaces
+	if len(nsList) == 0 {
+		nsList = project.NamespaceNames
+	}
+	for _, nsName := range nsList {
+		ns := project.VTNamespace(nsName)
+		if ns == nil {
+			continue
+		}
+		entityNames := ns.VTEntityNames()
+		if len(g.options.Entities) != 0 {
+			entityNames = g.options.Entities
+		}
+
+		for _, eName := range entityNames {
+			if entity := ns.VTEntity(eName); entity != nil {
+				targetEntities = append(targetEntities, entity.Name)
+			}
+		}
+	}
+
+	return targetEntities
+}
+
+// SaveEntity renders packed vt entity data with an already parsed template and
+// saves it under the entity directory.
+func (g *Generator) SaveEntity(packed EntityData, output string, tmpl *template.Template) error {
 	var buffer bytes.Buffer
-	if err := parsed.ExecuteTemplate(&buffer, "base", packed); err != nil {
+	if err := tmpl.ExecuteTemplate(&buffer, "base", packed); err != nil {
 		return fmt.Errorf("processing model template, err=%w", err)
 	}
 
-	_, err = mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity", entity.Name, output))
+	_, err := mfd.Save(buffer.Bytes(), path.Join(g.options.Output, entityDir, packed.Name, output))
 	return err
 }
 
 // SaveRoutes saves all vt namespaces to routes file
-func (g *Generator) SaveRoutes(namespaces []*mfd.VTNamespace, tmpl string) (bool, error) {
-	parsed, err := template.New("base").Funcs(mfd.TemplateFunctions).Parse(tmpl)
-	if err != nil {
-		return false, fmt.Errorf("parsing template, err=%w", err)
+func (g *Generator) SaveRoutes(project *mfd.Project, tmpl *template.Template) (bool, error) {
+	var targetEntities []string
+	isPartial := len(g.options.Namespaces) > 0 || len(g.options.Entities) > 0
+
+	if isPartial {
+		targetEntities = g.getTargetEntities(project)
 	}
 
-	pack, err := PackRoutesNamespace(namespaces)
+	pack, err := PackRoutesNamespace(project.VTNamespaces)
 	if err != nil {
 		return false, fmt.Errorf("packing data, err=%w", err)
 	}
 
 	var buffer bytes.Buffer
-	if err := parsed.ExecuteTemplate(&buffer, "base", pack); err != nil {
+	if err := tmpl.ExecuteTemplate(&buffer, "base", pack); err != nil {
 		return false, fmt.Errorf("processing model template, err=%w", err)
 	}
 
-	return mfd.Save(buffer.Bytes(), path.Join(g.options.Output, "src/pages/Entity/routes.ts"))
+	routesPath := path.Join(g.options.Output, entityDir, "routes.ts")
+
+	// base flow when generate all routes
+	if len(targetEntities) == 0 {
+		return mfd.Save(buffer.Bytes(), routesPath)
+	}
+
+	existingData, err := os.ReadFile(routesPath)
+	if err != nil {
+		return mfd.Save(buffer.Bytes(), routesPath)
+	}
+
+	newStr := buffer.String()
+	existingStr := string(existingData)
+
+	for _, entityName := range targetEntities {
+		// get new code block
+		newBlock := extractEntityBlock(newStr, entityName)
+		if len(newBlock) == 0 {
+			continue
+		}
+		// insert new code with flow
+		existingStr = injectEntityBlock(existingStr, entityName, newBlock)
+	}
+
+	return mfd.Save([]byte(existingStr), routesPath)
+}
+
+// extractEntityBlock get block code from content by entity name
+func extractEntityBlock(content string, entityName string) []string {
+	var block []string
+	inBlock := false
+	marker := fmt.Sprintf("/* %s */", entityName)
+
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		if inBlock {
+			if strings.HasPrefix(trimmed, "/*") || trimmed == "];" {
+				break
+			}
+			block = append(block, strings.TrimPrefix(line, "  "))
+		} else if trimmed == marker {
+			inBlock = true
+		}
+	}
+
+	return block
+}
+
+// injectEntityBlock update or concat body with new blocks
+func injectEntityBlock(existingContent string, entityName string, newBlock []string) string {
+	var result []string
+	inBlock := false
+	found := false
+	marker := fmt.Sprintf("/* %s */", entityName)
+
+	lines := strings.Split(existingContent, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		if inBlock {
+			if strings.HasPrefix(trimmed, "/*") || trimmed == "];" {
+				inBlock = false
+			} else {
+				continue
+			}
+		}
+
+		// Case 1 - when found
+		if !inBlock && trimmed == marker {
+			inBlock = true
+			found = true
+
+			result = append(result, "    "+marker)
+			for _, bLine := range newBlock {
+				result = append(result, "  "+bLine)
+			}
+			continue
+		}
+
+		// Case 2 - not found, create new
+		if !found && trimmed == "];" {
+			if len(result) > 0 {
+				lastIdx := len(result) - 1
+				if strings.HasSuffix(strings.TrimSpace(result[lastIdx]), "}") {
+					result[lastIdx] += ","
+				}
+			}
+
+			result = append(result, "    "+marker)
+			for _, bLine := range newBlock {
+				result = append(result, "  "+bLine)
+			}
+			found = true
+		}
+
+		if !inBlock {
+			result = append(result, line)
+		}
+	}
+
+	return strings.Join(result, "\n")
 }
 
 func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
@@ -245,7 +431,7 @@ func (g *Generator) SaveLang(entity *mfd.TranslationEntity, lang string) error {
 		return nil
 	}
 
-	output := path.Join(g.options.Output, "src/pages/Entity", entity.Name, lang+".json")
+	output := path.Join(g.options.Output, entityDir, entity.Name, lang+".json")
 	if err := mfd.MarshalJSONToFile(output, entity.ToJSONMap()); err != nil {
 		return fmt.Errorf("save translation lang %s, err=%w", lang, err)
 	}

@@ -25,8 +25,19 @@ type EntityData struct {
 	FormColumns   []InputData
 }
 
-// PackEntity packs mfd vt entity to template data
-func PackEntity(vtEntity mfd.VTEntity) EntityData {
+func (e EntityData) UsesTableDate() bool {
+	for _, column := range e.ListColumns {
+		if column.IsTableDate {
+			return true
+		}
+	}
+
+	return false
+}
+
+// PackEntity packs mfd vt entity to template data.
+// vtTemplate is the normalized project-level template set name
+func PackEntity(vtEntity mfd.VTEntity, vtTemplate string) EntityData {
 	pks := vtEntity.Entity.PKs()
 	pkPairs := make([]PKPair, len(pks))
 	for i := range pks {
@@ -50,15 +61,17 @@ func PackEntity(vtEntity mfd.VTEntity) EntityData {
 			tmpl.ListColumns = append(tmpl.ListColumns, PackAttribute(vtEntity, *attr))
 		}
 		if attr.Search != mfd.TypeHTMLNone && attr.Search != "" {
-			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true))
+			tmpl.FilterColumns = append(tmpl.FilterColumns, PackInput(*attr, vtEntity, true, vtTemplate))
 		}
 		if attr.Form != mfd.TypeHTMLNone && attr.Form != "" {
-			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false))
+			tmpl.FormColumns = append(tmpl.FormColumns, PackInput(*attr, vtEntity, false, vtTemplate))
 		}
 	}
 
 	return tmpl
 }
+
+const tableDatePipe = "tableDate"
 
 // AttributeData stores attribute info
 type AttributeData struct {
@@ -70,6 +83,13 @@ type AttributeData struct {
 
 	HasPipe bool
 	Pipe    template.HTML
+
+	// IsTableDate reports that the column is rendered through the tableDate helper.
+	IsTableDate bool
+
+	// Value is the ready to use cell expression for templates without Vue 2
+	// filters (vue3): `item.createdAt`, `tableDate(item.createdAt)`, `item.category?.title`
+	Value template.HTML
 }
 
 // PackAttribute packs mfd tmpl attribute to template data
@@ -78,16 +98,26 @@ func PackAttribute(vtEntity mfd.VTEntity, tmpl mfd.TmplAttribute) AttributeData 
 	boolType := false
 	isSortable := true
 
+	jsName := mfd.VarName(tmpl.Name)
 	pipe := ""
+	value := template.HTML("item." + jsName)
+	isTableDate := false
+
 	if tmpl.VTAttribute != nil {
 		attr := tmpl.VTAttribute.Attribute
 
 		if attr.IsDateTime() {
-			pipe = "tableDate"
+			pipe = tableDatePipe
+			value = template.HTML(fmt.Sprintf("%s(item.%s)", tableDatePipe, jsName))
+			isTableDate = true
 		}
 		if attr.ForeignKey != "" {
-			pipe = fmt.Sprintf(`getField("%s")`, mfd.VarName(tmpl.FKOpts))
+			fkField := mfd.VarName(tmpl.FKOpts)
+			pipe = fmt.Sprintf(`getField("%s")`, fkField)
+			// vue3 has no filters, so the nested field is read directly
+			value = template.HTML(fmt.Sprintf("item.%s?.%s", jsName, fkField))
 			isSortable = false
+			isTableDate = false
 		}
 		if attr.IsBool() || tmpl.Search == mfd.TypeHTMLCheckbox {
 			boolType = true
@@ -96,12 +126,14 @@ func PackAttribute(vtEntity mfd.VTEntity, tmpl mfd.TmplAttribute) AttributeData 
 	}
 
 	return AttributeData{
-		JSName:     mfd.VarName(tmpl.Name),
-		EditLink:   vtEntity.Mode == mfd.ModeFull && (lowerName == "title" || lowerName == "name"),
-		IsBool:     tmpl.List && boolType,
-		IsSortable: isSortable,
-		HasPipe:    pipe != "",
-		Pipe:       template.HTML(pipe),
+		JSName:      jsName,
+		EditLink:    vtEntity.Mode == mfd.ModeFull && (lowerName == "title" || lowerName == "name"),
+		IsBool:      tmpl.List && boolType,
+		IsSortable:  isSortable,
+		HasPipe:     pipe != "",
+		Pipe:        template.HTML(pipe),
+		IsTableDate: isTableDate,
+		Value:       value,
 	}
 }
 
@@ -123,8 +155,45 @@ type InputData struct {
 	Params     []template.HTML
 }
 
-// PackInput packs mfd tmpl attribute to template input data
-func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) InputData {
+// IsDefaultComponent reports that Component is the fallback text field, so vue3
+// templates may skip the explicit component attribute.
+func (i InputData) IsDefaultComponent() bool {
+	return i.Component == defaultInputComponent
+}
+
+// vtDialect holds the js and vuetify api differences between the built-in
+// template sets that leak into the packed data.
+type vtDialect struct {
+	// modelPrefix is how form templates reach the edited model: the mobx store
+	// in vue2, the model destructured from useEntityForm in the other sets.
+	modelPrefix template.HTML
+	// smAndUp is the "small and up" breakpoint expression, renamed in vuetify 3.
+	smAndUp template.HTML
+}
+
+var vtDialects = map[string]vtDialect{
+	mfd.VTTemplateVue2:        {modelPrefix: "store.model.", smAndUp: "$vuetify.breakpoint.smAndUp"},
+	mfd.VTTemplateComposition: {modelPrefix: "model.", smAndUp: "$vuetify.breakpoint.smAndUp"},
+	mfd.VTTemplateVue3:        {modelPrefix: "model.", smAndUp: "$vuetify.display.smAndUp"},
+}
+
+// dialect returns the dialect of a normalized template set name, falling back
+// to vue2 the same way mfd.Project.VTTemplateName does.
+func dialect(vtTemplate string) vtDialect {
+	if d, ok := vtDialects[vtTemplate]; ok {
+		return d
+	}
+
+	return vtDialects[mfd.VTTemplateVue2]
+}
+
+// PackInput packs mfd tmpl attribute to template input data.
+// vtTemplate is the normalized project-level template set name, it selects the
+// dialect the packed params are rendered in.
+func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool, vtTemplate string) InputData {
+	d := dialect(vtTemplate)
+	modelPrefix, smAndUp := d.modelPrefix, d.smAndUp
+
 	inp := InputData{
 		JSName:    mfd.VarName(tmpl.Name),
 		Component: filterComponent(tmpl.Search, isSearch),
@@ -139,7 +208,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 		inp.Component = "vt-status-select"
 
 		if !isSearch {
-			inp.Params = append(inp.Params, `compact`, `:row="$vuetify.breakpoint.smAndUp"`)
+			inp.Params = append(inp.Params, `compact`, `:row="`+smAndUp+`"`)
 		}
 	}
 
@@ -164,7 +233,7 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			trasliteratingValue := template.HTML(mfd.VarName(title.Name))
 
 			inp.Component = "vt-transliterator"
-			inp.Params = append(inp.Params, `:value-for-transliterating="store.model.`+trasliteratingValue+`"`)
+			inp.Params = append(inp.Params, `:value-for-transliterating="`+modelPrefix+trasliteratingValue+`"`)
 		}
 	}
 
@@ -178,8 +247,8 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 			inp.IsFK = false
 			inp.FKJSName = mfd.VarName(mfd.FKName(tmpl.AttrName))
 			inp.FKJSSearch = mfd.VarName(tmpl.FKOpts)
-			inp.Params = append(inp.Params, `:file="store.model.`+template.HTML(inp.FKJSName)+`"
-                    @input:file="file => store.model.`+template.HTML(inp.FKJSName)+` = file"`)
+			inp.Params = append(inp.Params, `:file="`+modelPrefix+template.HTML(inp.FKJSName)+`"
+                    @input:file="file => `+modelPrefix+template.HTML(inp.FKJSName)+` = file"`)
 		} else if attr.ForeignKey != "" {
 			inp.Component = "vt-entity-autocomplete"
 			inp.IsFK = true
@@ -199,8 +268,11 @@ func PackInput(tmpl mfd.TmplAttribute, vtEntity mfd.VTEntity, isSearch bool) Inp
 	return inp
 }
 
+// defaultInputComponent is the fallback input component
+const defaultInputComponent = "v-text-field"
+
 func filterComponent(input string, isSearch bool) string {
-	defaultComponent := "v-text-field"
+	defaultComponent := defaultInputComponent
 	switch input {
 	case mfd.TypeHTMLInput:
 		return defaultComponent

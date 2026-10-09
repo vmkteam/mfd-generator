@@ -25,9 +25,19 @@ Flags:
   -o, --output string        output dir path
   -m, --mfd string           mfd file path
   -n, --namespaces strings   namespaces to generate. separate by comma
+  -e, --entities strings     entities to generate, must be in vt.xml file. separate by comma
   -h, --help                 help for template
 
 ```
+
+#### Шаблоны
+
+Встроенные шаблоны существуют в трёх вариантах:
+- **`vue2`** (по умолчанию) — class-based компоненты на `vue-property-decorator` + `mobx-vue`, Vuetify 2.
+- **`composition`** — Vue 2 + Composition API: компоненты через `defineComponent`/`setup` и composables (`useEntityList`, `useEntityForm`, `useI18n`), которые должны существовать во фронтенд-проекте (`@/composables/...`); в `routes.ts` добавляется поле `meta.title`. Vuetify 2.
+- **`vue3`** — Vue 3 + Vuetify 3: те же composables плюс `useErrorMessage`, компоненты обёрток `vt-row`/`vt-col`/`vt-btn`/`vt-icon`/`vt-card`/`vt-hover`/`vt-data-table`, `$vuetify.display` вместо `$vuetify.breakpoint`, `v-tabs-window`/`v-tabs-window-item` вместо `v-tabs-items`/`v-tab-item`, mdi-иконки. `routes.ts` и `MultiListFilters.vue` совпадают с вариантом `composition`.
+
+Выбор варианта задаётся на уровне проекта в mfd-файле. В корневом `<Project>` добавьте элемент `<VTTemplate>vue3</VTTemplate>`. Допустимые значения — `vue2`, `composition`, `vue3`; если элемент отсутствует, пуст или содержит неизвестное значение, используется `vue2`.
 
 #### MODE
 
@@ -36,6 +46,12 @@ Flags:
 - "ReadOnlyWithTemplates" - все файлы в read-only режиме, Form.vue генерироваться не будет
 - "None" - файлы генерироваться не будут
 
+#### Частичная генерация
+
+Флаги `-n --namespaces` и `-e --entities` ограничивают набор сущностей, для которых генерируются файлы. Если ни один из них не указан, обрабатываются все неймспейсы и сущности.
+
+При частичной генерации `routes.ts` обновляется точечно: перезаписываются только блоки указанных сущностей (по маркеру `/* EntityName */`), остальная часть файла сохраняется. Если целевой сущности в файле ещё нет — её блок дописывается в конец. При полной генерации (без `-n`/`-e`) `routes.ts` перезаписывается целиком.
+
 #### Особенности работы с существующими моделями
 
-Все файлы будут перезаписаны при каждой генерации.
+Файлы сущностей (`List.vue`, `Form.vue`, `MultiListFilters.vue`, переводы) перезаписываются при каждой генерации. Исключение — `routes.ts` при частичной генерации (см. выше).

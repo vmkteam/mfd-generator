@@ -1,0 +1,23 @@
+<VTNamespace xmlns:xsi="" xmlns:xsd="">
+    <Name>media</Name>
+    <VTEntities>
+        <Entity Name="Page" Mode="Full">
+            <TerminalPath>pages</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Title" AttrName="Title" SearchName="TitleILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Alias" AttrName="Alias" SearchName="Alias" Summary="true" Search="false" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="ImageID" AttrName="ImageID" SearchName="ImageID" Summary="true" Search="false" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="Title" VTAttrName="Title" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Alias" VTAttrName="Alias" List="false" Form="HTML_INPUT" Search="HTML_NONE"></Attribute>
+                <Attribute Name="Image" VTAttrName="ImageID" List="false" Form="HTML_FILE" Search="HTML_NONE"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+            </Template>
+        </Entity>
+    </VTEntities>
+</VTNamespace>

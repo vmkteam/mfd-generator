@@ -1,39 +1,42 @@
 package vttmpl
 
-const routesVue2Template = `/* eslint-disable */
+const routesCompositionTemplate = `/* eslint-disable */
 export default [{{range $model := .Entities}}
-  /* {{.Name}} */
-  {
-    name: "{{.JSName}}List",
-    path: "/{{.TerminalPath}}",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/List.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List"]
-    }
-  },
-  {{if not .ReadOnly}}{
-    name: "{{.JSName}}Edit",
-    path: "/{{.TerminalPath}}/:id/edit",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Edit"]
-    }
-  },
-  {
-    name: "{{.JSName}}Add",
-    path: "/{{.TerminalPath}}/add",
-    component: () =>
-      import("@/pages/Entity/{{.Name}}/Form.vue"),
-    meta: {
-      breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
-    }
-  },{{end}}{{end}}
+    /* {{.Name}} */
+    {
+        name: "{{.JSName}}List",
+        path: "/{{.TerminalPath}}",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/List.vue"),
+        meta: {
+            title: "{{.Name}}List",
+            breadcrumbs: ["dashboard", "{{.JSName}}List"]
+        }
+    },
+    {{if not .ReadOnly}}{
+        name: "{{.JSName}}Edit",
+        path: "/{{.TerminalPath}}/:id/edit",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/Form.vue"),
+        meta: {
+            title: "{{.Name}}Edit",
+            breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Edit"]
+        }
+    },
+    {
+        name: "{{.JSName}}Add",
+        path: "/{{.TerminalPath}}/add",
+        component: () =>
+            import("@/pages/Entity/{{.Name}}/Form.vue"),
+        meta: {
+            title: "{{.Name}}Add",
+            breadcrumbs: ["dashboard", "{{.JSName}}List", "{{.JSName}}Add"]
+        }
+    },{{end}}{{end}}
 ];
 `
 
-const listVue2Template = `<template>
+const listCompositionTemplate = `<template>
   <vt-entity-view>
     <v-layout
       align-start
@@ -53,27 +56,26 @@ const listVue2Template = `<template>
               <v-flex>
                 <v-layout align-center>
                   <h2 class="ellipsed mr-1">
-                    {{ $t("[[.JSName]].list.title") }}
+                    {{ t("[[.JSName]].list.title") }}
                   </h2>
                   <span
-                    v-if="store.pagination.totalItems"
+                    v-if="pagination.totalItems"
                     class="text--secondary subtitle-2"
                   >
-                    {{ store.pagination.totalItems }}
+                    {{ pagination.totalItems }}
                   </span>
                 </v-layout>
               </v-flex>
               <v-spacer />
               <v-flex shrink>
                 [[if not .ReadOnly]]<v-btn
+                  small
                   dark
                   color="success"
                   :to="{ name: '[[.JSName]]Add' }"
                 >
-                  <v-icon left>
-                    add
-                  </v-icon>
-                  {{ $t("common.list.addNewLabel") }}
+                  <v-icon>add</v-icon>
+                  {{ t("common.list.addNewLabel") }}
                 </v-btn>[[end]]
               </v-flex>
             </v-layout>
@@ -99,9 +101,9 @@ const listVue2Template = `<template>
                     mr-sm-2
                   >
                     <v-text-field
-                      v-model="store.filters.[[.TitleField]]"
+                      v-model="filters.[[.TitleField]]"
                       :placeholder="
-                        $t('[[.JSName]].list.filter.quickFilterPlaceholder')
+                        t('[[.JSName]].list.filter.quickFilterPlaceholder')
                       "
                       hide-details
                       @keyup.enter="submitFilters()"
@@ -113,9 +115,10 @@ const listVue2Template = `<template>
                     mr-sm-10
                   >
                     <multi-filters
-                      :filters="store.filters"
-                      :active-filters="store.activeFilters"
+                      :filters="filters"
+                      :active-filters="activeFilters"
                       @submitFilters="submitFilters"
+                      @update:filters="updateFilters"
                     />
                   </v-flex>[[end]]
                   <v-flex
@@ -123,8 +126,8 @@ const listVue2Template = `<template>
                     mt-sm-4
                   >
                     <vt-compact-pagination
-                      :value="store.pagination.page"
-                      :total-pages="store.pagination.totalPages"
+                      :value="pagination.page"
+                      :total-pages="pagination.totalPages"
                       @input="setCompactPagination"
                     />
                   </v-flex>
@@ -135,9 +138,9 @@ const listVue2Template = `<template>
               <v-data-table
                 v-model="selected"
                 :headers="headers"
-                :items="store.list"
-                :options="store.vuetifyTableOptions"
-                :server-items-length="store.pagination.totalItems"
+                :items="list"
+                :options="vuetifyTableOptions"
+                :server-items-length="pagination.totalItems"
                 item-key="[[range .PKs]][[.JSName]][[end]]"
                 :footer-props="{
                   itemsPerPageOptions: [10, 25, 50, 100, 500]
@@ -151,7 +154,7 @@ const listVue2Template = `<template>
                   }
                 ]"
                 :show-select="false"
-                :loading="store.isLoading"
+                :loading="isLoading"
                 fixed-header
                 @update:options="setPagination"
               >[[range .ListColumns]][[if eq .JSName "statusId"]]
@@ -200,34 +203,45 @@ const listVue2Template = `<template>
 </template>
 
 [[raw "<"]]script lang="ts">
-import { Component } from 'vue-property-decorator';
-import { Observer } from 'mobx-vue';
-import EntityList from '@/common/Entity/EntityList';
-import Store from '@/common/Entity/EntityCollectionStore';
-import {
-  [[.Name]]Summary as Model,
-  [[.Name]]Search as SearchModel
-} from '@/services/api/factory';
+import { computed, defineComponent } from 'vue';
+import { [[.Name]]Summary, [[.Name]]Search } from '@/services/api/factory';
+import { useEntityList } from '@/composables/useEntityList';
+import { useI18n } from '@/composables/useI18n';
+
 import MultiFilters from './components/MultiListFilters.vue';
 
-@Observer
-@Component({
+export default defineComponent({
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'List',
-  components: { MultiFilters }
-})
-export default class List extends EntityList {
-  store: Store = new Store(Model, SearchModel);
+  components: { MultiFilters },
 
-  get headers () {
-    return [
+  setup () {
+    const { t } = useI18n();
+
+    const {
+      selected,
+      pagination,
+      filters,
+      activeFilters,
+      list,
+      isLoading,
+      vuetifyTableOptions,
+      deleteItem,
+      submitFilters,
+      setCompactPagination,
+      setPagination,
+      updateFilters
+    } = useEntityList([[.Name]]Summary, [[.Name]]Search);
+
+    const headers = computed(() => [
       [[range $i, $e := .ListColumns]][[if ne $i 0]]
       },
       [[end]]{[[if eq .JSName "statusId"]]
-        text: this.$t('[[$.JSName]].list.headers.status'),
+        text: t('[[$.JSName]].list.headers.status'),
         value: 'status',
         sortable: false
       [[- else ]]
-        text: this.$t('[[$.JSName]].list.headers.[[.JSName]]'),
+        text: t('[[$.JSName]].list.headers.[[.JSName]]'),
         value: '[[.JSName]]'[[if eq $i 0]],
         align: 'left'[[end]][[if not .IsSortable]],
         sortable: false[[end]][[end]][[end]]
@@ -236,37 +250,71 @@ export default class List extends EntityList {
       [[- else ]]
       },
       {
-        text: this.$t('[[$.JSName]].list.headers.actions'),
+        text: t('[[$.JSName]].list.headers.actions'),
         value: 'id',
         sortable: false
       }[[end]]
-    ];
+    ]);
+
+    return {
+      t,
+      selected,
+      pagination,
+      filters,
+      activeFilters,
+      list,
+      isLoading,
+      vuetifyTableOptions,
+      deleteItem,
+      submitFilters,
+      setCompactPagination,
+      setPagination,
+      updateFilters,
+      headers
+    };
   }
-}
+});
 </script>
 
 <style lang="scss"></style>
 `
 
-const filterVue2Template = `<template>
-  <vt-multi-filter
+const filterCompositionTemplate = `<template>
+  <vt-new-multi-filter
     :items="filterItems"
     :filters="filters"
     autofocus
-    :label="$t('common.list.filter.title')"
+    :label="t('common.list.filter.title')"
     @submitFilters="$emit('submitFilters')"
+    @update:filters="$emit('update:filters', $event)"
   />
 </template>
 
 <script lang="ts">
-import { Component } from 'vue-property-decorator';
-import { Observer } from 'mobx-vue';
-import EntityListFilters from '@/common/Entity/EntityListFilters';
+import { IFilterItem } from '@/common/MultiFilter/types';
+import { useI18n } from '@/composables/useI18n';
+import { defineComponent } from 'vue';
 
-@Observer
-@Component
-export default class MultiListFilters extends EntityListFilters {
-  filterItems = [
+export default defineComponent({
+  name: 'MultiListFilters',
+
+  props: {
+    filters: {
+      type: Object,
+      required: true
+    },
+    activeFilters: {
+      type: Object,
+      required: true
+    }
+  },
+
+  emits: ['submitFilters', 'update:filters'],
+
+  setup () {
+    const { t } = useI18n();
+
+    const filterItems = [
 [[- $filtersLen := len .FilterColumns ]]
 [[- range $i, $e := .FilterColumns ]]
     [[- if (isLast $i $filtersLen) ]]
@@ -277,7 +325,7 @@ export default class MultiListFilters extends EntityListFilters {
     {
       id: '[[ .JSName ]]',
       type: '[[ .SearchType ]]',
-      title: this.$t('[[ $.JSName ]].list.filter.[[ .JSName ]]'),
+      title: t('[[ $.JSName ]].list.filter.[[ .JSName ]]'),
       value: [[ if .IsCheckBox ]]true[[ else ]]null[[ end ]],
       values: null,
       settings: {
@@ -306,12 +354,18 @@ export default class MultiListFilters extends EntityListFilters {
       }
     }[[ if (notLast $i $filtersLen) ]],[[ end ]]
 [[- end ]]
-  ].filter(Boolean)
-}
+  ].filter(Boolean) as IFilterItem[];
+
+    return {
+      t,
+      filterItems
+    };
+  }
+});
 </script>
 `
 
-const formVue2Template = `<template>
+const formCompositionTemplate = `<template>
   <vt-entity-view>
     <v-layout
       align-start
@@ -328,7 +382,7 @@ const formVue2Template = `<template>
         >
           <v-flex>
             <h2 class="ellipsed">
-              {{ store.model.[[.TitleField]] || "..." }}
+              {{ model.[[.TitleField]] || "..." }}
             </h2>
           </v-flex>
           <v-spacer />
@@ -336,7 +390,7 @@ const formVue2Template = `<template>
             <v-btn
               text
               color="primary"
-              :disabled="store.isLoading"
+              :disabled="isLoading"
               @click.stop="navigateBack"
             >
               <v-icon
@@ -345,7 +399,7 @@ const formVue2Template = `<template>
                 arrow_back
               </v-icon>
               <template v-if="!$vuetify.breakpoint.xsOnly">
-                {{ $t("common.form.cancelButtonLabel") }}
+                {{ t("common.form.cancelButtonLabel") }}
               </template>
             </v-btn>
             <v-hover
@@ -374,7 +428,7 @@ const formVue2Template = `<template>
             Основные
           </v-tab>
         </v-tabs>
-        <v-card v-if="store.model">
+        <v-card v-if="model">
           <v-form
             ref="form"
             @submit.prevent="onSaveAndBack"
@@ -383,26 +437,26 @@ const formVue2Template = `<template>
               <v-tabs-items v-model="tab">
                 <v-tab-item eager>
                   [[raw "<!--  generated part -->"]]
-                  [[range .FormColumns]][[if .IsCheckBox]]<vt-form-field v-model="store.model.[[.JSName]]">
+                  [[range .FormColumns]][[if .IsCheckBox]]<vt-form-field v-model="model.[[.JSName]]">
 					<template #component-slot>
 	                  [[raw "<v-checkbox"]]
-	                    v-model="store.model.[[.JSName]]"
-						[[raw ":error-messages="]]"$t(i18nFieldError(store.errors.[[.JSName]]))"
-                    	:disabled="store.isLoading"
-						:label="$t('[[$.JSName]].form.[[.JSName]]Label')"
+	                    v-model="model.[[.JSName]]"
+						[[raw ":error-messages="]]"getErrorMessage(errors.[[.JSName]])"
+                    	:disabled="isLoading"
+						:label="t('[[$.JSName]].form.[[.JSName]]Label')"
 						color="primary"
 	                  />
 					</template>
                   </vt-form-field>
                   [[else]][[raw "<vt-form-field"]]
-                    v-model="store.model.[[.JSName]]"[[if .IsFK]]
+                    v-model="model.[[.JSName]]"[[if .IsFK]]
                     entity="[[ .FKJSName | ToLower ]]"
                     search-by="[[.FKJSSearch]]"
                     prefetch[[end]]
                     component="[[.Component]]"
-                    :label="$t('[[$.JSName]].form.[[.JSName]]Label')"
-                    :error-messages="$t(i18nFieldError(store.errors.[[.JSName]]))"
-                    :disabled="store.isLoading"
+                    :label="t('[[$.JSName]].form.[[.JSName]]Label')"
+                    :error-messages="getErrorMessage(errors.[[.JSName]])"
+                    :disabled="isLoading"
                     placeholder=""[[if .Required]]
                     required[[else]]
                     clearable[[end]][[if eq .Component "vt-datetime-picker"]]
@@ -423,21 +477,21 @@ const formVue2Template = `<template>
                     <v-btn
                       type="submit"
                       color="success"
-                      :disabled="!store.isChanged || store.isLoading"
-                      :loading="store.isLoading"
+                      :disabled="!isChanged || isLoading"
+                      :loading="isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="!$vuetify.breakpoint.xsOnly && 'mx-2'"
                     >
                       <v-icon left>
                         done
                       </v-icon>
-                      {{ $t("common.form.saveAndCloseButtonLabel") }}
+                      {{ t("common.form.saveAndCloseButtonLabel") }}
                     </v-btn>
 
                     <v-btn
                       v-if="$route.params.id"
-                      :disabled="!store.isChanged || store.isLoading"
-                      :loading="store.isLoading"
+                      :disabled="!isChanged || isLoading"
+                      :loading="isLoading"
                       :block="$vuetify.breakpoint.xsOnly"
                       :class="[
                         $vuetify.breakpoint.xsOnly && 'ml-0 mt-2',
@@ -447,7 +501,7 @@ const formVue2Template = `<template>
                       color="accent"
                       @click.stop="onSave"
                     >
-                      {{ $t("common.form.saveButtonLabel") }}
+                      {{ t("common.form.saveButtonLabel") }}
                     </v-btn>
                     <v-spacer />
                   </v-layout>
@@ -462,17 +516,58 @@ const formVue2Template = `<template>
 </template>
 
 [[raw "<script"]] lang="ts">
-import { Component } from 'vue-property-decorator';
-import { Observer } from 'mobx-vue';
+import { useEntityForm } from '@/composables/useEntityForm';
+import { useI18n } from '@/composables/useI18n'
 import { [[.Name]] as Model } from '@/services/api/factory';
-import Store from '@/common/Entity/EntityModelStore';
-import EntityForm from '@/common/Entity/EntityForm';
+import { defineComponent } from 'vue';
 
-@Observer
-@Component
-export default class Form extends EntityForm {
-  store: Store<Model> = new Store<Model>(Model);
-}
+export default defineComponent({
+  // eslint-disable-next-line vue/match-component-file-name
+  name: '[[.Name]]Form',
+
+  setup () {
+    const { t } = useI18n();
+
+    const {
+      tab,
+      form,
+      model,
+      errors,
+      isLoading,
+      isChanged,
+      i18nFieldError,
+      tabsHasError,
+
+      onSave,
+      onDelete,
+      navigateBack,
+      onSaveAndBack
+    } = useEntityForm<Model>({ Model} );
+
+	const getErrorMessage = (errorKey: string | null): string => {
+      const errorMessage = i18nFieldError(errorKey);
+      return errorMessage ? t(errorMessage) : '';
+    };
+
+    return {
+      t,
+      tab,
+      form,
+      model,
+      errors,
+      isLoading,
+      isChanged,
+      i18nFieldError,
+      tabsHasError,
+      getErrorMessage,
+
+      onSave,
+      onDelete,
+      navigateBack,
+      onSaveAndBack
+    };
+  }
+});
 </script>
 
 <style scoped></style>

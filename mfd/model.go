@@ -134,6 +134,7 @@ type Project struct {
 	NamespaceNames []string     `xml:"PackageNames>string" json:"-"`
 	Languages      []string     `xml:"Languages>string" json:"languages"`
 	GoPGVer        int          `xml:"GoPGVer" json:"goPGVer"`
+	VTTemplate     string       `xml:"VTTemplate,omitempty" json:"vtTemplate,omitempty"`
 	CustomTypes    CustomTypes  `xml:"CustomTypes>CustomType,omitempty" json:"customTypes,omitempty"`
 	Dictionary     *Dictionary  `xml:"Dictionary" json:"dict,omitempty"`
 	TableMapping   TableMapping `xml:"TableMapping" json:"tableMapping,omitempty"`
@@ -171,6 +172,15 @@ func (tm *TableMapping) Packages() map[string]string {
 	return packages
 }
 
+const (
+	// VTTemplateVue2 - class-based components on vue-property-decorator + mobx-vue. Default.
+	VTTemplateVue2 = "vue2"
+	// VTTemplateComposition - Vue 2 Composition API components (defineComponent/setup + composables).
+	VTTemplateComposition = "composition"
+	// VTTemplateVue3 - Vue 3 + Vuetify 3 components (defineComponent/setup + composables).
+	VTTemplateVue3 = "vue3"
+)
+
 func NewProject(name string, goPGVer int) *Project {
 	return &Project{
 		Name:           name,
@@ -182,6 +192,15 @@ func NewProject(name string, goPGVer int) *Project {
 		XMLxsi: "",
 		XMLxsd: "",
 	}
+}
+
+func (p *Project) VTTemplateName() string {
+	switch name := strings.ToLower(strings.TrimSpace(p.VTTemplate)); name {
+	case VTTemplateComposition, VTTemplateVue3:
+		return name
+	}
+
+	return VTTemplateVue2
 }
 
 // Namespace returns mfd.Namespace by its name
