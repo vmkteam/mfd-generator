@@ -16,6 +16,10 @@ const (
 	SearchTypeLE
 	SearchTypeGreater
 	SearchTypeLess
+	SearchTypeLLike
+	SearchTypeLILike
+	SearchTypeRLike
+	SearchTypeRILike
 	SearchTypeLike
 	SearchTypeILike
 	SearchTypeArray
@@ -36,6 +40,10 @@ var searchTypes = map[bool]map[int]string{
 		SearchTypeLE:             "<= ?",
 		SearchTypeGreater:        "> ?",
 		SearchTypeLess:           "< ?",
+		SearchTypeLLike:          "like ?",
+		SearchTypeLILike:         "ilike ?",
+		SearchTypeRLike:          "like ?",
+		SearchTypeRILike:         "ilike ?",
 		SearchTypeLike:           "like ?",
 		SearchTypeILike:          "ilike ?",
 		SearchTypeArray:          "in (?)",
@@ -52,6 +60,10 @@ var searchTypes = map[bool]map[int]string{
 		SearchTypeLE:            "> ?",
 		SearchTypeGreater:       "<= ?",
 		SearchTypeLess:          ">= ?",
+		SearchTypeLLike:         "not (like ?)",
+		SearchTypeLILike:        "not (ilike ?)",
+		SearchTypeRLike:         "not (like ?)",
+		SearchTypeRILike:        "not (ilike ?)",
 		SearchTypeLike:          "not (like ?)",
 		SearchTypeILike:         "not (ilike ?)",
 		SearchTypeArray:         "not in (?)",
@@ -102,6 +114,12 @@ func (f Filter) prepare() (field, value types.ValueAppender) {
 	switch f.SearchType {
 	case SearchTypeArray:
 		f.Value = pg.In(f.Value)
+	case SearchTypeLLike, SearchTypeLILike:
+		//nolint:errcheck
+		f.Value = `%` + f.Value.(string)
+	case SearchTypeRLike, SearchTypeRILike:
+		//nolint:errcheck
+		f.Value = f.Value.(string) + `%`
 	case SearchTypeILike, SearchTypeLike:
 		//nolint:errcheck
 		f.Value = `%` + f.Value.(string) + `%`
