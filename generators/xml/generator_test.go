@@ -64,6 +64,121 @@ func TestGenerator_Generate(t *testing.T) {
 	})
 }
 
+// TestDecideNamespace checks the pure namespace-resolution logic that drives
+// --quiet (-q) and --namespaces (-n). It replaces the previous DB-backed test
+// that swapped an interactive-prompt seam on the Generator: every invariant the
+// seam used to verify (which tables are mapped, skipped or prompted, and that -n
+// overrides -q/TableMapping) is now asserted directly, with no DB and no mocks.
+func TestDecideNamespace(t *testing.T) {
+	// tableMapping mirrors a project where news/categories/tags are pre-mapped to "portal".
+	tableMapping := map[string]string{
+		"news":       "portal",
+		"categories": "portal",
+		"tags":       "portal",
+	}
+
+	tests := []struct {
+		name        string
+		opts        Options
+		table       string
+		existingNS  string
+		hasExisting bool
+		wantNS      string
+		wantAction  nsAction
+	}{
+		{
+			name:       "-q new: mapped table is assigned silently",
+			opts:       Options{Quiet: quietNew},
+			table:      "news",
+			wantNS:     "portal",
+			wantAction: nsAssign,
+		},
+		{
+			name:        "-q new: unmapped table already in project keeps its namespace",
+			opts:        Options{Quiet: quietNew},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantNS:      "blog",
+			wantAction:  nsAssign,
+		},
+		{
+			name:       "-q new: brand new table must be prompted",
+			opts:       Options{Quiet: quietNew},
+			table:      "vfsFiles",
+			wantAction: nsPrompt,
+		},
+		{
+			name:       "-q all: mapped table is assigned",
+			opts:       Options{Quiet: quietAll},
+			table:      "news",
+			wantNS:     "portal",
+			wantAction: nsAssign,
+		},
+		{
+			name:        "-q all: unmapped table already in project keeps its namespace",
+			opts:        Options{Quiet: quietAll},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantNS:      "blog",
+			wantAction:  nsAssign,
+		},
+		{
+			name:       "-q all: unmapped new table is skipped",
+			opts:       Options{Quiet: quietAll},
+			table:      "vfsFolders",
+			wantAction: nsSkip,
+		},
+		{
+			name:       "-n: listed table is assigned",
+			opts:       Options{Packages: map[string]string{"encryptionKeys": "custom"}},
+			table:      "encryptionKeys",
+			wantNS:     "custom",
+			wantAction: nsAssign,
+		},
+		{
+			name:       "-n: table missing from preset is skipped",
+			opts:       Options{Packages: map[string]string{"encryptionKeys": "custom"}},
+			table:      "vfsFolders",
+			wantAction: nsSkip,
+		},
+		{
+			name:       "-n overrides TableMapping",
+			opts:       Options{Quiet: quietNew, Packages: map[string]string{"news": "custom"}},
+			table:      "news",
+			wantNS:     "custom",
+			wantAction: nsAssign,
+		},
+		{
+			name:       "default (no -q/-n): new table is prompted",
+			opts:       Options{},
+			table:      "news",
+			wantAction: nsPrompt,
+		},
+		{
+			name:        "default (no -q/-n): even an existing table is prompted",
+			opts:        Options{},
+			table:       "comments",
+			existingNS:  "blog",
+			hasExisting: true,
+			wantAction:  nsPrompt,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotNS, gotAction := decideNamespace(tt.opts, tableMapping, tt.table, tt.existingNS, tt.hasExisting)
+			if gotAction != tt.wantAction {
+				t.Errorf("action = %d, want %d", gotAction, tt.wantAction)
+			}
+			if gotNS != tt.wantNS {
+				t.Errorf("namespace = %q, want %q", gotNS, tt.wantNS)
+			}
+		})
+	}
+}
+
 func helperLoadBytes(t *testing.T, path string) []byte {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
