@@ -73,9 +73,9 @@ func newAttribute(entity model.Entity, column model.Column) *mfd.Attribute {
 		return newStatusAttribute(column)
 	}
 
-	// processing foreign keys
+	// processing foreign keys, fk to statuses is skipped because statuses table is never added to project
 	fkModel := ""
-	if column.IsFK && column.Relation != nil {
+	if column.IsFK && column.Relation != nil && column.Relation.TargetPGFullName != "statuses" {
 		fkModel = column.Relation.GoType
 	}
 
